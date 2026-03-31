@@ -1,0 +1,31 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
+
+const routes = [
+  { path: '/login', component: () => import('@/pages/Login.vue') },
+  {
+    path: '/admin',
+    component: () => import('@/layouts/AdminLayout.vue'),
+    children: [
+      { path: 'dashboard', component: () => import('@/pages/Dashboard.vue') },
+      { path: 'photos', component: () => import('@/pages/Photos.vue') },
+      { path: 'albums', component: () => import('@/pages/Albums.vue') },
+      { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
+    ]
+  },
+  { path: '/', redirect: '/admin/dashboard' }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+  if (to.path.startsWith('/admin') && !auth.token) {
+    return '/login'
+  }
+})
+
+export default router

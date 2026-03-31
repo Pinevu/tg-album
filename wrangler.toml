@@ -1,0 +1,10 @@
+name = "tg-album"
+compatibility_date = "2025-03-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tg_album_db"
+database_id = "xxxx"
+
+[site]
+bucket = "./dist"
