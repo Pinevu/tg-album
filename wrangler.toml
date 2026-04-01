@@ -4,7 +4,7 @@ compatibility_date = "2025-03-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "tg_album_db"
-database_id = "xxxx"
+database_id = "7a0efaea-1991-4865-98bc-5327bfb587c4"
 
 [site]
 bucket = "./dist"
