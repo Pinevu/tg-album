@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
 const routes = [
@@ -13,18 +13,18 @@ const routes = [
       { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
     ]
   },
-  { path: '/', redirect: '/admin/dashboard' }
+  { path: '/', redirect: '#/admin/dashboard' }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
-  if (to.path.startsWith('/admin') && !auth.token) {
-    return '/login'
+  if (to.path.startsWith('/#/admin') && !auth.token) {
+    return '/#/login'
   }
 })
 
