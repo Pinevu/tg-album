@@ -25,7 +25,7 @@ const buildTree = (rows: AlbumRow[]): TreeNode[] => {
   return roots
 }
 
-const auth = jwt({ secret: (c) => c.env.JWT_SECRET })
+const auth = jwt({ secret: (c) => c.env.JWT_SECRET, alg: 'HS256' })
 
 app.get('/api/health', (c) => c.json({ ok: true }))
 
@@ -33,7 +33,7 @@ app.post('/api/login', async (c) => {
   const { username, password } = await c.req.json()
   const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first<any>()
   if (!user || user.password_hash !== password) return c.json({ error: 'Invalid credentials' }, 401)
-  const token = await sign({ uid: user.id, username }, c.env.JWT_SECRET)
+  const token = await sign({ uid: user.id, username }, c.env.JWT_SECRET, 'HS256')
   return c.json({ token })
 })
 
