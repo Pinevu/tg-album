@@ -11,29 +11,33 @@ npm run dev
 npm run build
 ```
 
-## D1 Schema
+## Pages Deploy
+Cloudflare Pages 会自动使用：
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Pages Functions: `functions/`
+
+## D1
+执行一次 schema 初始化：
 ```
 wrangler d1 execute tg_album_db --file=./schema.sql
 ```
 
-## Deploy
-```
-npx wrangler pages deploy ./dist --project-name tg-album
-```
-
 ## Env Vars
-- TG_BOT_TOKEN
-- TG_CHAT_ID
-- JWT_SECRET
+在 Cloudflare Pages 中设置：
+- `TG_BOT_TOKEN`
+- `TG_CHAT_ID`
+- `JWT_SECRET`
 
-## Features Added
-- Albums Tree (/api/albums/tree)
-- Photo file proxy (/api/photos/file/:id)
-- Batch tag/move/delete
-- TG deleteMessage on hard delete
-- EXIF + dominant color extraction on upload
-- Upload remark support
-- Recycle bin UI
-- Photo detail drawer + remark edit
-- Tag selector + album filter
-- Masonry layout
+## D1 Binding
+- `DB` → `tg_album_db`
+
+## Local Notes
+- 使用 Hash Router，避免 Pages SPA 刷新 404
+- 后端函数入口位于 `functions/api/index.ts`
+- 公开健康检查：`/api/health`
+
+## Project Structure
+- `src/` Vue 前端
+- `functions/` Pages Functions
+- `schema.sql` D1 初始化
