@@ -1,19 +1,14 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  password_hash TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS albums (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   parent_id INTEGER,
-  cover_photo_id INTEGER,
-  created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-  updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
-  FOREIGN KEY (parent_id) REFERENCES albums(id) ON DELETE SET NULL,
-  FOREIGN KEY (cover_photo_id) REFERENCES photos(id) ON DELETE SET NULL
+  cover_photo_id INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_albums_parent ON albums(parent_id);
 
@@ -28,10 +23,9 @@ CREATE TABLE IF NOT EXISTS photos (
   height INTEGER,
   file_size INTEGER,
   dominant_color_hex TEXT,
-  uploaded_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  uploaded_at INTEGER NOT NULL,
   deleted_at INTEGER,
-  tg_message_id INTEGER,
-  FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE SET NULL
+  tg_message_id INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_photos_album ON photos(album_id);
 CREATE INDEX IF NOT EXISTS idx_photos_uploaded_at ON photos(uploaded_at);
@@ -46,9 +40,7 @@ CREATE TABLE IF NOT EXISTS tags (
 CREATE TABLE IF NOT EXISTS photo_tags (
   photo_id INTEGER NOT NULL,
   tag_id INTEGER NOT NULL,
-  PRIMARY KEY (photo_id, tag_id),
-  FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE,
-  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+  PRIMARY KEY (photo_id, tag_id)
 );
 CREATE INDEX IF NOT EXISTS idx_photo_tags_tag ON photo_tags(tag_id);
 
@@ -64,7 +56,6 @@ CREATE TABLE IF NOT EXISTS photo_metadata (
   gps_lat REAL,
   gps_lng REAL,
   taken_at INTEGER,
-  raw_exif_json TEXT,
-  FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE
+  raw_exif_json TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_metadata_taken_at ON photo_metadata(taken_at);
