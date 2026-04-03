@@ -9,17 +9,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { searchPhotos, getAlbums, getRecycleBin } from '@/utils/api'
+import api from '@/utils/axios'
 
 const stats = ref({ totalPhotos: 0, totalAlbums: 0, totalDeleted: 0 })
 
 const load = async () => {
-  const p = await searchPhotos({ page_size: 1 })
-  const a = await getAlbums()
-  const r = await getRecycleBin()
-  stats.value.totalPhotos = (p.data.results || p.data).length
-  stats.value.totalAlbums = (a.data.results || a.data).length
-  stats.value.totalDeleted = (r.data.results || r.data).length
+  const { data } = await api.get('/stats')
+  stats.value = data
 }
 
 onMounted(load)
