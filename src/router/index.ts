@@ -13,7 +13,7 @@ const routes = [
       { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
     ]
   },
-  { path: '/', redirect: '#/admin/dashboard' }
+  { path: '/', redirect: '/login' }
 ]
 
 const router = createRouter({
@@ -23,9 +23,8 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
-  if (to.path.startsWith('/#/admin') && !auth.token) {
-    return '/#/login'
-  }
+  if (to.path.startsWith('/admin') && !auth.token) return '/login'
+  if (to.path === '/login' && auth.token) return '/admin/dashboard'
 })
 
 export default router
