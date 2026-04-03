@@ -1,10 +1,14 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-    <div class="w-96 p-6 rounded-xl bg-white/10 backdrop-blur">
-      <h1 class="text-xl font-bold mb-4">Login</h1>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white px-4">
+    <div class="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 backdrop-blur-2xl shadow-2xl p-8">
+      <div class="mb-8 text-center">
+        <div class="text-3xl font-bold tracking-wide">TG Album</div>
+        <div class="text-white/60 mt-2 text-sm">私有相册后台管理</div>
+      </div>
+
       <el-input v-model="username" placeholder="Username" class="mb-3" />
-      <el-input v-model="password" placeholder="Password" show-password class="mb-4" />
-      <el-button type="primary" class="w-full" @click="login">Login</el-button>
+      <el-input v-model="password" placeholder="Password" show-password class="mb-5" />
+      <el-button type="primary" class="w-full" size="large" @click="login">Login</el-button>
     </div>
   </div>
 </template>

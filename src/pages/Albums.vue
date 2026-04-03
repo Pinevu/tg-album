@@ -1,10 +1,20 @@
 <template>
-  <div class="text-2xl font-bold mb-4">Albums Settings</div>
-  <div class="flex gap-3 mb-4">
-    <el-input v-model="newName" placeholder="新相册名" />
-    <el-button @click="create">创建</el-button>
+  <div class="space-y-6">
+    <div class="flex items-end justify-between">
+      <div>
+        <h1 class="text-3xl font-bold">Albums</h1>
+        <p class="text-white/60 mt-1">管理相册结构与树状目录</p>
+      </div>
+      <div class="flex gap-2">
+        <el-input v-model="newName" placeholder="新相册名" class="w-56" />
+        <el-button @click="create">创建</el-button>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl p-4">
+      <el-tree :data="albums" :props="{ label: 'name', children: 'children' }" />
+    </div>
   </div>
-  <el-tree :data="albums" :props="{ label: 'name', children: 'children' }" />
 </template>
 
 <script setup lang="ts">
@@ -16,7 +26,7 @@ const newName = ref('')
 
 const load = async () => {
   const { data } = await getAlbumTree()
-  albums.value = data.results || data
+  albums.value = data.results || []
 }
 
 const create = async () => {
