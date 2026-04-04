@@ -5,6 +5,8 @@
       <p class="text-slate-500 mt-1 text-sm">管理多个 Telegram 机器人图片存储池，可新增、保存、删除、启用。</p>
     </div>
 
+    <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
+
     <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
       <div class="grid grid-cols-1 gap-3">
         <el-input v-model="form.name" placeholder="存储池名称" />
@@ -44,18 +46,36 @@ import { getPools, createPool, updatePool, deletePool } from '@/utils/api'
 const pools = ref<any[]>([])
 const editingId = ref<number | null>(null)
 const form = ref({ name: '', bot_token: '', chat_id: '', enabled: true })
+const message = ref('')
+const messageType = ref<'success' | 'error'>('success')
 
 const load = async () => {
-  const { data } = await getPools()
-  pools.value = data.results || []
+  try {
+    const { data } = await getPools()
+    pools.value = data.results || []
+  } catch (e: any) {
+    message.value = '读取存储池失败，请重新登录后重试'
+    messageType.value = 'error'
+  }
 }
 
 const save = async () => {
-  if (!form.value.name || !form.value.bot_token || !form.value.chat_id) return
-  if (editingId.value) await updatePool(editingId.value, form.value)
-  else await createPool(form.value)
-  resetForm()
-  await load()
+  if (!form.value.name || !form.value.bot_token || !form.value.chat_id) {
+    message.value = '请完整填写存储池名称、Chat ID 和 Bot Token'
+    messageType.value = 'error'
+    return
+  }
+  try {
+    if (editingId.value) await updatePool(editingId.value, form.value)
+    else await createPool(form.value)
+    message.value = '存储池保存成功'
+    messageType.value = 'success'
+    resetForm()
+    await load()
+  } catch (e: any) {
+    message.value = '存储池保存失败，请确认后端已部署到最新版本'
+    messageType.value = 'error'
+  }
 }
 
 const edit = (pool: any) => {
@@ -64,8 +84,15 @@ const edit = (pool: any) => {
 }
 
 const remove = async (id: number) => {
-  await deletePool(id)
-  await load()
+  try {
+    await deletePool(id)
+    message.value = '存储池已删除'
+    messageType.value = 'success'
+    await load()
+  } catch {
+    message.value = '删除失败'
+    messageType.value = 'error'
+  }
 }
 
 const resetForm = () => {
