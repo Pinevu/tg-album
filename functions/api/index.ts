@@ -8,12 +8,13 @@ type Bindings = {
   JWT_SECRET?: string
 }
 
-type AlbumRow = { id: number; name: string; parent_id: number | null; visibility?: string }
+type AlbumRow = { id: number; name: string; parent_id: number | null; visibility?: string; cover_photo_id?: number | null }
 type TreeNode = AlbumRow & { children: TreeNode[] }
 
 const app = new Hono<{ Bindings: Bindings }>()
 const JWT_SECRET_FALLBACK = 'tg-album-fallback-secret'
 const getJwtSecret = (c: any) => c.env.JWT_SECRET || JWT_SECRET_FALLBACK
+const getOrigin = (c: any) => new URL(c.req.url).origin
 
 const auth = async (c: any, next: any) => {
   try {
@@ -27,11 +28,50 @@ const auth = async (c: any, next: any) => {
   }
 }
 
+const tableHasColumn = async (c: any, table: string, col: string) => {
+  const res = await c.env.DB.prepare(`PRAGMA table_info(${table})`).all<any>()
+  return (res.results || []).some((r: any) => r.name === col)
+}
+
+const ensureBaseSchema = async (c: any) => {
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL)`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS albums (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, parent_id INTEGER)`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS photos (id INTEGER PRIMARY KEY AUTOINCREMENT, album_id INTEGER, tg_file_id TEXT NOT NULL, tg_file_unique_id TEXT NOT NULL UNIQUE, original_filename TEXT, width INTEGER, height INTEGER, file_size INTEGER, dominant_color_hex TEXT, uploaded_at INTEGER NOT NULL, deleted_at INTEGER, tg_message_id INTEGER)`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS tags (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_tags (photo_id INTEGER NOT NULL, tag_id INTEGER NOT NULL, PRIMARY KEY (photo_id, tag_id))`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS photo_metadata (photo_id INTEGER PRIMARY KEY, camera_make TEXT, camera_model TEXT, lens TEXT, aperture TEXT, shutter_speed TEXT, iso INTEGER, focal_length TEXT, gps_lat REAL, gps_lng REAL, taken_at INTEGER, raw_exif_json TEXT)`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS tg_pools (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, bot_token TEXT NOT NULL, chat_id TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL DEFAULT (unixepoch()))`).run()
+  await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`).run()
+
+  if (!(await tableHasColumn(c, 'albums', 'visibility'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN visibility TEXT NOT NULL DEFAULT 'private'`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'albums', 'cover_photo_id'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN cover_photo_id INTEGER`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'remark'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN remark TEXT`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'tg_pool_id'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN tg_pool_id INTEGER`).run() } catch {}
+  }
+
+  const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
+  if (!defaultAlbum) {
+    await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility, cover_photo_id) VALUES ('未分类', NULL, 'private', NULL)`).run()
+  }
+}
+
+app.use('*', async (c, next) => {
+  await ensureBaseSchema(c)
+  await next()
+})
+
 const buildTree = (rows: AlbumRow[]): TreeNode[] => {
   const map = new Map<number, TreeNode>()
-  rows.forEach(r => map.set(r.id, { ...r, children: [] }))
+  rows.forEach((r) => map.set(r.id, { ...r, children: [] }))
   const roots: TreeNode[] = []
-  rows.forEach(r => {
+  rows.forEach((r) => {
     const node = map.get(r.id)!
     if (r.parent_id && map.has(r.parent_id)) map.get(r.parent_id)!.children.push(node)
     else roots.push(node)
@@ -39,49 +79,20 @@ const buildTree = (rows: AlbumRow[]): TreeNode[] => {
   return roots
 }
 
+const flattenTree = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flattenTree(n.children) : [])])
+
 const getActivePool = async (c: any) => {
-  const pool = await c.env.DB.prepare('SELECT * FROM tg_pools WHERE enabled = 1 ORDER BY id DESC LIMIT 1').first<any>()
+  const pool = await c.env.DB.prepare(`SELECT * FROM tg_pools WHERE enabled = 1 ORDER BY id DESC LIMIT 1`).first<any>()
   if (pool) return { bot_token: pool.bot_token, chat_id: pool.chat_id, tg_pool_id: pool.id }
   return { bot_token: c.env.TG_BOT_TOKEN, chat_id: c.env.TG_CHAT_ID, tg_pool_id: null }
 }
 
 const ensureDefaultAlbum = async (c: any) => {
-  const row = await c.env.DB.prepare("SELECT id FROM albums WHERE name = '未分类' LIMIT 1").first<any>()
-  if (row?.id) return row.id
-  const created = await c.env.DB.prepare("INSERT INTO albums (name, parent_id, visibility) VALUES ('未分类', NULL, 'private')").run()
-  return created.meta.last_row_id
+  const row = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
+  return row?.id
 }
 
 app.get('/api/health', (c) => c.json({ ok: true }))
-
-app.post('/api/tg/webhook', async (c) => {
-  try {
-    const update = await c.req.json<any>()
-    const photo = update.message?.photo?.at(-1)
-    if (!photo) return c.json({ ok: true })
-    const defaultAlbumId = await ensureDefaultAlbum(c)
-    const now = Math.floor(Date.now() / 1000)
-    await c.env.DB.prepare('INSERT OR IGNORE INTO photos (album_id, tg_file_id, tg_file_unique_id, width, height, file_size, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(defaultAlbumId, photo.file_id, photo.file_unique_id, photo.width, photo.height, photo.file_size, now, update.message?.message_id || null).run()
-    return c.json({ ok: true })
-  } catch {
-    return c.json({ ok: false }, 500)
-  }
-})
-
-app.get('/api/public/albums', async (c) => {
-  const res = await c.env.DB.prepare("SELECT * FROM albums WHERE visibility = 'public' ORDER BY id ASC").all()
-  return c.json({ results: res.results || [] })
-})
-
-app.get('/api/public/photos', async (c) => {
-  const album_id = c.req.query('album_id')
-  const p: any[] = []
-  let sql = `SELECT p.* FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND a.visibility = 'public'`
-  if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
-  sql += ' ORDER BY p.uploaded_at DESC LIMIT 200'
-  const res = await c.env.DB.prepare(sql).bind(...p).all()
-  return c.json({ results: res.results || [] })
-})
 
 app.post('/api/login', async (c) => {
   try {
@@ -95,28 +106,38 @@ app.post('/api/login', async (c) => {
   }
 })
 
+app.get('/api/public/albums', async (c) => {
+  const res = await c.env.DB.prepare(`SELECT id, name, visibility, cover_photo_id FROM albums WHERE visibility = 'public' ORDER BY id ASC`).all<any>()
+  return c.json({ results: res.results || [] })
+})
+
+app.get('/api/public/photos', async (c) => {
+  const album_id = c.req.query('album_id')
+  const p: any[] = []
+  let sql = `SELECT p.* FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND a.visibility = 'public'`
+  if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
+  sql += ' ORDER BY p.uploaded_at DESC LIMIT 200'
+  const res = await c.env.DB.prepare(sql).bind(...p).all()
+  return c.json({ results: res.results || [] })
+})
+
 app.get('/api/stats', auth, async (c) => {
-  const totalPhotos = await c.env.DB.prepare('SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL').first<any>()
-  const totalAlbums = await c.env.DB.prepare('SELECT COUNT(*) as c FROM albums').first<any>()
-  const totalDeleted = await c.env.DB.prepare('SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NOT NULL').first<any>()
-  const totalPools = await c.env.DB.prepare('SELECT COUNT(*) as c FROM tg_pools').first<any>()
+  const totalPhotos = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL`).first<any>()
+  const totalAlbums = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM albums`).first<any>()
+  const totalDeleted = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NOT NULL`).first<any>()
+  const totalPools = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM tg_pools`).first<any>()
   return c.json({ totalPhotos: totalPhotos?.c || 0, totalAlbums: totalAlbums?.c || 0, totalDeleted: totalDeleted?.c || 0, totalPools: totalPools?.c || 0 })
 })
 
-app.get('/api/tg/webhook-url', auth, async (c) => {
-  const url = 'https://tg-album.pages.dev/api/tg/webhook'
-  return c.json({ webhook_url: url, set_webhook_command: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=${encodeURIComponent(url)}` })
-})
-
 app.get('/api/tg-pools', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT id,name,chat_id,enabled,created_at FROM tg_pools ORDER BY id DESC').all()
+  const res = await c.env.DB.prepare(`SELECT id, name, chat_id, enabled, created_at FROM tg_pools ORDER BY id DESC`).all()
   return c.json({ results: res.results || [] })
 })
 
 app.post('/api/tg-pools', auth, async (c) => {
   const { name, bot_token, chat_id, enabled } = await c.req.json()
-  if (enabled) await c.env.DB.prepare('UPDATE tg_pools SET enabled = 0').run()
-  await c.env.DB.prepare('INSERT INTO tg_pools (name, bot_token, chat_id, enabled) VALUES (?, ?, ?, ?)').bind(name, bot_token, chat_id, enabled ? 1 : 0).run()
+  if (enabled) await c.env.DB.prepare(`UPDATE tg_pools SET enabled = 0`).run()
+  await c.env.DB.prepare(`INSERT INTO tg_pools (name, bot_token, chat_id, enabled) VALUES (?, ?, ?, ?)`).bind(name, bot_token, chat_id, enabled ? 1 : 0).run()
   return c.json({ success: true })
 })
 
@@ -135,65 +156,85 @@ app.post('/api/tg-pools/test', auth, async (c) => {
 app.put('/api/tg-pools/:id', auth, async (c) => {
   const id = c.req.param('id')
   const { name, bot_token, chat_id, enabled } = await c.req.json()
-  if (enabled) await c.env.DB.prepare('UPDATE tg_pools SET enabled = 0').run()
-  await c.env.DB.prepare('UPDATE tg_pools SET name = ?, bot_token = ?, chat_id = ?, enabled = ? WHERE id = ?').bind(name, bot_token, chat_id, enabled ? 1 : 0, id).run()
+  if (enabled) await c.env.DB.prepare(`UPDATE tg_pools SET enabled = 0`).run()
+  await c.env.DB.prepare(`UPDATE tg_pools SET name = ?, bot_token = ?, chat_id = ?, enabled = ? WHERE id = ?`).bind(name, bot_token, chat_id, enabled ? 1 : 0, id).run()
   return c.json({ success: true })
 })
 
 app.delete('/api/tg-pools/:id', auth, async (c) => {
   const id = c.req.param('id')
-  await c.env.DB.prepare('DELETE FROM tg_pools WHERE id = ?').bind(id).run()
+  await c.env.DB.prepare(`DELETE FROM tg_pools WHERE id = ?`).bind(id).run()
   return c.json({ success: true })
 })
 
+app.get('/api/tg/webhook-url', auth, async (c) => {
+  const url = `${getOrigin(c)}/api/tg/webhook/<poolId>`
+  return c.json({ webhook_url: url, set_webhook_command: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=${encodeURIComponent(url)}` })
+})
+
+app.post('/api/tg/webhook/:poolId', async (c) => {
+  try {
+    const poolId = c.req.param('poolId')
+    const update = await c.req.json<any>()
+    const photo = update.message?.photo?.at(-1)
+    if (!photo) return c.json({ ok: true })
+    const defaultAlbumId = await ensureDefaultAlbum(c)
+    const now = Math.floor(Date.now() / 1000)
+    await c.env.DB.prepare(`INSERT OR IGNORE INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, width, height, file_size, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(defaultAlbumId, poolId, photo.file_id, photo.file_unique_id, photo.width, photo.height, photo.file_size, now, update.message?.message_id || null).run()
+    return c.json({ ok: true })
+  } catch {
+    return c.json({ ok: false }, 500)
+  }
+})
+
 app.get('/api/albums', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT * FROM albums ORDER BY id ASC').all()
+  const res = await c.env.DB.prepare(`SELECT * FROM albums ORDER BY id ASC`).all()
   return c.json({ results: res.results || [] })
 })
 
 app.get('/api/albums/tree', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT id,name,parent_id,visibility FROM albums ORDER BY id ASC').all<AlbumRow>()
+  const res = await c.env.DB.prepare(`SELECT id, name, parent_id, visibility, cover_photo_id FROM albums ORDER BY id ASC`).all<AlbumRow>()
   return c.json({ results: buildTree(res.results || []) })
 })
 
 app.post('/api/albums', auth, async (c) => {
   const { name, parent_id, visibility } = await c.req.json()
-  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,visibility) VALUES (?,?,?)').bind(name, parent_id ?? null, visibility || 'private').run()
-  return c.json({ success: true })
-})
-
-app.put('/api/albums/:id/cover', auth, async (c) => {
-  const id = c.req.param('id')
-  const { cover_photo_id } = await c.req.json()
-  await c.env.DB.prepare('UPDATE albums SET cover_photo_id = ? WHERE id = ?').bind(cover_photo_id, id).run()
+  await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility) VALUES (?, ?, ?)`).bind(name, parent_id ?? null, visibility || 'private').run()
   return c.json({ success: true })
 })
 
 app.put('/api/albums/:id', auth, async (c) => {
   const id = c.req.param('id')
   const { name, visibility } = await c.req.json()
-  await c.env.DB.prepare('UPDATE albums SET name = ?, visibility = ? WHERE id = ?').bind(name, visibility || 'private', id).run()
+  await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ? WHERE id = ?`).bind(name, visibility || 'private', id).run()
+  return c.json({ success: true })
+})
+
+app.put('/api/albums/:id/cover', auth, async (c) => {
+  const id = c.req.param('id')
+  const { cover_photo_id } = await c.req.json()
+  await c.env.DB.prepare(`UPDATE albums SET cover_photo_id = ? WHERE id = ?`).bind(cover_photo_id, id).run()
   return c.json({ success: true })
 })
 
 app.delete('/api/albums/:id', auth, async (c) => {
   const id = c.req.param('id')
-  await c.env.DB.prepare('DELETE FROM albums WHERE id = ?').bind(id).run()
+  await c.env.DB.prepare(`DELETE FROM albums WHERE id = ?`).bind(id).run()
   return c.json({ success: true })
 })
 
 app.get('/api/tags', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT * FROM tags ORDER BY name ASC').all()
+  const res = await c.env.DB.prepare(`SELECT * FROM tags ORDER BY name ASC`).all()
   return c.json({ results: res.results || [] })
 })
 
 app.get('/api/photos/file/:id', async (c) => {
   const id = c.req.param('id')
-  const row = await c.env.DB.prepare('SELECT tg_file_id, tg_pool_id FROM photos WHERE id = ?').bind(id).first<any>()
+  const row = await c.env.DB.prepare(`SELECT tg_file_id, tg_pool_id FROM photos WHERE id = ?`).bind(id).first<any>()
   if (!row) return c.json({ error: 'Not found' }, 404)
   let botToken = c.env.TG_BOT_TOKEN
   if (row.tg_pool_id) {
-    const pool = await c.env.DB.prepare('SELECT bot_token FROM tg_pools WHERE id = ?').bind(row.tg_pool_id).first<any>()
+    const pool = await c.env.DB.prepare(`SELECT bot_token FROM tg_pools WHERE id = ?`).bind(row.tg_pool_id).first<any>()
     if (pool?.bot_token) botToken = pool.bot_token
   }
   if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
@@ -217,17 +258,25 @@ app.post('/api/upload', auth, async (c) => {
     const original = form.get('original_filename')?.toString() || file.name
     const dominant = form.get('dominant_color_hex')?.toString() || null
     const exifJson = form.get('exif_json')?.toString() || null
-    const tgRes = await fetch(`https://api.telegram.org/bot${pool.bot_token}/sendPhoto`, { method: 'POST', body: (() => { const f = new FormData(); f.append('chat_id', pool.chat_id!); f.append('photo', file); return f })() })
+    const tgRes = await fetch(`https://api.telegram.org/bot${pool.bot_token}/sendPhoto`, {
+      method: 'POST',
+      body: (() => {
+        const f = new FormData()
+        f.append('chat_id', pool.chat_id!)
+        f.append('photo', file)
+        return f
+      })()
+    })
     const tg = await tgRes.json<any>()
     if (!tg.ok) return c.json({ error: 'Telegram upload failed', detail: tg }, 500)
     const photo = tg.result.photo.at(-1)
     const now = Math.floor(Date.now() / 1000)
-    const tx = c.env.DB.transaction(async (tx) => {
-      const ins = await tx.prepare('INSERT INTO photos (album_id,tg_pool_id,tg_file_id,tg_file_unique_id,original_filename,remark,width,height,file_size,dominant_color_hex,uploaded_at,tg_message_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
-      if (exifJson) await tx.prepare('INSERT OR REPLACE INTO photo_metadata (photo_id,raw_exif_json) VALUES (?,?)').bind(ins.meta.last_row_id, exifJson).run()
-    })
-    await tx
-    return c.json({ success: true, pooled: true, album_id: albumId })
+    const ins = await c.env.DB.prepare(`INSERT INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, original_filename, remark, width, height, file_size, dominant_color_hex, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
+    const photoId = ins.meta.last_row_id
+    if (exifJson) {
+      await c.env.DB.prepare(`INSERT OR REPLACE INTO photo_metadata (photo_id, raw_exif_json) VALUES (?, ?)`).bind(photoId, exifJson).run()
+    }
+    return c.json({ success: true, pooled: true, album_id: albumId, id: photoId, direct_url: `${getOrigin(c)}/api/photos/file/${photoId}` })
   } catch (e: any) {
     return c.json({ error: e?.message || 'Upload failed' }, 500)
   }
@@ -236,21 +285,21 @@ app.post('/api/upload', auth, async (c) => {
 app.get('/api/photos/search', auth, async (c) => {
   const { album_id, tag, date_start, date_end, keyword, page='1', page_size='30' } = c.req.query()
   const p: any[] = []
-  let sql = `SELECT p.*, m.camera_model, m.aperture, m.shutter_speed, m.iso, m.focal_length FROM photos p LEFT JOIN photo_metadata m ON p.id=m.photo_id LEFT JOIN photo_tags pt ON p.id=pt.photo_id LEFT JOIN tags t ON pt.tag_id=t.id WHERE p.deleted_at IS NULL`
+  let sql = `SELECT p.*, a.name AS album_name, GROUP_CONCAT(DISTINCT t.name) AS tags, m.camera_model, m.aperture, m.shutter_speed, m.iso, m.focal_length FROM photos p LEFT JOIN albums a ON p.album_id = a.id LEFT JOIN photo_metadata m ON p.id = m.photo_id LEFT JOIN photo_tags pt ON p.id = pt.photo_id LEFT JOIN tags t ON pt.tag_id = t.id WHERE p.deleted_at IS NULL`
   if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
   if (tag) { sql += ' AND t.name = ?'; p.push(tag) }
   if (keyword) { sql += ' AND (p.original_filename LIKE ? OR p.remark LIKE ?)'; p.push(`%${keyword}%`, `%${keyword}%`) }
   if (date_start) { sql += ' AND p.uploaded_at >= ?'; p.push(date_start) }
   if (date_end) { sql += ' AND p.uploaded_at <= ?'; p.push(date_end) }
-  sql += ' ORDER BY p.uploaded_at DESC LIMIT ? OFFSET ?'
-  p.push(Number(page_size), (Number(page)-1)*Number(page_size))
-  const res = await c.env.DB.prepare(sql).bind(...p).all()
+  sql += ' GROUP BY p.id ORDER BY p.uploaded_at DESC LIMIT ? OFFSET ?'
+  p.push(Number(page_size), (Number(page) - 1) * Number(page_size))
+  const res = await c.env.DB.prepare(sql).bind(...p).all<any>()
   return c.json({ results: res.results || [] })
 })
 
 app.get('/api/photos/:id', auth, async (c) => {
   const id = c.req.param('id')
-  const res = await c.env.DB.prepare('SELECT p.*, m.camera_make, m.camera_model, m.lens, m.aperture, m.shutter_speed, m.iso, m.focal_length, m.gps_lat, m.gps_lng, m.taken_at, m.raw_exif_json FROM photos p LEFT JOIN photo_metadata m ON p.id = m.photo_id WHERE p.id = ?').bind(id).first<any>()
+  const res = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name, m.camera_make, m.camera_model, m.lens, m.aperture, m.shutter_speed, m.iso, m.focal_length, m.gps_lat, m.gps_lng, m.taken_at, m.raw_exif_json FROM photos p LEFT JOIN albums a ON p.album_id = a.id LEFT JOIN photo_metadata m ON p.id = m.photo_id WHERE p.id = ?`).bind(id).first<any>()
   if (!res) return c.json({ error: 'Not found' }, 404)
   return c.json(res)
 })
@@ -258,7 +307,7 @@ app.get('/api/photos/:id', auth, async (c) => {
 app.put('/api/photos/:id/remark', auth, async (c) => {
   const id = c.req.param('id')
   const { remark } = await c.req.json()
-  await c.env.DB.prepare('UPDATE photos SET remark = ? WHERE id = ?').bind(remark, id).run()
+  await c.env.DB.prepare(`UPDATE photos SET remark = ? WHERE id = ?`).bind(remark, id).run()
   return c.json({ success: true })
 })
 
@@ -278,7 +327,7 @@ app.post('/api/photos/batch-delete', auth, async (c) => {
       let botToken = c.env.TG_BOT_TOKEN
       let chatId = c.env.TG_CHAT_ID
       if (row.tg_pool_id) {
-        const pool = await c.env.DB.prepare('SELECT bot_token, chat_id FROM tg_pools WHERE id = ?').bind(row.tg_pool_id).first<any>()
+        const pool = await c.env.DB.prepare(`SELECT bot_token, chat_id FROM tg_pools WHERE id = ?`).bind(row.tg_pool_id).first<any>()
         if (pool?.bot_token) botToken = pool.bot_token
         if (pool?.chat_id) chatId = pool.chat_id
       }
@@ -299,14 +348,14 @@ app.post('/api/photos/batch-delete', auth, async (c) => {
 app.post('/api/photos/batch-tag', auth, async (c) => {
   const { ids, tags } = await c.req.json()
   if (!ids?.length || !tags?.length) return c.json({ success: true })
-  for (const name of tags) await c.env.DB.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)').bind(name).run()
-  const ts = await c.env.DB.prepare(`SELECT id,name FROM tags WHERE name IN (${tags.map(() => '?').join(',')})`).bind(...tags).all<any>()
-  for (const t of ts.results || []) for (const id of ids) await c.env.DB.prepare('INSERT OR IGNORE INTO photo_tags (photo_id, tag_id) VALUES (?, ?)').bind(id, t.id).run()
+  for (const name of tags) await c.env.DB.prepare(`INSERT OR IGNORE INTO tags (name) VALUES (?)`).bind(name).run()
+  const ts = await c.env.DB.prepare(`SELECT id, name FROM tags WHERE name IN (${tags.map(() => '?').join(',')})`).bind(...tags).all<any>()
+  for (const t of ts.results || []) for (const id of ids) await c.env.DB.prepare(`INSERT OR IGNORE INTO photo_tags (photo_id, tag_id) VALUES (?, ?)`).bind(id, t.id).run()
   return c.json({ success: true })
 })
 
 app.get('/api/admin/recycle-bin', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT * FROM photos WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC').all()
+  const res = await c.env.DB.prepare(`SELECT * FROM photos WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC`).all()
   return c.json({ results: res.results || [] })
 })
 
