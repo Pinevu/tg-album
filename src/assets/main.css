@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+html, body, #app { min-height: 100%; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+  color: #0f172a;
+}
+.el-menu { border-right: none !important; }
+@media (max-width: 768px) {
+  .mobile-stack { display: block !important; }
 }

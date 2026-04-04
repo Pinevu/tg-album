@@ -1,25 +1,30 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-end justify-between">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold">仪表盘</h1>
-        <p class="text-white/60 mt-1">概览照片、相册和回收站状态</p>
+        <h1 class="text-3xl font-bold text-slate-900">仪表盘</h1>
+        <p class="text-slate-500 mt-1">概览照片、相册、回收站以及 Telegram 存储池状态</p>
       </div>
       <el-button @click="load">刷新</el-button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl p-5">
-        <div class="text-white/60 text-sm">照片总数</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="text-slate-500 text-sm">照片总数</div>
         <div class="text-3xl font-bold mt-2">{{ stats.totalPhotos }}</div>
       </div>
-      <div class="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl p-5">
-        <div class="text-white/60 text-sm">相册数量</div>
+      <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="text-slate-500 text-sm">相册数量</div>
         <div class="text-3xl font-bold mt-2">{{ stats.totalAlbums }}</div>
       </div>
-      <div class="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl p-5">
-        <div class="text-white/60 text-sm">回收站数量</div>
+      <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="text-slate-500 text-sm">回收站数量</div>
         <div class="text-3xl font-bold mt-2">{{ stats.totalDeleted }}</div>
+      </div>
+      <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="text-slate-500 text-sm">TG 存储池</div>
+        <div class="text-lg font-semibold mt-2 text-emerald-600">已连接</div>
+        <div class="text-xs text-slate-400 mt-1">上传图片会自动发送到 Telegram Bot</div>
       </div>
     </div>
   </div>
