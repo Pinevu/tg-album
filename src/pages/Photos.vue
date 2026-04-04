@@ -107,10 +107,10 @@
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
               <div class="mt-2 grid grid-cols-2 gap-1 photo-actions">
-                <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
-                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
+                <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn">详情</el-button>
+                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn">移动</el-button>
                 <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="photo-action-btn">删除</el-button>
-                <el-button size="small" @click.stop="openEditDialog(photo.id)" class="photo-action-btn !border-purple-200 !text-purple-600 !bg-purple-50 hover:!bg-purple-100">编辑</el-button>
+                <el-button size="small" @click.stop="openEditDialog(photo.id)" class="photo-action-btn">编辑</el-button>
               </div>
             </div>
           </div>
@@ -118,7 +118,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="moveDialogVisible" title="移动图片" width="360px" class="!rounded-3xl">
+    <el-dialog v-model="moveDialogVisible" title="移动图片" width="240px" class="!rounded-3xl">
       <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="large">
         <el-option v-for="album in flatAlbums" :key="album.id" :label="album.name" :value="album.id" />
       </el-select>
@@ -651,13 +651,32 @@ onMounted(() => {
 .photo-actions :deep(.el-button),
 .photo-action-btn {
   width: 100%;
-  height: 26px;
-  padding: 0 6px;
+  height: 24px;
+  padding: 0 8px;
   font-size: 10px;
-  border-radius: 10px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #f5f5f5;
+  border: 1px solid #e5e5e5;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.photo-actions :deep(.el-button:hover) {
+  background: #e8e8e8;
+  border-color: #d9d9d9;
+}
+
+.photo-actions :deep(.el-button:active) {
+  background: #d9d9d9;
+}
+
+.photo-actions :deep(.el-button.is-disabled) {
+  background: #f5f5f5;
+  border-color: #e5e5e5;
+  color: #bfbfbf;
 }
 
 .photo-actions :deep(.el-button > span) {
