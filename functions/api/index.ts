@@ -28,6 +28,12 @@ const buildTree = (rows: AlbumRow[]): TreeNode[] => {
   return roots
 }
 
+const getActivePool = async (c: any) => {
+  const pool = await c.env.DB.prepare('SELECT * FROM tg_pools WHERE enabled = 1 ORDER BY id DESC LIMIT 1').first<any>()
+  if (pool) return { bot_token: pool.bot_token, chat_id: pool.chat_id, tg_pool_id: pool.id }
+  return { bot_token: c.env.TG_BOT_TOKEN, chat_id: c.env.TG_CHAT_ID, tg_pool_id: null }
+}
+
 app.get('/api/health', (c) => c.json({ ok: true }))
 
 app.post('/api/login', async (c) => {
@@ -46,7 +52,34 @@ app.get('/api/stats', auth, async (c) => {
   const totalPhotos = await c.env.DB.prepare('SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL').first<any>()
   const totalAlbums = await c.env.DB.prepare('SELECT COUNT(*) as c FROM albums').first<any>()
   const totalDeleted = await c.env.DB.prepare('SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NOT NULL').first<any>()
-  return c.json({ totalPhotos: totalPhotos?.c || 0, totalAlbums: totalAlbums?.c || 0, totalDeleted: totalDeleted?.c || 0 })
+  const totalPools = await c.env.DB.prepare('SELECT COUNT(*) as c FROM tg_pools').first<any>()
+  return c.json({ totalPhotos: totalPhotos?.c || 0, totalAlbums: totalAlbums?.c || 0, totalDeleted: totalDeleted?.c || 0, totalPools: totalPools?.c || 0 })
+})
+
+app.get('/api/tg-pools', auth, async (c) => {
+  const res = await c.env.DB.prepare('SELECT id,name,chat_id,enabled,created_at FROM tg_pools ORDER BY id DESC').all()
+  return c.json({ results: res.results || [] })
+})
+
+app.post('/api/tg-pools', auth, async (c) => {
+  const { name, bot_token, chat_id, enabled } = await c.req.json()
+  if (enabled) await c.env.DB.prepare('UPDATE tg_pools SET enabled = 0').run()
+  await c.env.DB.prepare('INSERT INTO tg_pools (name, bot_token, chat_id, enabled) VALUES (?, ?, ?, ?)').bind(name, bot_token, chat_id, enabled ? 1 : 0).run()
+  return c.json({ success: true })
+})
+
+app.put('/api/tg-pools/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  const { name, bot_token, chat_id, enabled } = await c.req.json()
+  if (enabled) await c.env.DB.prepare('UPDATE tg_pools SET enabled = 0').run()
+  await c.env.DB.prepare('UPDATE tg_pools SET name = ?, bot_token = ?, chat_id = ?, enabled = ? WHERE id = ?').bind(name, bot_token, chat_id, enabled ? 1 : 0, id).run()
+  return c.json({ success: true })
+})
+
+app.delete('/api/tg-pools/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  await c.env.DB.prepare('DELETE FROM tg_pools WHERE id = ?').bind(id).run()
+  return c.json({ success: true })
 })
 
 app.get('/api/albums', auth, async (c) => {
@@ -61,8 +94,7 @@ app.get('/api/albums/tree', auth, async (c) => {
 
 app.post('/api/albums', auth, async (c) => {
   const { name, parent_id } = await c.req.json()
-  const now = Math.floor(Date.now() / 1000)
-  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,created_at,updated_at) VALUES (?,?,?,?)').bind(name, parent_id ?? null, now, now).run()
+  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,cover_photo_id) VALUES (?,?,NULL)').bind(name, parent_id ?? null).run()
   return c.json({ success: true })
 })
 
@@ -73,21 +105,19 @@ app.get('/api/tags', auth, async (c) => {
 
 app.get('/api/photos/file/:id', auth, async (c) => {
   const id = c.req.param('id')
-  const row = await c.env.DB.prepare('SELECT tg_file_id FROM photos WHERE id = ?').bind(id).first<any>()
+  const row = await c.env.DB.prepare('SELECT tg_file_id, tg_pool_id FROM photos WHERE id = ?').bind(id).first<any>()
   if (!row) return c.json({ error: 'Not found' }, 404)
-  if (!c.env.TG_BOT_TOKEN) return c.json({ error: 'TG_BOT_TOKEN not configured' }, 500)
-  const fileRes = await fetch(`https://api.telegram.org/bot${c.env.TG_BOT_TOKEN}/getFile?file_id=${row.tg_file_id}`)
+  let botToken = c.env.TG_BOT_TOKEN
+  if (row.tg_pool_id) {
+    const pool = await c.env.DB.prepare('SELECT bot_token FROM tg_pools WHERE id = ?').bind(row.tg_pool_id).first<any>()
+    if (pool?.bot_token) botToken = pool.bot_token
+  }
+  if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
+  const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
   const fileJson = await fileRes.json<any>()
   if (!fileJson.ok) return c.json({ error: 'Telegram getFile failed', detail: fileJson }, 500)
-  const imgRes = await fetch(`https://api.telegram.org/file/bot${c.env.TG_BOT_TOKEN}/${fileJson.result.file_path}`)
+  const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
   return new Response(imgRes.body, { headers: { 'content-type': imgRes.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } })
-})
-
-app.get('/api/photos/:id', auth, async (c) => {
-  const id = c.req.param('id')
-  const res = await c.env.DB.prepare('SELECT p.*, m.camera_make, m.camera_model, m.lens, m.aperture, m.shutter_speed, m.iso, m.focal_length, m.gps_lat, m.gps_lng, m.taken_at, m.raw_exif_json FROM photos p LEFT JOIN photo_metadata m ON p.id = m.photo_id WHERE p.id = ?').bind(id).first<any>()
-  if (!res) return c.json({ error: 'Not found' }, 404)
-  return c.json(res)
 })
 
 app.post('/api/upload', auth, async (c) => {
@@ -95,19 +125,20 @@ app.post('/api/upload', auth, async (c) => {
     const form = await c.req.formData()
     const file = form.get('file') as File | null
     if (!file) return c.json({ error: 'No file provided' }, 400)
-    if (!c.env.TG_BOT_TOKEN || !c.env.TG_CHAT_ID) return c.json({ error: 'Telegram env not configured' }, 500)
+    const pool = await getActivePool(c)
+    if (!pool.bot_token || !pool.chat_id) return c.json({ error: '未配置 TG 存储池' }, 500)
     const albumId = form.get('album_id')?.toString() || null
     const remark = form.get('remark')?.toString() || null
     const original = form.get('original_filename')?.toString() || file.name
     const dominant = form.get('dominant_color_hex')?.toString() || null
     const exifJson = form.get('exif_json')?.toString() || null
-    const tgRes = await fetch(`https://api.telegram.org/bot${c.env.TG_BOT_TOKEN}/sendPhoto`, { method: 'POST', body: (() => { const f = new FormData(); f.append('chat_id', c.env.TG_CHAT_ID); f.append('photo', file); return f })() })
+    const tgRes = await fetch(`https://api.telegram.org/bot${pool.bot_token}/sendPhoto`, { method: 'POST', body: (() => { const f = new FormData(); f.append('chat_id', pool.chat_id!); f.append('photo', file); return f })() })
     const tg = await tgRes.json<any>()
     if (!tg.ok) return c.json({ error: 'Telegram upload failed', detail: tg }, 500)
     const photo = tg.result.photo.at(-1)
     const now = Math.floor(Date.now() / 1000)
     const tx = c.env.DB.transaction(async (tx) => {
-      const ins = await tx.prepare('INSERT INTO photos (album_id,tg_file_id,tg_file_unique_id,original_filename,remark,width,height,file_size,dominant_color_hex,uploaded_at,tg_message_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)').bind(albumId, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
+      const ins = await tx.prepare('INSERT INTO photos (album_id,tg_pool_id,tg_file_id,tg_file_unique_id,original_filename,remark,width,height,file_size,dominant_color_hex,uploaded_at,tg_message_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
       if (exifJson) await tx.prepare('INSERT OR REPLACE INTO photo_metadata (photo_id,raw_exif_json) VALUES (?,?)').bind(ins.meta.last_row_id, exifJson).run()
     })
     await tx
@@ -130,6 +161,13 @@ app.get('/api/photos/search', auth, async (c) => {
   p.push(Number(page_size), (Number(page)-1)*Number(page_size))
   const res = await c.env.DB.prepare(sql).bind(...p).all()
   return c.json({ results: res.results || [] })
+})
+
+app.get('/api/photos/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  const res = await c.env.DB.prepare('SELECT p.*, m.camera_make, m.camera_model, m.lens, m.aperture, m.shutter_speed, m.iso, m.focal_length, m.gps_lat, m.gps_lng, m.taken_at, m.raw_exif_json FROM photos p LEFT JOIN photo_metadata m ON p.id = m.photo_id WHERE p.id = ?').bind(id).first<any>()
+  if (!res) return c.json({ error: 'Not found' }, 404)
+  return c.json(res)
 })
 
 app.put('/api/photos/:id/remark', auth, async (c) => {

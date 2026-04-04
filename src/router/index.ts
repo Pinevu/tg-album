@@ -10,6 +10,7 @@ const routes = [
       { path: 'dashboard', component: () => import('@/pages/Dashboard.vue') },
       { path: 'photos', component: () => import('@/pages/Photos.vue') },
       { path: 'albums', component: () => import('@/pages/Albums.vue') },
+      { path: 'pools', component: () => import('@/pages/Pools.vue') },
       { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
     ]
   },

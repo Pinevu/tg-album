@@ -12,9 +12,19 @@ CREATE TABLE IF NOT EXISTS albums (
 );
 CREATE INDEX IF NOT EXISTS idx_albums_parent ON albums(parent_id);
 
+CREATE TABLE IF NOT EXISTS tg_pools (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  bot_token TEXT NOT NULL,
+  chat_id TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
 CREATE TABLE IF NOT EXISTS photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   album_id INTEGER,
+  tg_pool_id INTEGER,
   tg_file_id TEXT NOT NULL,
   tg_file_unique_id TEXT NOT NULL UNIQUE,
   original_filename TEXT,
