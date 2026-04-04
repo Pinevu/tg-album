@@ -78,35 +78,31 @@
           <div class="text-slate-500">暂无图片</div>
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
           <div
             v-for="photo in photos"
             :key="photo.id"
-            class="relative rounded-[24px] border bg-white shadow-sm transition-all duration-200 overflow-hidden"
+            class="rounded-[22px] border bg-white shadow-sm transition-all duration-200 overflow-hidden"
             :class="selectedIds.includes(photo.id)
               ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg shadow-blue-100'
               : 'border-slate-200 hover:border-blue-200 hover:shadow-md'"
             @click="toggleSelect(photo.id)"
           >
-            <div class="flex items-stretch gap-3 p-3 min-h-[104px]">
-              <div class="relative shrink-0">
-                <img :src="photo.previewUrl" class="w-16 h-16 rounded-2xl object-cover border border-slate-100 shadow-sm" />
-                <div v-if="selectedIds.includes(photo.id)" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] shadow-md">✓</div>
+            <div class="p-2">
+              <div class="relative">
+                <img :src="photo.previewUrl" class="w-full aspect-square rounded-2xl object-cover border border-slate-100 shadow-sm" />
+                <div v-if="selectedIds.includes(photo.id)" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] shadow-md">✓</div>
               </div>
 
-              <div class="min-w-0 flex-1 flex flex-col justify-between">
-                <div>
-                  <div class="text-[12px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
-                  <div class="text-[10px] text-slate-500 mt-1 truncate">{{ photo.camera_model || '未知设备' }}</div>
-                  <div v-if="photo.album_name" class="text-[10px] text-blue-600 mt-1 truncate">{{ photo.album_name }}</div>
-                </div>
-              </div>
+              <div class="mt-2 text-[10px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
+              <div class="text-[9px] text-slate-500 mt-0.5 truncate">{{ photo.camera_model || '未知设备' }}</div>
+              <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
-              <div class="shrink-0 flex flex-col gap-1.5 justify-center">
-                <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-lg !px-2 !h-7 !text-[11px] !min-w-[48px]">详情</el-button>
-                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-lg !px-2 !h-7 !text-[11px] !min-w-[48px]">移动</el-button>
-                <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-lg !px-2 !h-7 !text-[11px] !min-w-[48px]">删除</el-button>
-                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-lg !px-2 !h-7 !text-[11px] !min-w-[48px]">直链</el-button>
+              <div class="mt-2 grid grid-cols-2 gap-1">
+                <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">详情</el-button>
+                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">移动</el-button>
+                <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">删除</el-button>
+                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">直链</el-button>
               </div>
             </div>
           </div>

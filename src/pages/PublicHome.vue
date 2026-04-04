@@ -21,7 +21,7 @@
       <section class="rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white p-6 shadow-2xl shadow-blue-500/20 overflow-hidden relative">
         <div class="relative z-10">
           <div class="text-2xl md:text-4xl font-bold tracking-tight">公开相册照片流</div>
-          <div class="text-white/85 mt-2 text-sm md:text-base">展示所有公开相册中的照片，按时间倒序瀑布流展示。</div>
+          <div class="text-white/85 mt-2 text-sm md:text-base">直接展示所有公开相册中的照片，按时间倒序瀑布流展示。</div>
         </div>
         <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
       </section>
@@ -31,7 +31,7 @@
           @click="selectAlbum(null)"
           :class="['px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all', currentAlbumId === null ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600']"
         >
-          全部公开相册
+          全部公开图片
         </button>
         <button
           v-for="album in albums"
@@ -41,25 +41,6 @@
         >
           {{ album.name }}
         </button>
-      </section>
-
-      <section v-if="albums.length" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
-        <div
-          v-for="album in albums"
-          :key="album.id"
-          @click="selectAlbum(album.id)"
-          class="rounded-[24px] overflow-hidden border bg-white shadow-sm cursor-pointer transition-all duration-200"
-          :class="currentAlbumId === album.id ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg shadow-blue-100' : 'border-slate-200 hover:border-blue-200 hover:shadow-md'"
-        >
-          <div class="aspect-square bg-slate-100 overflow-hidden">
-            <img v-if="album.cover_photo" :src="`/api/photos/file/${album.cover_photo.id}`" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center text-slate-300 text-3xl">🖼️</div>
-          </div>
-          <div class="p-3">
-            <div class="text-xs font-semibold text-slate-800 truncate">{{ album.name }}</div>
-            <div class="text-[11px] text-slate-500 mt-1">{{ album.photo_count || 0 }} 张</div>
-          </div>
-        </div>
       </section>
 
       <section v-if="photos.length === 0" class="rounded-[28px] border border-slate-200 bg-white shadow-sm py-20 text-center">
