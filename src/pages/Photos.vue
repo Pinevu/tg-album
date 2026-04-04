@@ -102,17 +102,17 @@
             </div>
 
             <!-- 4个按钮直接显示在图片下方 -->
-            <div class="p-2 flex gap-1">
-              <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-full !w-12 !px-2">详情</el-button>
-              <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-full !w-12 !px-2">移动</el-button>
-              <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-full !w-12 !px-2">删除</el-button>
-              <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-full !w-12 !px-2">直链</el-button>
+            <div class="p-1.5 flex gap-0.5">
+              <el-button size="mini" @click.stop="openDetail(photo.id)" class="!rounded-full !w-9 !px-1.5 !py-0.5 !text-[10px]">详情</el-button>
+              <el-button size="mini" @click.stop="openMoveDialog(photo.id)" class="!rounded-full !w-9 !px-1.5 !py-0.5 !text-[10px]">移动</el-button>
+              <el-button size="mini" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-full !w-9 !px-1.5 !py-0.5 !text-[10px]">删除</el-button>
+              <el-button size="mini" @click.stop="copyDirectLink(photo.id)" class="!rounded-full !w-9 !px-1.5 !py-0.5 !text-[10px]">直链</el-button>
             </div>
 
             <!-- 文件名（小字） -->
-            <div class="p-2">
-              <div class="text-xs font-medium text-slate-800 line-clamp-1">{{ photo.original_filename || '未命名图片' }}</div>
-              <div class="text-[10px] text-slate-500 mt-0.5">{{ photo.camera_model || '未知设备' }}</div>
+            <div class="p-1.5">
+              <div class="text-[10px] font-medium text-slate-800 line-clamp-1">{{ photo.original_filename || '未命名图片' }}</div>
+              <div class="text-[9px] text-slate-500 mt-0.25">{{ photo.camera_model || '未知设备' }}</div>
             </div>
           </div>
         </div>
