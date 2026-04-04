@@ -7,17 +7,17 @@
           <div class="text-xs text-slate-500">Telegram 图片存储池</div>
         </div>
         <div class="flex items-center gap-2">
-          <a href="#/" class="px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm shadow-sm hover:border-blue-300 transition">前台</a>
+          <a href="/" class="px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm shadow-sm hover:border-blue-300 transition">前台</a>
           <button class="px-3 py-2 rounded-2xl bg-slate-900 text-white text-sm shadow-sm" @click="logout">退出</button>
         </div>
       </div>
       <div class="overflow-x-auto no-scrollbar px-3 pb-3 max-w-7xl mx-auto">
         <div class="flex gap-2 min-w-max">
-          <a :class="navClass('/admin/dashboard')" href="#/admin/dashboard">仪表盘</a>
-          <a :class="navClass('/admin/photos')" href="#/admin/photos">图片</a>
-          <a :class="navClass('/admin/albums')" href="#/admin/albums">相册</a>
-          <a :class="navClass('/admin/pools')" href="#/admin/pools">存储池</a>
-          <a :class="navClass('/admin/recycle')" href="#/admin/recycle">回收站</a>
+          <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">仪表盘</a>
+          <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
+          <a :class="navClass('/admin/albums')" href="/admin/albums">相册</a>
+          <a :class="navClass('/admin/pools')" href="/admin/pools">存储池</a>
+          <a :class="navClass('/admin/recycle')" href="/admin/recycle">回收站</a>
         </div>
       </div>
     </header>

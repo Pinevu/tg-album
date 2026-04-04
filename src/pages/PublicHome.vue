@@ -13,7 +13,7 @@
             <div class="text-sm text-slate-500">Telegram 图库展示</div>
           </div>
         </div>
-        <a href="#/login" class="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-slate-100 hover:text-slate-800 transition">管理入口</a>
+        <a href="/login" class="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-slate-100 hover:text-slate-800 transition">管理入口</a>
       </div>
     </header>
 

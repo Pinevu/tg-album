@@ -26,7 +26,7 @@
             <span v-if="album.name === '未分类'" class="text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600">默认相册</span>
           </div>
           <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
-          <div v-if="album.slug" class="text-xs text-slate-500 mt-1">访问地址：<span class="font-mono">/#/{{ album.slug }}</span></div>
+          <div v-if="album.slug" class="text-xs text-slate-500 mt-1">访问地址：<span class="font-mono">/{{ album.slug }}</span></div>
           <div v-if="album.access_password" class="text-xs text-rose-500 mt-1">已设置访问密码</div>
         </div>
         <div class="flex flex-wrap gap-2">
