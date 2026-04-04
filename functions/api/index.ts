@@ -52,8 +52,11 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'photos', 'remark'))) {
     try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN remark TEXT`).run() } catch {}
   }
-  if (!(await tableHasColumn(c, 'photos', 'tg_pool_id'))) {
-    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN tg_pool_id INTEGER`).run() } catch {}
+  if (!(await tableHasColumn(c, 'albums', 'slug'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN slug TEXT`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'albums', 'access_password'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN access_password TEXT`).run() } catch {}
   }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
@@ -104,6 +107,23 @@ app.post('/api/login', async (c) => {
   } catch {
     return c.json({ error: 'Login failed' }, 500)
   }
+})
+
+app.get('/api/private-albums/:slug', async (c) => {
+  const slug = c.req.param('slug')
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  if (!album) return c.json({ error: 'Album not found' }, 404)
+  return c.json({ id: album.id, name: album.name, slug: album.slug, visibility: album.visibility, need_password: true })
+})
+
+app.post('/api/private-albums/:slug/auth', async (c) => {
+  const slug = c.req.param('slug')
+  const { password } = await c.req.json()
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  if (!album) return c.json({ error: 'Album not found' }, 404)
+  if ((album.access_password || '') !== (password || '')) return c.json({ error: '密码错误' }, 401)
+  const photos = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND p.album_id = ? ORDER BY p.uploaded_at DESC LIMIT 400`).bind(album.id).all<any>()
+  return c.json({ album: { id: album.id, name: album.name, slug: album.slug }, results: photos.results || [] })
 })
 
 app.get('/api/public/albums', async (c) => {
@@ -219,13 +239,13 @@ app.get('/api/albums', auth, async (c) => {
 })
 
 app.get('/api/albums/tree', auth, async (c) => {
-  const res = await c.env.DB.prepare(`SELECT id, name, parent_id, visibility, cover_photo_id FROM albums ORDER BY id ASC`).all<AlbumRow>()
+  const res = await c.env.DB.prepare(`SELECT id, name, parent_id, visibility, cover_photo_id, slug, access_password FROM albums ORDER BY id ASC`).all<AlbumRow>()
   return c.json({ results: buildTree(res.results || []) })
 })
 
 app.post('/api/albums', auth, async (c) => {
-  const { name, parent_id, visibility } = await c.req.json()
-  await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility) VALUES (?, ?, ?)`).bind(name, parent_id ?? null, visibility || 'private').run()
+  const { name, parent_id, visibility, slug, access_password } = await c.req.json()
+  await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility, slug, access_password) VALUES (?, ?, ?, ?, ?)`).bind(name, parent_id ?? null, visibility || 'private', slug || null, access_password || null).run()
   return c.json({ success: true })
 })
 
@@ -234,8 +254,8 @@ app.put('/api/albums/:id', auth, async (c) => {
   const existing = await c.env.DB.prepare(`SELECT id, name FROM albums WHERE id = ?`).bind(id).first<any>()
   if (!existing) return c.json({ error: 'Album not found' }, 404)
   if (existing.name === '公开相册') return c.json({ error: '公开相册已锁定，不可编辑' }, 400)
-  const { name, visibility } = await c.req.json()
-  await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ? WHERE id = ?`).bind(name, visibility || 'private', id).run()
+  const { name, visibility, slug, access_password } = await c.req.json()
+  await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ?, slug = ?, access_password = ? WHERE id = ?`).bind(name, visibility || 'private', slug || null, access_password || null, id).run()
   return c.json({ success: true })
 })
 

@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth'
 
 const routes = [
   { path: '/', component: () => import('@/pages/PublicHome.vue') },
+  { path: '/:slug', component: () => import('@/pages/PublicHome.vue') },
   { path: '/login', component: () => import('@/pages/Login.vue') },
   {
     path: '/admin',

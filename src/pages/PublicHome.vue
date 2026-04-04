@@ -18,18 +18,23 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-5 md:py-6">
-      <div v-if="photos.length === 0" class="py-24 text-center text-slate-400">
+      <div v-if="needPassword" class="max-w-md mx-auto rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div>
+          <div class="text-2xl font-bold tracking-tight">{{ albumTitle || '私密相册' }}</div>
+          <div class="text-sm text-slate-500 mt-1">请输入访问密码</div>
+        </div>
+        <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
+        <el-input v-model="password" placeholder="访问密码" show-password @keyup.enter="submitPassword" />
+        <el-button type="primary" class="w-full !rounded-2xl" @click="submitPassword">进入相册</el-button>
+      </div>
+
+      <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400">
         <div class="text-7xl mb-4">📷</div>
-        <div>暂无公开图片</div>
+        <div>暂无图片</div>
       </div>
 
       <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-        <div
-          v-for="photo in photos"
-          :key="photo.id"
-          class="group rounded-[28px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
-          @click="preview(photo)"
-        >
+        <div v-for="photo in photos" :key="photo.id" class="group rounded-[28px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer" @click="preview(photo)">
           <div class="aspect-[3/4] overflow-hidden bg-slate-100">
             <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
           </div>
@@ -52,15 +57,47 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 
+const route = useRoute()
 const photos = ref<any[]>([])
 const previewVisible = ref(false)
 const previewUrl = ref('')
+const password = ref('')
+const error = ref('')
+const needPassword = ref(false)
+const albumTitle = ref('')
+const slug = ref('')
 
-const loadPhotos = async () => {
+const loadPublicPhotos = async () => {
   const { data } = await axios.get('/api/public/photos')
   photos.value = data.results || []
+}
+
+const initPrivateAlbum = async (slugValue: string) => {
+  try {
+    const { data } = await axios.get(`/api/private-albums/${encodeURIComponent(slugValue)}`)
+    needPassword.value = !!data.need_password
+    albumTitle.value = data.name || '私密相册'
+    slug.value = slugValue
+  } catch {
+    needPassword.value = false
+    photos.value = []
+    error.value = '相册不存在'
+  }
+}
+
+const submitPassword = async () => {
+  error.value = ''
+  try {
+    const { data } = await axios.post(`/api/private-albums/${encodeURIComponent(slug.value)}/auth`, { password: password.value })
+    photos.value = data.results || []
+    albumTitle.value = data.album?.name || albumTitle.value
+    needPassword.value = false
+  } catch (e: any) {
+    error.value = e?.response?.data?.error || '访问失败'
+  }
 }
 
 const preview = (photo: any) => {
@@ -73,5 +110,12 @@ const closePreview = () => {
   previewUrl.value = ''
 }
 
-onMounted(loadPhotos)
+onMounted(async () => {
+  const slugParam = route.params.slug as string | undefined
+  if (slugParam) {
+    await initPrivateAlbum(slugParam)
+  } else {
+    await loadPublicPhotos()
+  }
+})
 </script>
