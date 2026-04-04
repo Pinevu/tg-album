@@ -106,7 +106,7 @@
               <div class="mt-2 text-[10px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
-              <div class="mt-2 grid grid-cols-2 gap-1.5 photo-actions">
+              <div class="mt-2 grid grid-cols-2 gap-1 photo-actions">
                 <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
                 <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
                 <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="photo-action-btn">删除</el-button>
@@ -118,7 +118,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="moveDialogVisible" title="移动图片" width="420px" class="!rounded-3xl">
+    <el-dialog v-model="moveDialogVisible" title="移动图片" width="360px" class="!rounded-3xl">
       <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="large">
         <el-option v-for="album in flatAlbums" :key="album.id" :label="album.name" :value="album.id" />
       </el-select>
@@ -644,17 +644,17 @@ onMounted(() => {
 .photo-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.375rem;
+  gap: 0.25rem;
   align-items: stretch;
 }
 
 .photo-actions :deep(.el-button),
 .photo-action-btn {
   width: 100%;
-  height: 28px;
-  padding: 0 8px;
-  font-size: 11px;
-  border-radius: 12px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 10px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
