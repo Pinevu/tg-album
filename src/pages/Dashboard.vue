@@ -1,36 +1,28 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+  <div class="space-y-5">
+    <div class="flex items-end justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-slate-900 tracking-tight">仪表盘</h1>
-        <p class="text-slate-500 mt-1">概览照片、相册、回收站以及 Telegram 存储池状态</p>
       </div>
       <el-button @click="load" type="primary" class="!rounded-2xl">刷新</el-button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-      <button @click="go('/admin/photos')" class="text-left rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all">
-        <div class="text-slate-500 text-sm">照片总数</div>
-        <div class="text-4xl font-bold mt-3 text-slate-900">{{ stats.totalPhotos }}</div>
-        <div class="text-xs text-blue-600 mt-3">点击进入图片管理</div>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <button @click="go('/admin/photos')" class="panel-card text-left">
+        <div class="panel-label">照片</div>
+        <div class="panel-value">{{ stats.totalPhotos }}</div>
       </button>
-
-      <button @click="go('/admin/albums')" class="text-left rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all">
-        <div class="text-slate-500 text-sm">相册数量</div>
-        <div class="text-4xl font-bold mt-3 text-slate-900">{{ stats.totalAlbums }}</div>
-        <div class="text-xs text-blue-600 mt-3">点击进入相册管理</div>
+      <button @click="go('/admin/albums')" class="panel-card text-left">
+        <div class="panel-label">相册</div>
+        <div class="panel-value">{{ stats.totalAlbums }}</div>
       </button>
-
-      <button @click="go('/admin/recycle')" class="text-left rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all">
-        <div class="text-slate-500 text-sm">回收站数量</div>
-        <div class="text-4xl font-bold mt-3 text-slate-900">{{ stats.totalDeleted }}</div>
-        <div class="text-xs text-blue-600 mt-3">点击进入回收站</div>
+      <button @click="go('/admin/recycle')" class="panel-card text-left">
+        <div class="panel-label">回收站</div>
+        <div class="panel-value">{{ stats.totalDeleted }}</div>
       </button>
-
-      <button @click="go('/admin/pools')" class="text-left rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all">
-        <div class="text-slate-500 text-sm">TG 存储池</div>
-        <div class="text-4xl font-bold mt-3 text-slate-900">{{ stats.totalPools }}</div>
-        <div class="text-xs text-blue-600 mt-3">点击进入存储池管理</div>
+      <button @click="go('/admin/pools')" class="panel-card text-left">
+        <div class="panel-label">存储池</div>
+        <div class="panel-value">{{ stats.totalPools }}</div>
       </button>
     </div>
   </div>
@@ -49,9 +41,13 @@ const load = async () => {
   stats.value = data
 }
 
-const go = (path: string) => {
-  router.push(path)
-}
+const go = (path: string) => router.push(path)
 
 onMounted(load)
 </script>
+
+<style scoped>
+.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all; }
+.panel-label { @apply text-slate-500 text-sm; }
+.panel-value { @apply text-4xl font-bold mt-3 text-slate-900; }
+</style>

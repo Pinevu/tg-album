@@ -18,21 +18,16 @@
 
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
-    <div v-if="loading" class="rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm">
-      正在加载相册...
-    </div>
-
-    <div v-else-if="flatAlbums.length === 0" class="rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm">
-      暂无相册
-    </div>
+    <div v-if="loading" class="panel-empty">正在加载相册...</div>
+    <div v-else-if="flatAlbums.length === 0" class="panel-empty">暂无相册</div>
 
     <div v-else class="space-y-3">
-      <div v-for="album in flatAlbums" :key="album.id" class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
             <span>{{ album.name }}</span>
-            <span v-if="album.name === '公开相册'" class="text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600">系统锁定</span>
-            <span v-if="album.name === '未分类'" class="text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600">默认相册</span>
+            <span v-if="album.name === '公开相册'" class="tag-blue">系统锁定</span>
+            <span v-if="album.name === '未分类'" class="tag-amber">默认相册</span>
           </div>
           <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
           <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
@@ -90,11 +85,8 @@ const resetForm = () => {
 const saveAlbum = async () => {
   if (!newName.value.trim()) return
   try {
-    if (editingId.value) {
-      await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined)
-    } else {
-      await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined)
-    }
+    if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined)
+    else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined)
     ElMessage.success('保存成功')
     resetForm()
     await load()
@@ -130,3 +122,10 @@ const copyShareLink = async (album: any) => {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
+.tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
+.tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
+</style>

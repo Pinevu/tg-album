@@ -1,12 +1,12 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-5">
     <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-slate-900">TG 存储池</h1>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">TG 存储池</h1>
     </div>
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+    <div class="panel-card space-y-3">
       <div class="grid grid-cols-1 gap-3">
         <el-input v-model="form.name" placeholder="存储池名称" />
         <el-input v-model="form.chat_id" placeholder="Chat ID" />
@@ -23,16 +23,11 @@
       </div>
     </div>
 
-    <div v-if="loading" class="rounded-[28px] border border-slate-200 bg-white p-10 shadow-sm text-center text-slate-400">
-      正在加载存储池...
-    </div>
-
-    <div v-else-if="pools.length === 0" class="rounded-[28px] border border-slate-200 bg-white p-10 shadow-sm text-center text-slate-400">
-      暂无存储池
-    </div>
+    <div v-if="loading" class="panel-empty">正在加载存储池...</div>
+    <div v-else-if="pools.length === 0" class="panel-empty">暂无存储池</div>
 
     <div v-else class="space-y-3">
-      <div v-for="pool in pools" :key="pool.id" class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+      <div v-for="pool in pools" :key="pool.id" class="panel-card space-y-3">
         <div class="flex items-center justify-between gap-2">
           <div class="font-semibold text-slate-900">{{ pool.name }}</div>
           <el-tag v-if="pool.enabled" type="success">已启用</el-tag>
@@ -163,3 +158,8 @@ const resetForm = () => {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 shadow-sm text-center text-slate-400; }
+</style>

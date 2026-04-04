@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
+  <div class="min-h-screen bg-[radial-gradient(circle_at_top,#f2f6ff,white_45%)] text-slate-900">
     <header class="sticky top-0 z-20 bg-white/88 backdrop-blur-2xl border-b border-slate-200/80 shadow-sm">
-      <div class="px-4 py-3 flex items-center justify-between gap-3 max-w-7xl mx-auto">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
         <div>
           <div class="text-xl font-bold tracking-tight">相册系统</div>
           <div class="text-xs text-slate-500">Telegram 图片存储池</div>
@@ -11,7 +11,7 @@
           <button class="px-3 py-2 rounded-2xl bg-slate-900 text-white text-sm shadow-sm" @click="logout">退出</button>
         </div>
       </div>
-      <div class="overflow-x-auto no-scrollbar px-3 pb-3 max-w-7xl mx-auto">
+      <div class="max-w-7xl mx-auto px-4 pb-4 overflow-x-auto no-scrollbar">
         <div class="flex gap-2 min-w-max">
           <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">仪表盘</a>
           <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
@@ -22,23 +22,9 @@
       </div>
     </header>
 
-    <div class="md:flex max-w-7xl mx-auto">
-      <aside class="hidden md:block w-64 p-4 border-r border-slate-200 bg-white/70 backdrop-blur-xl min-h-[calc(100vh-72px)]">
-        <el-menu class="bg-transparent rounded-2xl border border-slate-100 p-2" router :default-active="$route.path" text-color="#334155" active-text-color="#2563eb">
-          <el-menu-item index="/admin/dashboard">仪表盘</el-menu-item>
-          <el-menu-item index="/admin/photos">图片管理</el-menu-item>
-          <el-menu-item index="/admin/albums">相册管理</el-menu-item>
-          <el-menu-item index="/admin/pools">TG 存储池</el-menu-item>
-          <el-menu-item index="/admin/recycle">回收站</el-menu-item>
-        </el-menu>
-      </aside>
-
-      <main class="flex-1 p-4 md:p-6 overflow-auto">
-        <div class="max-w-7xl mx-auto">
-          <router-view />
-        </div>
-      </main>
-    </div>
+    <main class="max-w-7xl mx-auto px-4 py-5 md:py-6">
+      <router-view />
+    </main>
   </div>
 </template>
 
@@ -58,7 +44,7 @@ const logout = () => {
 }
 
 const navClass = (path: string) => {
-  return ['px-3 py-2 rounded-2xl text-sm font-medium transition-all border', route.path === path
+  return ['px-3 py-2 rounded-2xl text-sm font-medium transition-all border whitespace-nowrap', route.path === path
     ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
     : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 shadow-sm']
 }

@@ -1,25 +1,21 @@
 <template>
-  <div class="space-y-6">
-    <div>
-      <h1 class="text-3xl font-bold">回收站</h1>
-      <p class="text-white/60 mt-1">可还原或永久删除已删除图片</p>
+  <div class="space-y-5">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">回收站</h1>
+      </div>
+      <div class="flex gap-2">
+        <el-button @click="restore" class="!rounded-2xl" :disabled="!selectedIds.length">还原</el-button>
+        <el-button type="danger" @click="hardDelete" class="!rounded-2xl" :disabled="!selectedIds.length">彻底删除</el-button>
+      </div>
     </div>
 
-    <div class="flex gap-2">
-      <el-button @click="restore">还原选中</el-button>
-      <el-button type="danger" @click="hardDelete">彻底删除</el-button>
-    </div>
+    <div v-if="photos.length === 0" class="panel-empty">回收站为空</div>
 
-    <div class="columns-1 sm:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
-      <div
-        v-for="photo in photos"
-        :key="photo.id"
-        class="mb-4 break-inside-avoid relative rounded-2xl overflow-hidden border border-white/10 bg-white/5"
-        :class="{ 'ring-2 ring-red-400': selectedIds.includes(photo.id) }"
-        @click="toggleSelect(photo.id)"
-      >
-        <img :src="`/api/photos/file/${photo.id}`" class="w-full block" />
-        <div class="p-3 text-xs text-white/70">{{ photo.original_filename }}</div>
+    <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div v-for="photo in photos" :key="photo.id" class="panel-card cursor-pointer" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-red-300 border-red-300' : ''" @click="toggleSelect(photo.id)">
+        <img :src="`/api/photos/file/${photo.id}`" class="w-full aspect-[3/4] object-cover rounded-2xl" />
+        <div class="mt-3 text-sm font-medium text-slate-800 truncate">{{ photo.original_filename }}</div>
       </div>
     </div>
   </div>
@@ -27,6 +23,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { getRecycleBin, restorePhotos, deletePhotos } from '@/utils/api'
 
 const photos = ref<any[]>([])
@@ -47,13 +44,20 @@ const restore = async () => {
   await restorePhotos(selectedIds.value)
   selectedIds.value = []
   await load()
+  ElMessage.success('已还原')
 }
 
 const hardDelete = async () => {
   await deletePhotos(selectedIds.value)
   selectedIds.value = []
   await load()
+  ElMessage.success('已彻底删除')
 }
 
 onMounted(load)
 </script>
+
+<style scoped>
+.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 shadow-sm text-center text-slate-400; }
+</style>
