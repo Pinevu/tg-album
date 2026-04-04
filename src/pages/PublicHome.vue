@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900 font-sans">
-    <header class="sticky top-0 z-50 bg-white/92 backdrop-blur-2xl border-b border-slate-200/70">
+  <div class="min-h-screen bg-[radial-gradient(circle_at_top,#eef4ff,white_40%)] text-slate-900 font-sans">
+    <header class="sticky top-0 z-50 bg-white/88 backdrop-blur-2xl border-b border-slate-200/70">
       <div class="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between gap-3">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
@@ -9,23 +9,23 @@
             </svg>
           </div>
           <div>
-            <div class="text-2xl font-bold tracking-tight">公开相册</div>
-            <div class="text-sm text-slate-500">Telegram 图库展示</div>
+            <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
+            <div class="text-sm text-slate-500">照片集</div>
           </div>
         </div>
-        <a href="/login" class="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-slate-100 hover:text-slate-800 transition">管理入口</a>
+        <a href="/login" class="rounded-2xl border border-slate-200 bg-white/80 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-white hover:text-slate-800 transition">管理入口</a>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-5 md:py-6">
-      <div v-if="needPassword" class="max-w-md mx-auto rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+    <main class="max-w-7xl mx-auto px-4 py-6">
+      <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white/92 backdrop-blur p-6 shadow-lg space-y-4">
         <div>
-          <div class="text-2xl font-bold tracking-tight">{{ albumTitle || '私密相册' }}</div>
-          <div class="text-sm text-slate-500 mt-1">请输入访问密码</div>
+          <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
+          <div class="text-sm text-slate-500 mt-1">输入访问密码</div>
         </div>
         <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
         <el-input v-model="password" placeholder="访问密码" show-password @keyup.enter="submitPassword" />
-        <el-button type="primary" class="w-full !rounded-2xl" @click="submitPassword">进入相册</el-button>
+        <el-button type="primary" class="w-full !rounded-2xl !h-11" @click="submitPassword">进入相册</el-button>
       </div>
 
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400">
@@ -34,9 +34,9 @@
       </div>
 
       <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-        <div v-for="photo in photos" :key="photo.id" class="group rounded-[28px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer" @click="preview(photo)">
+        <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
           <div class="aspect-[3/4] overflow-hidden bg-slate-100">
-            <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+            <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
           </div>
         </div>
       </div>
@@ -67,8 +67,10 @@ const previewUrl = ref('')
 const password = ref('')
 const error = ref('')
 const needPassword = ref(false)
-const albumTitle = ref('')
+const albumTitle = ref('公开相册')
 const slug = ref('')
+
+const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 
 const loadPublicPhotos = async () => {
   const { data } = await axios.get('/api/public/photos')
@@ -78,9 +80,19 @@ const loadPublicPhotos = async () => {
 const initPrivateAlbum = async (slugValue: string) => {
   try {
     const { data } = await axios.get(`/api/private-albums/${encodeURIComponent(slugValue)}`)
-    needPassword.value = !!data.need_password
     albumTitle.value = data.name || '私密相册'
     slug.value = slugValue
+    const cached = localStorage.getItem(passwordCacheKey(slugValue))
+    if (cached) {
+      const parsed = JSON.parse(cached)
+      if (parsed.expires_at > Date.now()) {
+        password.value = parsed.password
+        await submitPassword()
+        return
+      }
+      localStorage.removeItem(passwordCacheKey(slugValue))
+    }
+    needPassword.value = true
   } catch {
     needPassword.value = false
     photos.value = []
@@ -95,6 +107,7 @@ const submitPassword = async () => {
     photos.value = data.results || []
     albumTitle.value = data.album?.name || albumTitle.value
     needPassword.value = false
+    localStorage.setItem(passwordCacheKey(slug.value), JSON.stringify({ password: password.value, expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000 }))
   } catch (e: any) {
     error.value = e?.response?.data?.error || '访问失败'
   }
@@ -112,10 +125,7 @@ const closePreview = () => {
 
 onMounted(async () => {
   const slugParam = route.params.slug as string | undefined
-  if (slugParam) {
-    await initPrivateAlbum(slugParam)
-  } else {
-    await loadPublicPhotos()
-  }
+  if (slugParam) await initPrivateAlbum(slugParam)
+  else await loadPublicPhotos()
 })
 </script>
