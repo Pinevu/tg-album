@@ -112,7 +112,6 @@
                 <button type="button" @click.stop="deletePhoto(photo.id)" class="photo-action-native photo-action-delete">删除</button>
                 <button type="button" @click.stop="copyDirectLink(photo.id)" class="photo-action-native photo-action-link">直链</button>
               </div>
-              </div>
             </div>
           </div>
         </div>
