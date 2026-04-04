@@ -12,10 +12,10 @@
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" class="rounded-2xl" />
 
-    <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-      <div class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm space-y-5">
+    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      <div class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm space-y-4 self-start">
         <div>
-          <div class="text-sm font-semibold text-slate-700 mb-3">相册树</div>
+          <div class="text-sm font-semibold text-slate-700 mb-2">相册树</div>
           <el-tree :data="albums" @node-click="onAlbumClick" />
         </div>
 
@@ -98,11 +98,11 @@
               <div class="text-[9px] text-slate-500 mt-0.5 truncate">{{ photo.camera_model || '未知设备' }}</div>
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
-              <div class="mt-2 grid grid-cols-2 gap-1">
-                <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">详情</el-button>
-                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">移动</el-button>
+              <div class="mt-2 grid grid-cols-2 gap-1.5">
+                <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
+                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
                 <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">删除</el-button>
-                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">直链</el-button>
+                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-emerald-200 !text-emerald-600 !bg-emerald-50 hover:!bg-emerald-100">直链</el-button>
               </div>
             </div>
           </div>

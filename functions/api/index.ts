@@ -231,6 +231,9 @@ app.post('/api/albums', auth, async (c) => {
 
 app.put('/api/albums/:id', auth, async (c) => {
   const id = c.req.param('id')
+  const existing = await c.env.DB.prepare(`SELECT id, name FROM albums WHERE id = ?`).bind(id).first<any>()
+  if (!existing) return c.json({ error: 'Album not found' }, 404)
+  if (existing.name === '公开相册') return c.json({ error: '公开相册已锁定，不可编辑' }, 400)
   const { name, visibility } = await c.req.json()
   await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ? WHERE id = ?`).bind(name, visibility || 'private', id).run()
   return c.json({ success: true })
@@ -245,6 +248,10 @@ app.put('/api/albums/:id/cover', auth, async (c) => {
 
 app.delete('/api/albums/:id', auth, async (c) => {
   const id = c.req.param('id')
+  const existing = await c.env.DB.prepare(`SELECT id, name FROM albums WHERE id = ?`).bind(id).first<any>()
+  if (!existing) return c.json({ error: 'Album not found' }, 404)
+  if (existing.name === '未分类') return c.json({ error: '未分类相册不可删除' }, 400)
+  if (existing.name === '公开相册') return c.json({ error: '公开相册已锁定，不可删除' }, 400)
   await c.env.DB.prepare(`DELETE FROM albums WHERE id = ?`).bind(id).run()
   return c.json({ success: true })
 })
