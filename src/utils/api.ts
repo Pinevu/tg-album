@@ -33,3 +33,12 @@ export const getPools = () => api.get('/tg-pools')
 export const createPool = (payload: any) => api.post('/tg-pools', payload)
 export const updatePool = (id: number, payload: any) => api.put(`/tg-pools/${id}`, payload)
 export const deletePool = (id: number) => api.delete(`/tg-pools/${id}`)
+
+// 编辑图片 API
+export const editPhoto = async (file: File, remark: string, originalFilename: string) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('remark', remark)
+  formData.append('original_filename', originalFilename)
+  return api.post('/upload', formData)
+}

@@ -110,7 +110,7 @@
                 <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
                 <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
                 <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="photo-action-btn">删除</el-button>
-                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="photo-action-btn !border-emerald-200 !text-emerald-600 !bg-emerald-50 hover:!bg-emerald-100">直链</el-button>
+                <el-button size="small" @click.stop="openEditDialog(photo.id)" class="photo-action-btn !border-purple-200 !text-purple-600 !bg-purple-50 hover:!bg-purple-100">编辑</el-button>
               </div>
             </div>
           </div>
@@ -132,41 +132,108 @@
       <div class="text-slate-600">确定要删除这张图片吗？此操作不可恢复。</div>
       <template #footer>
         <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
+        <el-button type="danger" @click="confirmDelete" :loading="deleting">确定删除</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" size="90%" :with-header="true" title="图片详情" class="!rounded-3xl">
-      <div v-if="detail" class="space-y-5 max-w-2xl mx-auto">
-        <div class="rounded-3xl overflow-hidden bg-slate-100 shadow-inner border border-slate-200">
-          <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl" />
+    <el-dialog v-model="editDialogVisible" title="图片编辑" width="800px" class="!rounded-3xl" @close="resetEditState">
+      <div class="space-y-4">
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <img ref="editImageRef" :src="editPhoto?.previewUrl" class="w-full rounded-2xl border border-slate-200" />
+          </div>
+          <div class="w-48 space-y-3">
+            <div class="text-sm font-semibold text-slate-700">调整</div>
+            
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">旋转</label>
+              <div class="flex gap-2">
+                <el-button size="small" @click="rotateImage(-90)" :disabled="!editImageRef">← 左旋</el-button>
+                <el-button size="small" @click="rotateImage(90)" :disabled="!editImageRef">右旋 →</el-button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">翻转</label>
+              <div class="flex gap-2">
+                <el-button size="small" @click="flipImage('horizontal')" :disabled="!editImageRef">↔ 水平</el-button>
+                <el-button size="small" @click="flipImage('vertical')" :disabled="!editImageRef">↕ 垂直</el-button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">滤镜</label>
+              <div class="grid grid-cols-3 gap-2">
+                <el-button size="small" @click="applyFilter('none')" :disabled="!editImageRef">原图</el-button>
+                <el-button size="small" @click="applyFilter('grayscale')" :disabled="!editImageRef">黑白</el-button>
+                <el-button size="small" @click="applyFilter('sepia')" :disabled="!editImageRef">复古</el-button>
+                <el-button size="small" @click="applyFilter('brightness')" :disabled="!editImageRef">明亮</el-button>
+                <el-button size="small" @click="applyFilter('contrast')" :disabled="!editImageRef">高对比</el-button>
+                <el-button size="small" @click="applyFilter('blur')" :disabled="!editImageRef">模糊</el-button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">裁剪</label>
+              <div class="flex gap-2">
+                <el-button size="small" @click="cropToSquare" :disabled="!editImageRef">正方形</el-button>
+                <el-button size="small" @click="cropTo16x9" :disabled="!editImageRef">16:9</el-button>
+                <el-button size="small" @click="cropTo1x1" :disabled="!editImageRef">1:1</el-button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">缩放</label>
+              <el-slider v-model="scale" :min="0.5" :max="2" :step="0.1" :disabled="!editImageRef" />
+              <div class="text-[10px] text-slate-500 mt-1">{{ Math.round(scale * 100) }}%</div>
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="rounded-2xl bg-slate-50 p-4"><div class="text-xs text-slate-500 mb-1">文件名</div><div class="text-sm font-medium text-slate-800 break-all">{{ detail.original_filename }}</div></div>
-          <div class="rounded-2xl bg-slate-50 p-4"><div class="text-xs text-slate-500 mb-1">尺寸</div><div class="text-sm font-medium text-slate-800">{{ detail.width }} x {{ detail.height }}</div></div>
-          <div class="rounded-2xl bg-slate-50 p-4"><div class="text-xs text-slate-500 mb-1">主色</div><div class="text-sm font-medium text-slate-800">{{ detail.dominant_color_hex || '未提取' }}</div></div>
-          <div class="rounded-2xl bg-slate-50 p-4"><div class="text-xs text-slate-500 mb-1">拍摄设备</div><div class="text-sm font-medium text-slate-800">{{ detail.camera_model || '未知' }}</div></div>
-          <div class="rounded-2xl bg-slate-50 p-4 md:col-span-2"><div class="text-xs text-slate-500 mb-1">TG file_id</div><div class="text-xs font-mono text-slate-700 break-all">{{ detail.tg_file_id || '-' }}</div></div>
-          <div class="rounded-2xl bg-slate-50 p-4 md:col-span-2"><div class="text-xs text-slate-500 mb-1">TG unique_id</div><div class="text-xs font-mono text-slate-700 break-all">{{ detail.tg_file_unique_id || '-' }}</div></div>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <el-button @click="copyDirectLink(detail.id)" type="primary" size="large" class="!rounded-full !px-6">复制图片直链</el-button>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-4">
-          <div class="text-sm font-medium text-slate-800 mb-2">备注</div>
-          <el-input v-model="detailRemark" placeholder="添加备注" class="mb-2" />
-          <el-button @click="saveRemark" size="large" class="!rounded-full !w-full">保存备注</el-button>
+        <div class="flex gap-2 pt-2 border-t border-slate-200">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveEdit" :loading="saving" :disabled="!editImageRef">保存修改</el-button>
         </div>
       </div>
-    </el-drawer>
+    </el-dialog>
+
+    <el-dialog v-model="detailVisible" title="照片详情" width="600px" class="!rounded-3xl">
+      <div v-if="detail" class="space-y-4">
+        <img :src="detail.previewUrl" class="w-full rounded-2xl" />
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <div class="text-slate-500">文件名:</div>
+          <div class="font-medium">{{ detail.original_filename }}</div>
+          <div class="text-slate-500">相册:</div>
+          <div class="font-medium">{{ detail.album_name }}</div>
+          <div class="text-slate-500">尺寸:</div>
+          <div class="font-medium">{{ detail.width }} x {{ detail.height }}</div>
+          <div class="text-slate-500">文件大小:</div>
+          <div class="font-medium">{{ formatFileSize(detail.file_size) }}</div>
+          <div class="text-slate-500">上传时间:</div>
+          <div class="font-medium">{{ formatDate(detail.uploaded_at) }}</div>
+        </div>
+        <div v-if="detail.remark" class="pt-2 border-t border-slate-200">
+          <div class="text-xs text-slate-500 mb-1">备注</div>
+          <div class="text-sm">{{ detail.remark }}</div>
+        </div>
+        <div v-if="detail.camera_make" class="pt-2 border-t border-slate-200">
+          <div class="text-xs text-slate-500 mb-1">相机</div>
+          <div class="text-sm">{{ detail.camera_make }} {{ detail.camera_model }}</div>
+        </div>
+        <div class="pt-2 border-t border-slate-200">
+          <el-input v-model="detailRemark" placeholder="添加备注" size="large" />
+          <template #footer>
+            <el-button @click="detailVisible = false">关闭</el-button>
+            <el-button type="primary" @click="saveRemark" :loading="saving">保存</el-button>
+          </template>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import api from '@/utils/axios'
 import { searchPhotos, getAlbumTree, batchMove, batchDelete, batchTag, listTags, getPhotoDetail, updatePhotoRemark } from '@/utils/api'
@@ -197,6 +264,18 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
+
+// 编辑相关
+const editDialogVisible = ref(false)
+const editPhoto = ref<any>(null)
+const editImageRef = ref<HTMLImageElement | null>(null)
+const editCanvas = ref<HTMLCanvasElement | null>(null)
+const scale = ref(1)
+const rotation = ref(0)
+const flipH = ref(false)
+const flipV = ref(false)
+const currentFilter = ref('none')
+const saving = ref(false)
 
 const flatten = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
@@ -315,7 +394,7 @@ const handleUpload = async (options: any) => {
 
 const openDetail = async (id: number) => {
   const { data } = await getPhotoDetail(id)
-  detail.value = data
+  detail.value = { ...data, previewUrl: `/api/photos/file/${data.id}` }
   detailRemark.value = data.remark || ''
   detailVisible.value = true
 }
@@ -374,6 +453,186 @@ const confirmDelete = async () => {
   }
 }
 
+// ==================== 图片编辑功能 ====================
+const openEditDialog = async (id: number) => {
+  const { data } = await getPhotoDetail(id)
+  editPhoto.value = { ...data, previewUrl: `/api/photos/file/${data.id}` }
+  editDialogVisible.value = true
+  resetEditState()
+  
+  await nextTick()
+  editImageRef.value = document.querySelector('img[ref="editImageRef"]') as HTMLImageElement
+  if (editImageRef.value) {
+    initCanvas()
+  }
+}
+
+const resetEditState = () => {
+  scale.value = 1
+  rotation.value = 0
+  flipH.value = false
+  flipV.value = false
+  currentFilter.value = 'none'
+  editImageRef.value = null
+  editCanvas.value = null
+}
+
+const initCanvas = () => {
+  const img = editImageRef.value
+  if (!img) return
+  
+  const canvas = document.createElement('canvas')
+  canvas.width = img.naturalWidth
+  canvas.height = img.naturalHeight
+  editCanvas.value = canvas
+}
+
+const rotateImage = (deg: number) => {
+  if (!editImageRef.value || !editCanvas.value) return
+  
+  rotation.value = (rotation.value + deg) % 360
+  applyTransform()
+}
+
+const flipImage = (direction: 'horizontal' | 'vertical') => {
+  if (!editImageRef.value || !editCanvas.value) return
+  
+  if (direction === 'horizontal') {
+    flipH.value = !flipH.value
+  } else {
+    flipV.value = !flipV.value
+  }
+  applyTransform()
+}
+
+const applyFilter = (filter: string) => {
+  currentFilter.value = filter
+  applyTransform()
+}
+
+const applyTransform = () => {
+  if (!editImageRef.value || !editCanvas.value) return
+  
+  const img = editImageRef.value
+  const canvas = editCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  
+  ctx.save()
+  
+  // 应用滤镜
+  ctx.filter = getFilterCSS(currentFilter.value)
+  
+  // 应用变换
+  ctx.translate(canvas.width / 2, canvas.height / 2)
+  ctx.rotate((rotation.value * Math.PI) / 180)
+  ctx.scale(flipH.value ? -1 : 1, flipV.value ? -1 : 1)
+  ctx.scale(scale.value, scale.value)
+  
+  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2)
+  ctx.restore()
+}
+
+const getFilterCSS = (filter: string): string => {
+  switch (filter) {
+    case 'grayscale': return 'grayscale(100%)'
+    case 'sepia': return 'sepia(100%)'
+    case 'brightness': return 'brightness(130%)'
+    case 'contrast': return 'contrast(150%)'
+    case 'blur': return 'blur(2px)'
+    default: return 'none'
+  }
+}
+
+const cropToSquare = () => {
+  if (!editImageRef.value || !editCanvas.value) return
+  
+  const img = editImageRef.value
+  const canvas = editCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  
+  const size = Math.min(img.naturalWidth, img.naturalHeight)
+  const x = (img.naturalWidth - size) / 2
+  const y = (img.naturalHeight - size) / 2
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.filter = getFilterCSS(currentFilter.value)
+  ctx.drawImage(img, x, y, size, size, 0, 0, size, size)
+}
+
+const cropTo16x9 = () => {
+  if (!editImageRef.value || !editCanvas.value) return
+  
+  const img = editImageRef.value
+  const canvas = editCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  
+  const ratio = 16 / 9
+  let width = img.naturalWidth
+  let height = img.naturalHeight
+  
+  if (width / height > ratio) {
+    width = height * ratio
+  } else {
+    height = width / ratio
+  }
+  
+  const x = (img.naturalWidth - width) / 2
+  const y = (img.naturalHeight - height) / 2
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.filter = getFilterCSS(currentFilter.value)
+  ctx.drawImage(img, x, y, width, height, 0, 0, width, height)
+}
+
+const cropTo1x1 = () => {
+  cropToSquare()
+}
+
+const saveEdit = async () => {
+  if (!editPhoto.value || !editCanvas.value) return
+  
+  saving.value = true
+  try {
+    const canvas = editCanvas.value
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+    
+    const response = await fetch(dataUrl)
+    const blob = await response.blob()
+    
+    const formData = new FormData()
+    formData.append('file', blob, `edited_${editPhoto.value.original_filename}`)
+    formData.append('remark', `编辑: ${currentFilter.value} 旋转${rotation.value}° 翻转${flipH.value ? '水平' : ''}${flipV.value ? '垂直' : ''}`)
+    formData.append('original_filename', `edited_${editPhoto.value.original_filename}`)
+    
+    await api.post('/upload', formData)
+    
+    ElMessage.success('图片编辑已保存')
+    editDialogVisible.value = false
+    await search()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.error || '保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+const formatDate = (timestamp: number) => {
+  return new Date(timestamp * 1000).toLocaleString('zh-CN')
+}
+
 onMounted(() => {
   loadAlbums()
   loadTags()
@@ -383,31 +642,28 @@ onMounted(() => {
 
 <style scoped>
 .photo-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.375rem;
   align-items: stretch;
 }
 
 .photo-actions :deep(.el-button),
 .photo-action-btn {
-  width: 100% !important;
-  min-width: 0 !important;
-  height: 30px !important;
-  min-height: 30px !important;
-  line-height: 30px !important;
-  padding: 0 4px !important;
-  font-size: 10px !important;
-  border-radius: 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .photo-actions :deep(.el-button > span) {
-  display: inline-flex !important;
-  width: 100% !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  white-space: nowrap !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 </style>
