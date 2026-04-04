@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { jwt, sign } from 'hono/jwt'
+import { sign, verify } from 'hono/jwt'
 
 type Bindings = {
   DB: D1Database
@@ -14,7 +14,18 @@ type TreeNode = AlbumRow & { children: TreeNode[] }
 const app = new Hono<{ Bindings: Bindings }>()
 const JWT_SECRET_FALLBACK = 'tg-album-fallback-secret'
 const getJwtSecret = (c: any) => c.env.JWT_SECRET || JWT_SECRET_FALLBACK
-const auth = jwt({ secret: (c) => getJwtSecret(c), alg: 'HS256' })
+
+const auth = async (c: any, next: any) => {
+  try {
+    const authHeader = c.req.header('Authorization') || ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+    if (!token) return c.json({ error: 'Unauthorized' }, 401)
+    await verify(token, getJwtSecret(c), 'HS256')
+    await next()
+  } catch {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+}
 
 const buildTree = (rows: AlbumRow[]): TreeNode[] => {
   const map = new Map<number, TreeNode>()
