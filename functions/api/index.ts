@@ -157,6 +157,19 @@ app.post('/api/albums', auth, async (c) => {
   return c.json({ success: true })
 })
 
+app.put('/api/albums/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  const { name, visibility } = await c.req.json()
+  await c.env.DB.prepare('UPDATE albums SET name = ?, visibility = ? WHERE id = ?').bind(name, visibility || 'private', id).run()
+  return c.json({ success: true })
+})
+
+app.delete('/api/albums/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  await c.env.DB.prepare('DELETE FROM albums WHERE id = ?').bind(id).run()
+  return c.json({ success: true })
+})
+
 app.get('/api/tags', auth, async (c) => {
   const res = await c.env.DB.prepare('SELECT * FROM tags ORDER BY name ASC').all()
   return c.json({ results: res.results || [] })

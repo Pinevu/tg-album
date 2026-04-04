@@ -9,16 +9,22 @@
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
       <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
         <div>
           <div class="text-sm font-semibold text-slate-700 mb-2">相册树</div>
           <el-tree :data="albums" @node-click="onAlbumClick" />
         </div>
-        <div class="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-3">
-          <div class="text-sm font-semibold text-blue-700">上传到 TG 存储池</div>
-          <div class="text-xs text-blue-600 mt-1">选择图片后会发送给 Telegram Bot，并把 file_id 保存到 D1。</div>
-          <el-upload drag :http-request="handleUpload" :show-file-list="false" class="mt-3 w-full">
+        <div class="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-3 space-y-3">
+          <div>
+            <div class="text-sm font-semibold text-blue-700">上传到 TG 存储池</div>
+            <div class="text-xs text-blue-600 mt-1">可指定目标相册与备注，上传后自动保存到 D1。</div>
+          </div>
+          <el-select v-model="uploadAlbumId" placeholder="选择目标相册">
+            <el-option v-for="album in flatAlbums" :key="album.id" :label="album.name" :value="album.id" />
+          </el-select>
+          <el-input v-model="uploadRemark" placeholder="上传备注" />
+          <el-upload drag :http-request="handleUpload" :show-file-list="false" class="w-full">
             <div class="px-4 py-4 text-center text-slate-700">点击或拖拽上传图片</div>
           </el-upload>
         </div>
@@ -73,6 +79,8 @@
         <div class="rounded-2xl bg-slate-50 p-3">尺寸：{{ detail.width }}x{{ detail.height }}</div>
         <div class="rounded-2xl bg-slate-50 p-3">主色：{{ detail.dominant_color_hex }}</div>
         <div class="rounded-2xl bg-slate-50 p-3">拍摄设备：{{ detail.camera_model || '未知' }}</div>
+        <div class="rounded-2xl bg-slate-50 p-3">TG file_id：{{ detail.tg_file_id }}</div>
+        <div class="rounded-2xl bg-slate-50 p-3">TG unique_id：{{ detail.tg_file_unique_id }}</div>
       </div>
       <el-input v-model="detailRemark" placeholder="备注" />
       <el-button @click="saveRemark">保存备注</el-button>
@@ -81,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { searchPhotos, getAlbumTree, batchMove, batchDelete, batchTag, uploadPhoto, listTags, getPhotoDetail, updatePhotoRemark } from '@/utils/api'
 import { extractExif, dominantColorHex } from '@/utils/exif'
 
@@ -100,6 +108,11 @@ const detail = ref<any>(null)
 const detailRemark = ref('')
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const uploadAlbumId = ref<number | undefined>()
+const uploadRemark = ref('')
+
+const flatten = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flatten(n.children) : [])])
+const flatAlbums = computed(() => flatten(albums.value))
 
 const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
@@ -159,7 +172,8 @@ const handleUpload = async (options: any) => {
     const form = new FormData()
     form.append('file', file)
     form.append('original_filename', file.name)
-    if (currentAlbumId.value) form.append('album_id', String(currentAlbumId.value))
+    if (uploadAlbumId.value) form.append('album_id', String(uploadAlbumId.value))
+    if (uploadRemark.value) form.append('remark', uploadRemark.value)
     const exif = await extractExif(file)
     const color = await dominantColorHex(file)
     if (color) form.append('dominant_color_hex', color)
@@ -167,6 +181,7 @@ const handleUpload = async (options: any) => {
     await uploadPhoto(form)
     message.value = '图片上传成功，已进入 TG 存储池'
     messageType.value = 'success'
+    uploadRemark.value = ''
     await search()
   } catch (e: any) {
     message.value = e?.response?.data?.error || '图片上传失败'
