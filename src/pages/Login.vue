@@ -4,13 +4,18 @@
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
+        <div class="text-xs text-slate-400 mt-2">版本 v0.1.0</div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />
+      <el-alert title="如果页面异常或点击无反应，请清缓存后重开页面。" type="warning" show-icon :closable="false" class="mb-4" />
 
       <el-input v-model="username" placeholder="用户名" class="mb-3" />
       <el-input v-model="password" placeholder="密码" show-password class="mb-5" />
-      <el-button type="primary" class="w-full" size="large" @click="login">登录</el-button>
+      <div class="space-y-3">
+        <el-button type="primary" class="w-full" size="large" @click="login">登录</el-button>
+        <el-button class="w-full" @click="clearCache">清除本地缓存并返回登录页</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -36,5 +41,13 @@ const login = async () => {
   } catch (e: any) {
     error.value = e?.response?.data?.error || '登录失败，请检查用户名密码或等待后端最新部署完成'
   }
+}
+
+const clearCache = () => {
+  auth.logout()
+  localStorage.clear()
+  sessionStorage.clear()
+  router.replace('/login')
+  location.reload()
 }
 </script>
