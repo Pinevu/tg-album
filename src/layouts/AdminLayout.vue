@@ -1,14 +1,17 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
     <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-slate-200">
-      <div class="px-4 py-3 flex items-center justify-between">
+      <div class="px-4 py-3 flex items-center justify-between gap-3">
         <div>
           <div class="text-lg font-bold">相册系统</div>
           <div class="text-xs text-slate-500">Telegram 图片存储池</div>
         </div>
-        <div class="hidden md:block text-xs text-slate-400">手机优先 · PWA · D1 · TG 存储池</div>
+        <div class="flex items-center gap-2">
+          <a href="#/" class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm">前台</a>
+          <button class="px-3 py-2 rounded-full bg-slate-900 text-white text-sm" @click="logout">退出</button>
+        </div>
       </div>
-      <div class="md:hidden overflow-x-auto no-scrollbar px-3 pb-3">
+      <div class="overflow-x-auto no-scrollbar px-3 pb-3">
         <div class="flex gap-2 min-w-max">
           <a class="px-3 py-2 rounded-full bg-blue-600 text-white text-sm" href="#/admin/dashboard">仪表盘</a>
           <a class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm" href="#/admin/photos">图片</a>
@@ -38,6 +41,21 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useAuthStore } from '@/store/auth'
+import { useRouter } from 'vue-router'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+const logout = () => {
+  auth.logout()
+  localStorage.clear()
+  sessionStorage.clear()
+  router.replace('/login')
+}
+</script>
 
 <style scoped>
 .no-scrollbar::-webkit-scrollbar { display: none; }

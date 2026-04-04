@@ -201,9 +201,10 @@ app.post('/api/upload', auth, async (c) => {
       const ins = await tx.prepare('INSERT INTO photos (album_id,tg_pool_id,tg_file_id,tg_file_unique_id,original_filename,remark,width,height,file_size,dominant_color_hex,uploaded_at,tg_message_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
       if (exifJson) await tx.prepare('INSERT OR REPLACE INTO photo_metadata (photo_id,raw_exif_json) VALUES (?,?)').bind(ins.meta.last_row_id, exifJson).run()
     })
+    await tx
     return c.json({ success: true, pooled: true, album_id: albumId })
-  } catch {
-    return c.json({ error: 'Upload failed' }, 500)
+  } catch (e: any) {
+    return c.json({ error: e?.message || 'Upload failed' }, 500)
   }
 })
 
