@@ -1,7 +1,7 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-4">
     <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">TG 存储池</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-slate-900">TG 存储池</h1>
     </div>
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
@@ -42,6 +42,7 @@
         <div class="flex flex-wrap gap-2">
           <el-button @click="copyWebhook(pool)">复制 Webhook</el-button>
           <el-button @click="copySetWebhook(pool)">复制 setWebhook</el-button>
+          <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
           <el-button @click="edit(pool)">编辑</el-button>
           <el-button type="danger" @click="remove(pool.id)">删除</el-button>
         </div>
@@ -53,7 +54,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
 import api from '@/utils/axios'
 
 const origin = location.origin
@@ -103,10 +103,15 @@ const testPool = async () => {
     const { data } = await api.post('/tg-pools/test', { bot_token: form.value.bot_token, chat_id: form.value.chat_id })
     message.value = data.ok ? '测试连接成功' : '测试连接失败'
     messageType.value = data.ok ? 'success' : 'error'
-  } catch {
-    message.value = '测试连接失败'
+  } catch (e: any) {
+    message.value = e?.response?.data?.error || '测试连接失败'
     messageType.value = 'error'
   }
+}
+
+const getSetWebhookCommand = async (pool: any) => {
+  const { data } = await api.get(`/tg-pools/${pool.id}/webhook-command`)
+  return data.set_webhook_command
 }
 
 const copyWebhook = async (pool: any) => {
@@ -117,11 +122,20 @@ const copyWebhook = async (pool: any) => {
 
 const copySetWebhook = async (pool: any) => {
   try {
-    const { data } = await api.get(`/tg-pools/${pool.id}/webhook-command`)
-    await navigator.clipboard.writeText(data.set_webhook_command)
+    const cmd = await getSetWebhookCommand(pool)
+    await navigator.clipboard.writeText(cmd)
     ElMessage.success('setWebhook 命令已复制')
-  } catch {
-    ElMessage.error('生成 setWebhook 命令失败')
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.error || `生成失败: ${e?.response?.status || 'unknown'}`)
+  }
+}
+
+const openSetWebhook = async (pool: any) => {
+  try {
+    const cmd = await getSetWebhookCommand(pool)
+    location.href = cmd
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.error || `打开失败: ${e?.response?.status || 'unknown'}`)
   }
 }
 
@@ -136,8 +150,8 @@ const remove = async (id: number) => {
     message.value = '删除成功'
     messageType.value = 'success'
     await load()
-  } catch {
-    message.value = '删除失败'
+  } catch (e: any) {
+    message.value = e?.response?.data?.error || '删除失败'
     messageType.value = 'error'
   }
 }
