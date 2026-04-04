@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6">
     <div>
-      <h1 class="text-3xl font-bold">Recycle Bin</h1>
-      <p class="text-white/60 mt-1">可还原或永久删除</p>
+      <h1 class="text-3xl font-bold">回收站</h1>
+      <p class="text-white/60 mt-1">可还原或永久删除已删除图片</p>
     </div>
 
     <div class="flex gap-2">

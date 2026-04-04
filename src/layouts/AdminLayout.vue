@@ -6,17 +6,17 @@
         <div class="text-xs text-white/60 mt-1">Cloudflare Pages + D1</div>
       </div>
       <el-menu class="bg-transparent border-none" router :default-active="$route.path" text-color="#fff" active-text-color="#60a5fa">
-        <el-menu-item index="/admin/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/admin/photos">Photos</el-menu-item>
-        <el-menu-item index="/admin/albums">Albums</el-menu-item>
-        <el-menu-item index="/admin/recycle">Recycle Bin</el-menu-item>
+        <el-menu-item index="/admin/dashboard">仪表盘</el-menu-item>
+        <el-menu-item index="/admin/photos">图片管理</el-menu-item>
+        <el-menu-item index="/admin/albums">相册管理</el-menu-item>
+        <el-menu-item index="/admin/recycle">回收站</el-menu-item>
       </el-menu>
     </aside>
 
     <div class="flex-1 flex flex-col">
       <header class="h-16 px-6 flex items-center justify-between border-b border-white/10 bg-black/20 backdrop-blur-xl">
-        <div class="text-sm text-white/70">Admin Console</div>
-        <div class="text-xs text-white/50">Hash Router • D1 • Pages Functions</div>
+        <div class="text-sm text-white/70">后台控制台</div>
+        <div class="text-xs text-white/50">Hash 路由 · D1 · Pages Functions</div>
       </header>
       <main class="flex-1 p-6 overflow-auto">
         <div class="max-w-7xl mx-auto">

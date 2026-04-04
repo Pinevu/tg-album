@@ -6,9 +6,9 @@
         <div class="text-white/60 mt-2 text-sm">私有相册后台管理</div>
       </div>
 
-      <el-input v-model="username" placeholder="Username" class="mb-3" />
-      <el-input v-model="password" placeholder="Password" show-password class="mb-5" />
-      <el-button type="primary" class="w-full" size="large" @click="login">Login</el-button>
+      <el-input v-model="username" placeholder="用户名" class="mb-3" />
+      <el-input v-model="password" placeholder="密码" show-password class="mb-5" />
+      <el-button type="primary" class="w-full" size="large" @click="login">登录</el-button>
     </div>
   </div>
 </template>

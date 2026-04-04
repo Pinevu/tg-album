@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex items-end justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Albums</h1>
+        <h1 class="text-3xl font-bold">相册管理</h1>
         <p class="text-white/60 mt-1">管理相册结构与树状目录</p>
       </div>
       <div class="flex gap-2">

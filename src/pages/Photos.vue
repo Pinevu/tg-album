@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-end justify-between">
+    <div class="flex items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold">Photos</h1>
-        <p class="text-white/60 mt-1">支持相册树、关键词、标签、时间范围、批量操作</p>
+        <h1 class="text-3xl font-bold">图片管理</h1>
+        <p class="text-white/60 mt-1">支持相册树、关键词、标签、时间范围和批量操作</p>
       </div>
       <el-upload drag :http-request="handleUpload" :show-file-list="false" class="upload-card">
         <div class="px-4 py-6 text-center">拖拽上传</div>
@@ -26,7 +26,7 @@
 
       <div class="space-y-4">
         <div v-if="selectedIds.length" class="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl p-4 flex flex-wrap gap-2 items-center">
-          <el-input v-model="tagInput" placeholder="批量标签(逗号分隔)" class="w-60" />
+          <el-input v-model="tagInput" placeholder="批量标签（逗号分隔）" class="w-60" />
           <el-button @click="applyTags">打标签</el-button>
           <el-input-number v-model="moveAlbumId" placeholder="目标相册ID" />
           <el-button @click="move">批量移动</el-button>
@@ -52,14 +52,14 @@
     </div>
   </div>
 
-  <el-drawer v-model="detailVisible" size="40%" title="Photo Detail">
+  <el-drawer v-model="detailVisible" size="40%" title="图片详情">
     <div v-if="detail" class="space-y-4">
       <img :src="`/api/photos/file/${detail.id}`" class="rounded-xl w-full" />
       <div class="grid grid-cols-2 gap-2 text-sm">
-        <div>文件名: {{ detail.original_filename }}</div>
-        <div>尺寸: {{ detail.width }}x{{ detail.height }}</div>
-        <div>主色: {{ detail.dominant_color_hex }}</div>
-        <div>拍摄设备: {{ detail.camera_model }}</div>
+        <div>文件名：{{ detail.original_filename }}</div>
+        <div>尺寸：{{ detail.width }}x{{ detail.height }}</div>
+        <div>主色：{{ detail.dominant_color_hex }}</div>
+        <div>拍摄设备：{{ detail.camera_model }}</div>
       </div>
       <el-input v-model="detailRemark" placeholder="备注" />
       <el-button @click="saveRemark">保存备注</el-button>
@@ -82,7 +82,6 @@ const keyword = ref('')
 const tagInput = ref('')
 const moveAlbumId = ref<number | undefined>()
 const currentAlbumId = ref<number | null>(null)
-
 const detailVisible = ref(false)
 const detail = ref<any>(null)
 const detailRemark = ref('')
