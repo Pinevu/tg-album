@@ -107,35 +107,43 @@ app.post('/api/login', async (c) => {
 })
 
 app.get('/api/public/albums', async (c) => {
-  const res = await c.env.DB.prepare(`SELECT id, name, visibility, cover_photo_id FROM albums WHERE visibility = 'public' ORDER BY id ASC`).all<any>()
-  const albums = res.results || []
-  const albumIds = albums.map(a => a.id)
-  // 获取每个相册的照片数量和封面照片信息
-  if (albumIds.length > 0) {
-    const placeholders = albumIds.map(() => '?').join(',')
-    const countRes = await c.env.DB.prepare(`SELECT album_id, COUNT(*) as count FROM photos WHERE album_id IN (${placeholders}) AND deleted_at IS NULL GROUP BY album_id`).bind(...albumIds).all<any>()
-    const countMap = new Map((countRes.results || []).map((r: any) => [r.album_id, r.count]))
+  const res = await c.env.DB.prepare(`
+    SELECT
+      a.id,
+      a.name,
+      a.visibility,
+      a.cover_photo_id,
+      COUNT(p.id) AS photo_count,
+      cp.id AS cover_id
+    FROM albums a
+    LEFT JOIN photos p ON p.album_id = a.id AND p.deleted_at IS NULL
+    LEFT JOIN photos cp ON cp.id = a.cover_photo_id AND cp.deleted_at IS NULL
+    WHERE a.visibility = 'public'
+    GROUP BY a.id
+    ORDER BY a.id ASC
+  `).all<any>()
 
-    const coverRes = await c.env.DB.prepare(`SELECT album_id, file_id, width, height FROM photos WHERE album_id IN (${placeholders}) AND deleted_at IS NULL AND id IN (SELECT cover_photo_id FROM albums WHERE album_id IN (${placeholders}))`).bind(...albumIds, ...albumIds).all<any>()
-    const coverMap = new Map((coverRes.results || []).map((r: any) => [r.album_id, r]))
+  const results = (res.results || []).map((a: any) => ({
+    ...a,
+    photo_count: Number(a.photo_count || 0),
+    cover_photo: a.cover_id ? { id: a.cover_id } : null,
+  }))
 
-    albums.forEach((a: any) => {
-      a.photo_count = countMap.get(a.id) || 0
-      if (a.cover_photo_id) {
-        a.cover_photo = coverMap.get(a.id)
-      }
-    })
-  }
-  return c.json({ results: albums })
+  return c.json({ results })
 })
 
 app.get('/api/public/photos', async (c) => {
   const album_id = c.req.query('album_id')
   const p: any[] = []
-  let sql = `SELECT p.* FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND a.visibility = 'public'`
+  let sql = `
+    SELECT p.*, a.name AS album_name
+    FROM photos p
+    JOIN albums a ON p.album_id = a.id
+    WHERE p.deleted_at IS NULL AND a.visibility = 'public'
+  `
   if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
-  sql += ' ORDER BY p.uploaded_at DESC LIMIT 200'
-  const res = await c.env.DB.prepare(sql).bind(...p).all()
+  sql += ' ORDER BY p.uploaded_at DESC LIMIT 400'
+  const res = await c.env.DB.prepare(sql).bind(...p).all<any>()
   return c.json({ results: res.results || [] })
 })
 
