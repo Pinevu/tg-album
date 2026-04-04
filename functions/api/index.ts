@@ -283,6 +283,23 @@ const servePhotoFile = async (c: any, id: string) => {
   })
 }
 
+app.get('/api/photos/file/:id/:filename', async (c) => {
+  const id = c.req.param('id')
+  const row = await c.env.DB.prepare(`SELECT tg_file_id, tg_pool_id, original_filename FROM photos WHERE id = ?`).bind(id).first<any>()
+  if (!row) return c.json({ error: 'Not found' }, 404)
+  let botToken = c.env.TG_BOT_TOKEN
+  if (row.tg_pool_id) {
+    const pool = await c.env.DB.prepare(`SELECT bot_token FROM tg_pools WHERE id = ?`).bind(row.tg_pool_id).first<any>()
+    if (pool?.bot_token) botToken = pool.bot_token
+  }
+  if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
+  const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
+  const fileJson = await fileRes.json<any>()
+  if (!fileJson.ok) return c.json({ error: 'Telegram getFile failed', detail: fileJson }, 500)
+  const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
+  return new Response(imgRes.body, { headers: { 'content-type': imgRes.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } })
+})
+
 app.get('/api/photos/file/:id', async (c) => {
   return servePhotoFile(c, c.req.param('id'))
 })

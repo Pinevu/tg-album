@@ -106,11 +106,12 @@
               <div class="mt-2 text-[10px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
-              <div class="mt-2 grid grid-cols-2 gap-1 photo-actions">
-                <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn">详情</el-button>
-                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn">移动</el-button>
-                <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="photo-action-btn">删除</el-button>
-                <el-button size="small" @click.stop="openEditDialog(photo.id)" class="photo-action-btn">编辑</el-button>
+              <div class="mt-2 grid grid-cols-2 gap-1.5 photo-actions">
+                <button type="button" @click.stop="openDetail(photo.id)" class="photo-action-native photo-action-detail">详情</button>
+                <button type="button" @click.stop="openMoveDialog(photo.id)" class="photo-action-native photo-action-move">移动</button>
+                <button type="button" @click.stop="deletePhoto(photo.id)" class="photo-action-native photo-action-delete">删除</button>
+                <button type="button" @click.stop="copyDirectLink(photo.id)" class="photo-action-native photo-action-link">直链</button>
+              </div>
               </div>
             </div>
           </div>
@@ -453,7 +454,7 @@ const confirmDelete = async () => {
   }
 }
 
-// ==================== 图片编辑功能 ====================
+// ====== 图片编辑功能 ======
 const openEditDialog = async (id: number) => {
   const { data } = await getPhotoDetail(id)
   editPhoto.value = { ...data, previewUrl: `/api/photos/file/${data.id}` }
@@ -648,41 +649,45 @@ onMounted(() => {
   align-items: stretch;
 }
 
-.photo-actions :deep(.el-button),
-.photo-action-btn {
+.photo-action-native {
   width: 100%;
-  height: 24px;
-  padding: 0 8px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   font-size: 10px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  border: 1px solid #e5e5e5;
-  color: #333;
-  transition: all 0.2s;
-}
-
-.photo-actions :deep(.el-button:hover) {
-  background: #e8e8e8;
-  border-color: #d9d9d9;
-}
-
-.photo-actions :deep(.el-button:active) {
-  background: #d9d9d9;
-}
-
-.photo-actions :deep(.el-button.is-disabled) {
-  background: #f5f5f5;
-  border-color: #e5e5e5;
-  color: #bfbfbf;
-}
-
-.photo-actions :deep(.el-button > span) {
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  text-align: center;
+  padding: 0 4px;
+  box-sizing: border-box;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.photo-action-detail {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #334155;
+}
+
+.photo-action-move {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.photo-action-delete {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+.photo-action-link {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #059669;
 }
 </style>
