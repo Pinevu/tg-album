@@ -87,7 +87,7 @@
           <div
             v-for="photo in photos"
             :key="photo.id"
-            class="relative group rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-xl hover:border-blue-300"
+            class="rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-xl hover:border-blue-300"
             :class="selectedIds.includes(photo.id)
               ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg shadow-blue-100'
               : ''"
@@ -101,12 +101,12 @@
               ✓
             </div>
 
-            <!-- 悬停时显示操作按钮 -->
-            <div class="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-3">
-              <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-full !w-14 !px-2">详情</el-button>
-              <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-full !w-14 !px-2">移动</el-button>
-              <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-full !w-14 !px-2">删除</el-button>
-              <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-full !w-14 !px-2">直链</el-button>
+            <!-- 4个按钮直接显示在图片下方 -->
+            <div class="p-2 flex gap-1">
+              <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-full !w-12 !px-2">详情</el-button>
+              <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-full !w-12 !px-2">移动</el-button>
+              <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-full !w-12 !px-2">删除</el-button>
+              <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-full !w-12 !px-2">直链</el-button>
             </div>
 
             <!-- 文件名（小字） -->
