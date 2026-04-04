@@ -80,6 +80,26 @@
           </div>
         </div>
       </div>
+
+      <!-- iOS 风格相册照片瀑布流 -->
+      <div v-if="currentAlbumId && albumPhotos.length > 0" class="space-y-5">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-slate-800">{{ currentAlbum?.name }}</h2>
+          <div class="text-sm text-slate-500">{{ albumPhotos.length }} 张照片</div>
+        </div>
+
+        <!-- iOS 风格照片瀑布流 -->
+        <div class="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4 [column-fill:_balance]">
+          <div
+            v-for="photo in albumPhotos"
+            :key="photo.id"
+            @click="preview(photo)"
+            class="mb-4 break-inside-avoid rounded-2xl overflow-hidden cursor-pointer bg-white border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-200"
+          >
+            <img :src="`/api/photos/file/${photo.id}`" class="w-full block" />
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- iOS 风格图片预览 Modal -->
@@ -104,7 +124,9 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 const albums = ref<any[]>([])
+const albumPhotos = ref<any[]>([])
 const currentAlbumId = ref<number | null>(null)
+const currentAlbum = ref<any>(null)
 const previewVisible = ref(false)
 const previewUrl = ref('')
 const previewPhoto = ref<any>(null)
@@ -123,13 +145,34 @@ const loadAlbums = async () => {
   }
 }
 
+const loadAlbumPhotos = async (albumId: number) => {
+  try {
+    const { data } = await axios.get('/api/public/photos', { params: { album_id: albumId } })
+    albumPhotos.value = data.results || []
+  } catch (error) {
+    console.error('加载相册照片失败:', error)
+  }
+}
+
 const selectAlbum = (id: number | null) => {
   currentAlbumId.value = id
+  if (id) {
+    currentAlbum.value = albums.value.find(a => a.id === id)
+    loadAlbumPhotos(id)
+  } else {
+    albumPhotos.value = []
+  }
 }
 
 const openAlbum = (album: any) => {
-  previewPhoto.value = album
-  previewUrl.value = album.cover_photo ? `/api/photos/file/${album.cover_photo.id}` : ''
+  currentAlbumId.value = album.id
+  currentAlbum.value = album
+  loadAlbumPhotos(album.id)
+}
+
+const preview = (photo: any) => {
+  previewPhoto.value = photo
+  previewUrl.value = `/api/photos/file/${photo.id}`
   previewVisible.value = true
 }
 
@@ -141,8 +184,8 @@ const closePreview = () => {
   }, 300)
 }
 
-onMounted(() => {
-  loadAlbums()
+onMounted(async () => {
+  await loadAlbums()
 })
 </script>
 

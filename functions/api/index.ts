@@ -108,7 +108,25 @@ app.post('/api/login', async (c) => {
 
 app.get('/api/public/albums', async (c) => {
   const res = await c.env.DB.prepare(`SELECT id, name, visibility, cover_photo_id FROM albums WHERE visibility = 'public' ORDER BY id ASC`).all<any>()
-  return c.json({ results: res.results || [] })
+  const albums = res.results || []
+  const albumIds = albums.map(a => a.id)
+  // 获取每个相册的照片数量和封面照片信息
+  if (albumIds.length > 0) {
+    const placeholders = albumIds.map(() => '?').join(',')
+    const countRes = await c.env.DB.prepare(`SELECT album_id, COUNT(*) as count FROM photos WHERE album_id IN (${placeholders}) AND deleted_at IS NULL GROUP BY album_id`).bind(...albumIds).all<any>()
+    const countMap = new Map((countRes.results || []).map((r: any) => [r.album_id, r.count]))
+
+    const coverRes = await c.env.DB.prepare(`SELECT album_id, file_id, width, height FROM photos WHERE album_id IN (${placeholders}) AND deleted_at IS NULL AND id IN (SELECT cover_photo_id FROM albums WHERE album_id IN (${placeholders}))`).bind(...albumIds, ...albumIds).all<any>()
+    const coverMap = new Map((coverRes.results || []).map((r: any) => [r.album_id, r]))
+
+    albums.forEach((a: any) => {
+      a.photo_count = countMap.get(a.id) || 0
+      if (a.cover_photo_id) {
+        a.cover_photo = coverMap.get(a.id)
+      }
+    })
+  }
+  return c.json({ results: albums })
 })
 
 app.get('/api/public/photos', async (c) => {

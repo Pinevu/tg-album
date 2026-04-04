@@ -93,8 +93,8 @@
               : ''"
             @click="toggleSelect(photo.id)"
           >
-            <!-- 小图预览 -->
-            <img :src="photo.previewUrl" class="w-full aspect-square object-cover" />
+            <!-- 小图预览 (128x128) -->
+            <img :src="photo.previewUrl" class="w-32 h-32 object-cover" />
 
             <!-- 选中状态标记 -->
             <div v-if="selectedIds.includes(photo.id)" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shadow-lg">
@@ -102,9 +102,9 @@
             </div>
 
             <!-- 悬停时显示操作按钮 -->
-            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-3">
-              <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-full">详情</el-button>
-              <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-full">复制直链</el-button>
+            <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-3">
+              <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-full !w-20 !px-3">移动</el-button>
+              <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-full !w-20 !px-3">删除</el-button>
             </div>
 
             <!-- 文件名（小字） -->
@@ -116,6 +116,26 @@
         </div>
       </div>
     </div>
+
+    <!-- 移动图片对话框 -->
+    <el-dialog v-model="moveDialogVisible" title="移动图片" width="400px">
+      <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="large">
+        <el-option v-for="album in flatAlbums" :key="album.id" :label="album.name" :value="album.id" />
+      </el-select>
+      <template #footer>
+        <el-button @click="moveDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 删除确认对话框 -->
+    <el-dialog v-model="deleteDialogVisible" title="确认删除" width="400px">
+      <div class="text-slate-600">确定要删除这张图片吗？此操作不可恢复。</div>
+      <template #footer>
+        <el-button @click="deleteDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 图片详情抽屉（大图预览） -->
     <el-drawer v-model="detailVisible" size="90%" :with-header="true" title="图片详情" class="!rounded-3xl">
@@ -194,6 +214,11 @@ const messageType = ref<'success' | 'error'>('success')
 const uploadAlbumId = ref<number | undefined>()
 const uploadRemark = ref('')
 const uploadQueue = ref<any[]>([])
+const moveDialogVisible = ref(false)
+const moveToAlbumId = ref<number | undefined>()
+const deleteDialogVisible = ref(false)
+const moving = ref(false)
+const deleting = ref(false)
 
 const flatten = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
@@ -323,6 +348,47 @@ const saveRemark = async () => {
   detailVisible.value = false
   await search()
   ElMessage.success('备注已保存')
+}
+
+const openMoveDialog = (id: number) => {
+  moveToAlbumId.value = undefined
+  moveDialogVisible.value = true
+}
+
+const confirmMove = async () => {
+  if (!moveToAlbumId.value) {
+    ElMessage.warning('请选择目标相册')
+    return
+  }
+  moving.value = true
+  try {
+    await api.put(`/photos/${id}/move`, { album_id: moveToAlbumId.value })
+    ElMessage.success('移动成功')
+    moveDialogVisible.value = false
+    await search()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.error || '移动失败')
+  } finally {
+    moving.value = false
+  }
+}
+
+const deletePhoto = (id: number) => {
+  deleteDialogVisible.value = true
+}
+
+const confirmDelete = async () => {
+  deleting.value = true
+  try {
+    await api.delete(`/photos/${id}`)
+    ElMessage.success('删除成功')
+    deleteDialogVisible.value = false
+    await search()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.error || '删除失败')
+  } finally {
+    deleting.value = false
+  }
 }
 
 onMounted(() => {
