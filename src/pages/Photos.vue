@@ -263,7 +263,10 @@ const setCover = async () => {
 }
 
 const copyDirectLink = async (id: number) => {
-  const url = `${location.origin}/api/photos/file/${id}`
+  const photo = photos.value.find((p: any) => p.id === id)
+  const rawName = (photo?.original_filename || `photo-${id}.jpg`).split('/').pop() || `photo-${id}.jpg`
+  const safeName = rawName.replace(/\s+/g, '_')
+  const url = `${location.origin}/api/photos/file/${id}/${encodeURIComponent(safeName)}`
   await navigator.clipboard.writeText(url)
   ElMessage.success('图片直链已复制')
 }
@@ -379,9 +382,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.photo-actions {
+  align-items: stretch;
+}
+
 .photo-actions :deep(.el-button),
 .photo-action-btn {
-  width: 100%;
+  width: 100% !important;
+  min-width: 0 !important;
   height: 30px !important;
   min-height: 30px !important;
   line-height: 30px !important;
@@ -391,5 +399,15 @@ onMounted(() => {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.photo-actions :deep(.el-button > span) {
+  display: inline-flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
 }
 </style>

@@ -261,8 +261,7 @@ app.get('/api/tags', auth, async (c) => {
   return c.json({ results: res.results || [] })
 })
 
-app.get('/api/photos/file/:id', async (c) => {
-  const id = c.req.param('id')
+const servePhotoFile = async (c: any, id: string) => {
   const row = await c.env.DB.prepare(`SELECT tg_file_id, tg_pool_id, original_filename FROM photos WHERE id = ?`).bind(id).first<any>()
   if (!row) return c.json({ error: 'Not found' }, 404)
   let botToken = c.env.TG_BOT_TOKEN
@@ -275,15 +274,21 @@ app.get('/api/photos/file/:id', async (c) => {
   const fileJson = await fileRes.json<any>()
   if (!fileJson.ok) return c.json({ error: 'Telegram getFile failed', detail: fileJson }, 500)
 
-  // 提取图片扩展名
-  const ext = (() => {
-    const filename = row.original_filename || fileJson.result.file_path
-    const match = filename.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)$/i)
-    return match ? match[1] : 'jpg'
-  })()
-
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
-  return new Response(imgRes.body, { headers: { 'content-type': imgRes.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } })
+  return new Response(imgRes.body, {
+    headers: {
+      'content-type': imgRes.headers.get('content-type') || 'image/jpeg',
+      'cache-control': 'public, max-age=86400'
+    }
+  })
+}
+
+app.get('/api/photos/file/:id', async (c) => {
+  return servePhotoFile(c, c.req.param('id'))
+})
+
+app.get('/api/photos/file/:id/:filename', async (c) => {
+  return servePhotoFile(c, c.req.param('id'))
 })
 
 app.post('/api/upload', auth, async (c) => {
