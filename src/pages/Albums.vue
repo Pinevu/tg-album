@@ -16,6 +16,8 @@
       </div>
     </div>
 
+    <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
+
     <div class="space-y-3">
       <div v-for="album in flatAlbums" :key="album.id" class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
@@ -25,7 +27,7 @@
             <span v-if="album.name === '未分类'" class="text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600">默认相册</span>
           </div>
           <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
-          <div v-if="album.slug" class="text-xs text-slate-500 mt-1">{{ location.origin }}/{{ album.slug }}</div>
+          <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ location.origin }}/{{ album.slug }}</div>
         </div>
         <div class="flex flex-wrap gap-2">
           <el-button v-if="album.slug" @click="copyShareLink(album)" class="!rounded-2xl">复制链接</el-button>
@@ -48,13 +50,19 @@ const visibility = ref('private')
 const slug = ref('')
 const accessPassword = ref('')
 const editingId = ref<number | null>(null)
+const error = ref('')
 
 const flatten = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
 
 const load = async () => {
-  const { data } = await getAlbumTree()
-  albums.value = data.results || []
+  error.value = ''
+  try {
+    const { data } = await getAlbumTree()
+    albums.value = data.results || []
+  } catch (e: any) {
+    error.value = e?.response?.data?.error || '相册读取失败，请刷新或重新登录'
+  }
 }
 
 const create = async () => {
