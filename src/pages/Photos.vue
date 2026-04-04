@@ -223,12 +223,12 @@
         </div>
         <div class="pt-2 border-t border-slate-200">
           <el-input v-model="detailRemark" placeholder="添加备注" size="large" />
-          <template #footer>
-            <el-button @click="detailVisible = false">关闭</el-button>
-            <el-button type="primary" @click="saveRemark" :loading="saving">保存</el-button>
-          </template>
         </div>
       </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button type="primary" @click="saveRemark" :loading="saving">保存</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
