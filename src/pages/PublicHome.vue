@@ -13,7 +13,7 @@
             <div class="text-xs text-slate-500">Telegram 图库瀑布流</div>
           </div>
         </div>
-        <a href="#/login" class="rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium shadow-sm">管理入口</a>
+        <a href="#/login" class="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-slate-100 hover:text-slate-800 transition">管理入口</a>
       </div>
     </header>
 
@@ -49,24 +49,15 @@
       </section>
 
       <section v-else>
-        <div class="flex items-end justify-between mb-4">
-          <div>
-            <div class="text-2xl font-bold tracking-tight text-slate-900">{{ currentAlbumId ? currentAlbumName : '全部公开图片' }}</div>
-            <div class="text-sm text-slate-500 mt-1">共 {{ photos.length }} 张</div>
-          </div>
-        </div>
-
-        <div class="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4 [column-fill:_balance]">
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
           <div
             v-for="photo in photos"
             :key="photo.id"
-            class="mb-4 break-inside-avoid rounded-[24px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 cursor-pointer"
+            class="rounded-[28px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
             @click="preview(photo)"
           >
-            <img :src="`/api/photos/file/${photo.id}`" class="w-full block" />
-            <div class="p-3">
-              <div class="text-[12px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
-              <div class="text-[11px] text-slate-500 mt-1 truncate">{{ photo.album_name || '公开相册' }}</div>
+            <div class="aspect-[3/4] overflow-hidden bg-slate-100">
+              <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover" />
             </div>
           </div>
         </div>
@@ -87,35 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
-const albums = ref<any[]>([])
 const photos = ref<any[]>([])
-const currentAlbumId = ref<number | null>(null)
 const previewVisible = ref(false)
 const previewUrl = ref('')
-
-const currentAlbumName = computed(() => {
-  return albums.value.find((a) => a.id === currentAlbumId.value)?.name || '全部公开图片'
-})
-
-const loadAlbums = async () => {
-  const { data } = await axios.get('/api/public/albums')
-  albums.value = data.results || []
-}
-
-const loadPhotos = async () => {
-  const params: any = {}
-  if (currentAlbumId.value) params.album_id = currentAlbumId.value
-  const { data } = await axios.get('/api/public/photos', { params })
-  photos.value = data.results || []
-}
-
-const selectAlbum = async (id: number | null) => {
-  currentAlbumId.value = id
-  await loadPhotos()
-}
 
 const preview = (photo: any) => {
   previewUrl.value = `/api/photos/file/${photo.id}`
@@ -128,7 +96,6 @@ const closePreview = () => {
 }
 
 onMounted(async () => {
-  await loadAlbums()
   await loadPhotos()
 })
 </script>

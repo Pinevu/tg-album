@@ -16,7 +16,16 @@
       <div class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm space-y-4 self-start">
         <div>
           <div class="text-sm font-semibold text-slate-700 mb-2">相册树</div>
-          <el-tree :data="albums" @node-click="onAlbumClick" />
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 min-h-[120px] max-h-[280px] overflow-auto">
+            <el-tree
+              :data="albums"
+              :props="treeProps"
+              node-key="id"
+              default-expand-all
+              :expand-on-click-node="false"
+              @node-click="onAlbumClick"
+            />
+          </div>
         </div>
 
         <div class="flex gap-2 flex-wrap">
@@ -95,10 +104,9 @@
               </div>
 
               <div class="mt-2 text-[10px] font-semibold text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
-              <div class="text-[9px] text-slate-500 mt-0.5 truncate">{{ photo.camera_model || '未知设备' }}</div>
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
-              <div class="mt-2 grid grid-cols-2 gap-1.5">
+              <div class="mt-2 grid grid-cols-2 gap-1.5 photo-actions">
                 <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
                 <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
                 <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">删除</el-button>
@@ -192,6 +200,7 @@ const activeDeleteId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => nodes.flatMap((n) => [n, ...(n.children ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
+const treeProps = { label: 'name', children: 'children' }
 
 const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
@@ -254,7 +263,10 @@ const setCover = async () => {
 }
 
 const copyDirectLink = async (id: number) => {
-  const url = `${location.origin}/api/photos/file/${id}`
+  const photo = photos.value.find((p: any) => p.id === id)
+  const filename = ((photo?.original_filename || 'image.jpg').split('/').pop() || 'image.jpg').replace(/\s+/g, '_')
+  const ts = photo?.uploaded_at ? Number(photo.uploaded_at) * 1000 : Date.now()
+  const url = `https://img.nooh.cc/file/img/pine/${ts}_${filename}`
   await navigator.clipboard.writeText(url)
   ElMessage.success('图片直链已复制')
 }
@@ -368,3 +380,13 @@ onMounted(() => {
   search()
 })
 </script>
+
+<style scoped>
+.photo-actions :deep(.el-button) {
+  width: 100%;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 10px;
+  border-radius: 12px;
+}
+</style>
