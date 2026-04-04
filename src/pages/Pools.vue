@@ -19,6 +19,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <el-button type="primary" @click="save">保存</el-button>
+        <el-button @click="testPool">测试连接</el-button>
         <el-button @click="resetForm">清空</el-button>
       </div>
     </div>
@@ -42,6 +43,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getPools, createPool, updatePool, deletePool } from '@/utils/api'
+import api from '@/utils/axios'
 
 const pools = ref<any[]>([])
 const editingId = ref<number | null>(null)
@@ -53,7 +55,7 @@ const load = async () => {
   try {
     const { data } = await getPools()
     pools.value = data.results || []
-  } catch (e: any) {
+  } catch {
     message.value = '读取存储池失败，请重新登录后重试'
     messageType.value = 'error'
   }
@@ -72,8 +74,24 @@ const save = async () => {
     messageType.value = 'success'
     resetForm()
     await load()
-  } catch (e: any) {
+  } catch {
     message.value = '存储池保存失败，请确认后端已部署到最新版本'
+    messageType.value = 'error'
+  }
+}
+
+const testPool = async () => {
+  if (!form.value.bot_token) {
+    message.value = '请先填写 Bot Token'
+    messageType.value = 'error'
+    return
+  }
+  try {
+    const { data } = await api.post('/tg-pools/test', { bot_token: form.value.bot_token, chat_id: form.value.chat_id })
+    message.value = data.ok ? '测试连接成功' : '测试连接失败'
+    messageType.value = data.ok ? 'success' : 'error'
+  } catch {
+    message.value = '测试连接失败'
     messageType.value = 'error'
   }
 }

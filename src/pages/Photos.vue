@@ -7,6 +7,8 @@
       </div>
     </div>
 
+    <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
+
     <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
         <div>
@@ -96,6 +98,8 @@ const currentAlbumId = ref<number | null>(null)
 const detailVisible = ref(false)
 const detail = ref<any>(null)
 const detailRemark = ref('')
+const message = ref('')
+const messageType = ref<'success' | 'error'>('success')
 
 const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
@@ -150,17 +154,24 @@ const toRecycle = async () => {
 }
 
 const handleUpload = async (options: any) => {
-  const file: File = options.file
-  const form = new FormData()
-  form.append('file', file)
-  form.append('original_filename', file.name)
-  if (currentAlbumId.value) form.append('album_id', String(currentAlbumId.value))
-  const exif = await extractExif(file)
-  const color = await dominantColorHex(file)
-  if (color) form.append('dominant_color_hex', color)
-  if (exif.raw_exif_json) form.append('exif_json', exif.raw_exif_json)
-  await uploadPhoto(form)
-  await search()
+  try {
+    const file: File = options.file
+    const form = new FormData()
+    form.append('file', file)
+    form.append('original_filename', file.name)
+    if (currentAlbumId.value) form.append('album_id', String(currentAlbumId.value))
+    const exif = await extractExif(file)
+    const color = await dominantColorHex(file)
+    if (color) form.append('dominant_color_hex', color)
+    if (exif.raw_exif_json) form.append('exif_json', exif.raw_exif_json)
+    await uploadPhoto(form)
+    message.value = '图片上传成功，已进入 TG 存储池'
+    messageType.value = 'success'
+    await search()
+  } catch (e: any) {
+    message.value = e?.response?.data?.error || '图片上传失败'
+    messageType.value = 'error'
+  }
 }
 
 const openDetail = async (id: number) => {

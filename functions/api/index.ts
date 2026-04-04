@@ -104,6 +104,18 @@ app.post('/api/tg-pools', auth, async (c) => {
   return c.json({ success: true })
 })
 
+app.post('/api/tg-pools/test', auth, async (c) => {
+  try {
+    const { bot_token } = await c.req.json()
+    if (!bot_token) return c.json({ ok: false, error: '缺少 bot_token' }, 400)
+    const res = await fetch(`https://api.telegram.org/bot${bot_token}/getMe`)
+    const data = await res.json<any>()
+    return c.json({ ok: !!data.ok, data })
+  } catch {
+    return c.json({ ok: false }, 500)
+  }
+})
+
 app.put('/api/tg-pools/:id', auth, async (c) => {
   const id = c.req.param('id')
   const { name, bot_token, chat_id, enabled } = await c.req.json()
