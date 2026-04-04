@@ -222,11 +222,22 @@ app.post('/api/tg/webhook/:poolId', async (c) => {
   try {
     const poolId = c.req.param('poolId')
     const update = await c.req.json<any>()
-    const photo = update.message?.photo?.at(-1)
-    if (!photo) return c.json({ ok: true })
-    const defaultAlbumId = await ensureDefaultAlbum(c)
-    const now = Math.floor(Date.now() / 1000)
-    await c.env.DB.prepare(`INSERT OR IGNORE INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, width, height, file_size, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(defaultAlbumId, poolId, photo.file_id, photo.file_unique_id, photo.width, photo.height, photo.file_size, now, update.message?.message_id || null).run()
+    const message = update.message || update.edited_message
+    const photo = message?.photo?.at(-1)
+    if (photo) {
+      const defaultAlbumId = await ensureDefaultAlbum(c)
+      const now = Math.floor(Date.now() / 1000)
+      await c.env.DB.prepare(`INSERT OR IGNORE INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, width, height, file_size, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(defaultAlbumId, poolId, photo.file_id, photo.file_unique_id, photo.width, photo.height, photo.file_size, now, message?.message_id || null).run()
+      return c.json({ ok: true, synced: 'photo' })
+    }
+    if (update.deleted_business_messages || update.deleted_messages) {
+      const deleted = update.deleted_business_messages || update.deleted_messages
+      const ids = deleted.message_ids || []
+      if (ids.length) {
+        await c.env.DB.prepare(`UPDATE photos SET deleted_at = ? WHERE tg_message_id IN (${ids.map(() => '?').join(',')})`).bind(Math.floor(Date.now()/1000), ...ids).run()
+      }
+      return c.json({ ok: true, synced: 'delete' })
+    }
     return c.json({ ok: true })
   } catch {
     return c.json({ ok: false }, 500)
@@ -272,6 +283,8 @@ app.delete('/api/albums/:id', auth, async (c) => {
   if (!existing) return c.json({ error: 'Album not found' }, 404)
   if (existing.name === '未分类') return c.json({ error: '未分类相册不可删除' }, 400)
   if (existing.name === '公开相册') return c.json({ error: '公开相册已锁定，不可删除' }, 400)
+  const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
+  if (defaultAlbum?.id) await c.env.DB.prepare(`UPDATE photos SET album_id = ? WHERE album_id = ?`).bind(defaultAlbum.id, id).run()
   await c.env.DB.prepare(`DELETE FROM albums WHERE id = ?`).bind(id).run()
   return c.json({ success: true })
 })
