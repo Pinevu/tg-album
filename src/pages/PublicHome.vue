@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-4 py-3 flex items-center justify-between">
       <div>
         <div class="text-xl font-bold">相册系统</div>
         <div class="text-xs text-slate-500">公开相册展示页</div>
@@ -8,16 +8,19 @@
       <a href="#/login" class="rounded-xl bg-blue-600 text-white px-4 py-2 text-sm">管理入口</a>
     </header>
 
-    <main class="max-w-6xl mx-auto p-4 space-y-6">
-      <div class="rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-6 shadow-lg">
-        <div class="text-3xl font-bold">公开相册</div>
-        <div class="text-white/80 mt-2">浏览已发布的公开图片内容</div>
+    <main class="max-w-6xl mx-auto p-4 space-y-5">
+      <div class="rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-5 shadow-lg">
+        <div class="text-2xl md:text-3xl font-bold">公开相册</div>
+        <div class="text-white/80 mt-2 text-sm md:text-base">展示已公开的相册图片内容</div>
       </div>
 
-      <div class="flex flex-wrap gap-3">
-        <button v-for="album in albums" :key="album.id" class="px-4 py-2 rounded-2xl border border-slate-200 bg-white shadow-sm" @click="selectAlbum(album.id)">
-          {{ album.name }}
-        </button>
+      <div class="overflow-x-auto no-scrollbar">
+        <div class="flex gap-2 min-w-max">
+          <button class="px-4 py-2 rounded-full border border-slate-200 bg-white shadow-sm" @click="selectAlbum(null)">全部</button>
+          <button v-for="album in albums" :key="album.id" class="px-4 py-2 rounded-full border border-slate-200 bg-white shadow-sm" @click="selectAlbum(album.id)">
+            {{ album.name }}
+          </button>
+        </div>
       </div>
 
       <div class="columns-1 sm:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
@@ -53,7 +56,7 @@ const loadPhotos = async () => {
   photos.value = data.results || []
 }
 
-const selectAlbum = (id: number) => {
+const selectAlbum = (id: number | null) => {
   currentAlbumId.value = id
   loadPhotos()
 }
@@ -63,3 +66,8 @@ onMounted(async () => {
   await loadPhotos()
 })
 </script>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

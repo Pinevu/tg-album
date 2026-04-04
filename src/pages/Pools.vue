@@ -1,36 +1,34 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-slate-900">TG 存储池</h1>
-        <p class="text-slate-500 mt-1">管理用于图片上传的 Telegram Bot / Chat 目标池</p>
-      </div>
+  <div class="space-y-4">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-slate-900">TG 存储池</h1>
+      <p class="text-slate-500 mt-1 text-sm">管理多个 Telegram 机器人图片存储池，可新增、保存、删除、启用。</p>
     </div>
 
     <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 gap-3">
         <el-input v-model="form.name" placeholder="存储池名称" />
         <el-input v-model="form.chat_id" placeholder="Chat ID" />
+        <el-input v-model="form.bot_token" placeholder="Bot Token" show-password />
       </div>
-      <el-input v-model="form.bot_token" placeholder="Bot Token" show-password />
       <div class="flex items-center gap-3">
         <el-switch v-model="form.enabled" />
         <span class="text-sm text-slate-500">设为当前启用池</span>
       </div>
-      <div class="flex gap-2">
-        <el-button type="primary" @click="save">保存存储池</el-button>
+      <div class="flex flex-wrap gap-2">
+        <el-button type="primary" @click="save">保存</el-button>
         <el-button @click="resetForm">清空</el-button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="pool in pools" :key="pool.id" class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">{{ pool.name }}</div>
+    <div class="space-y-3">
+      <div v-for="pool in pools" :key="pool.id" class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <div class="font-semibold">{{ pool.name }}</div>
           <el-tag v-if="pool.enabled" type="success">已启用</el-tag>
         </div>
         <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <el-button @click="edit(pool)">编辑</el-button>
           <el-button type="danger" @click="remove(pool.id)">删除</el-button>
         </div>
