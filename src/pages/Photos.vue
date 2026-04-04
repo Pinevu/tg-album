@@ -107,10 +107,10 @@
               <div v-if="photo.album_name" class="text-[9px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
 
               <div class="mt-2 grid grid-cols-2 gap-1.5 photo-actions">
-                <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
-                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
-                <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px]">删除</el-button>
-                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-xl !h-7 !px-1 !text-[10px] !border-emerald-200 !text-emerald-600 !bg-emerald-50 hover:!bg-emerald-100">直链</el-button>
+                <el-button size="small" @click.stop="openDetail(photo.id)" class="photo-action-btn !border-slate-200 !bg-slate-50 hover:!bg-slate-100">详情</el-button>
+                <el-button size="small" @click.stop="openMoveDialog(photo.id)" class="photo-action-btn !border-blue-200 !text-blue-600 !bg-blue-50 hover:!bg-blue-100">移动</el-button>
+                <el-button size="small" type="danger" @click.stop="deletePhoto(photo.id)" class="photo-action-btn">删除</el-button>
+                <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="photo-action-btn !border-emerald-200 !text-emerald-600 !bg-emerald-50 hover:!bg-emerald-100">直链</el-button>
               </div>
             </div>
           </div>
@@ -263,10 +263,7 @@ const setCover = async () => {
 }
 
 const copyDirectLink = async (id: number) => {
-  const photo = photos.value.find((p: any) => p.id === id)
-  const filename = ((photo?.original_filename || 'image.jpg').split('/').pop() || 'image.jpg').replace(/\s+/g, '_')
-  const ts = photo?.uploaded_at ? Number(photo.uploaded_at) * 1000 : Date.now()
-  const url = `https://img.nooh.cc/file/img/pine/${ts}_${filename}`
+  const url = `${location.origin}/api/photos/file/${id}`
   await navigator.clipboard.writeText(url)
   ElMessage.success('图片直链已复制')
 }
@@ -382,11 +379,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.photo-actions :deep(.el-button) {
+.photo-actions :deep(.el-button),
+.photo-action-btn {
   width: 100%;
-  height: 28px;
-  padding: 0 6px;
-  font-size: 10px;
-  border-radius: 12px;
+  height: 30px !important;
+  min-height: 30px !important;
+  line-height: 30px !important;
+  padding: 0 4px !important;
+  font-size: 10px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style>
