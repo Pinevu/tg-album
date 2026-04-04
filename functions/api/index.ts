@@ -37,11 +37,25 @@ const getActivePool = async (c: any) => {
 const ensureDefaultAlbum = async (c: any) => {
   const row = await c.env.DB.prepare("SELECT id FROM albums WHERE name = '未分类' LIMIT 1").first<any>()
   if (row?.id) return row.id
-  const created = await c.env.DB.prepare("INSERT INTO albums (name, parent_id, cover_photo_id, visibility) VALUES ('未分类', NULL, NULL, 'private')").run()
+  const created = await c.env.DB.prepare("INSERT INTO albums (name, parent_id, visibility) VALUES ('未分类', NULL, 'private')").run()
   return created.meta.last_row_id
 }
 
 app.get('/api/health', (c) => c.json({ ok: true }))
+
+app.post('/api/tg/webhook', async (c) => {
+  try {
+    const update = await c.req.json<any>()
+    const photo = update.message?.photo?.at(-1)
+    if (!photo) return c.json({ ok: true })
+    const defaultAlbumId = await ensureDefaultAlbum(c)
+    const now = Math.floor(Date.now() / 1000)
+    await c.env.DB.prepare('INSERT OR IGNORE INTO photos (album_id, tg_file_id, tg_file_unique_id, width, height, file_size, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(defaultAlbumId, photo.file_id, photo.file_unique_id, photo.width, photo.height, photo.file_size, now, update.message?.message_id || null).run()
+    return c.json({ ok: true })
+  } catch {
+    return c.json({ ok: false }, 500)
+  }
+})
 
 app.get('/api/public/albums', async (c) => {
   const res = await c.env.DB.prepare("SELECT * FROM albums WHERE visibility = 'public' ORDER BY id ASC").all()
@@ -116,7 +130,7 @@ app.get('/api/albums/tree', auth, async (c) => {
 
 app.post('/api/albums', auth, async (c) => {
   const { name, parent_id, visibility } = await c.req.json()
-  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,cover_photo_id,visibility) VALUES (?,?,NULL,?)').bind(name, parent_id ?? null, visibility || 'private').run()
+  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,visibility) VALUES (?,?,?)').bind(name, parent_id ?? null, visibility || 'private').run()
   return c.json({ success: true })
 })
 
