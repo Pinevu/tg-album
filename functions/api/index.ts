@@ -167,6 +167,22 @@ app.get('/api/public/photos', async (c) => {
   return c.json({ results: res.results || [] })
 })
 
+
+app.get('/api/settings', auth, async (c) => {
+  const res = await c.env.DB.prepare(`SELECT key, value FROM app_settings`).all<any>()
+  const obj:any = {}
+  for (const row of (res.results || [])) obj[row.key] = row.value
+  return c.json(obj)
+})
+
+app.post('/api/settings', auth, async (c) => {
+  const payload = await c.req.json<any>()
+  for (const [key, value] of Object.entries(payload || {})) {
+    await c.env.DB.prepare(`INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)`).bind(key, String(value ?? '')).run()
+  }
+  return c.json({ success: true })
+})
+
 app.get('/api/stats', auth, async (c) => {
   const totalPhotos = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL`).first<any>()
   const totalAlbums = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM albums`).first<any>()

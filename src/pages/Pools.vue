@@ -36,8 +36,7 @@
         <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
         <div class="flex flex-wrap gap-2">
           <el-button @click="copyWebhook(pool)">复制 Webhook</el-button>
-          <el-button @click="copySetWebhook(pool)">复制 setWebhook</el-button>
-          <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
+                    <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
           <el-button @click="edit(pool)">编辑</el-button>
           <el-button type="danger" @click="remove(pool.id)">删除</el-button>
         </div>
@@ -113,16 +112,6 @@ const copyWebhook = async (pool: any) => {
   const url = `${origin}/api/tg/webhook/${pool.id}`
   await navigator.clipboard.writeText(url)
   ElMessage.success('Webhook 地址已复制')
-}
-
-const copySetWebhook = async (pool: any) => {
-  try {
-    const cmd = await getSetWebhookCommand(pool)
-    await navigator.clipboard.writeText(cmd)
-    ElMessage.success('setWebhook 命令已复制')
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.error || `生成失败: ${e?.response?.status || 'unknown'}`)
-  }
 }
 
 const openSetWebhook = async (pool: any) => {
