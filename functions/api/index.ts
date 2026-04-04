@@ -8,7 +8,7 @@ type Bindings = {
   JWT_SECRET?: string
 }
 
-type AlbumRow = { id: number; name: string; parent_id: number | null }
+type AlbumRow = { id: number; name: string; parent_id: number | null; visibility?: string }
 type TreeNode = AlbumRow & { children: TreeNode[] }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -34,7 +34,29 @@ const getActivePool = async (c: any) => {
   return { bot_token: c.env.TG_BOT_TOKEN, chat_id: c.env.TG_CHAT_ID, tg_pool_id: null }
 }
 
+const ensureDefaultAlbum = async (c: any) => {
+  const row = await c.env.DB.prepare("SELECT id FROM albums WHERE name = '未分类' LIMIT 1").first<any>()
+  if (row?.id) return row.id
+  const created = await c.env.DB.prepare("INSERT INTO albums (name, parent_id, cover_photo_id, visibility) VALUES ('未分类', NULL, NULL, 'private')").run()
+  return created.meta.last_row_id
+}
+
 app.get('/api/health', (c) => c.json({ ok: true }))
+
+app.get('/api/public/albums', async (c) => {
+  const res = await c.env.DB.prepare("SELECT * FROM albums WHERE visibility = 'public' ORDER BY id ASC").all()
+  return c.json({ results: res.results || [] })
+})
+
+app.get('/api/public/photos', async (c) => {
+  const album_id = c.req.query('album_id')
+  const p: any[] = []
+  let sql = `SELECT p.* FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND a.visibility = 'public'`
+  if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
+  sql += ' ORDER BY p.uploaded_at DESC LIMIT 200'
+  const res = await c.env.DB.prepare(sql).bind(...p).all()
+  return c.json({ results: res.results || [] })
+})
 
 app.post('/api/login', async (c) => {
   try {
@@ -88,13 +110,13 @@ app.get('/api/albums', auth, async (c) => {
 })
 
 app.get('/api/albums/tree', auth, async (c) => {
-  const res = await c.env.DB.prepare('SELECT id,name,parent_id FROM albums ORDER BY id ASC').all<AlbumRow>()
+  const res = await c.env.DB.prepare('SELECT id,name,parent_id,visibility FROM albums ORDER BY id ASC').all<AlbumRow>()
   return c.json({ results: buildTree(res.results || []) })
 })
 
 app.post('/api/albums', auth, async (c) => {
-  const { name, parent_id } = await c.req.json()
-  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,cover_photo_id) VALUES (?,?,NULL)').bind(name, parent_id ?? null).run()
+  const { name, parent_id, visibility } = await c.req.json()
+  await c.env.DB.prepare('INSERT INTO albums (name,parent_id,cover_photo_id,visibility) VALUES (?,?,NULL,?)').bind(name, parent_id ?? null, visibility || 'private').run()
   return c.json({ success: true })
 })
 
@@ -103,7 +125,7 @@ app.get('/api/tags', auth, async (c) => {
   return c.json({ results: res.results || [] })
 })
 
-app.get('/api/photos/file/:id', auth, async (c) => {
+app.get('/api/photos/file/:id', async (c) => {
   const id = c.req.param('id')
   const row = await c.env.DB.prepare('SELECT tg_file_id, tg_pool_id FROM photos WHERE id = ?').bind(id).first<any>()
   if (!row) return c.json({ error: 'Not found' }, 404)
@@ -127,7 +149,8 @@ app.post('/api/upload', auth, async (c) => {
     if (!file) return c.json({ error: 'No file provided' }, 400)
     const pool = await getActivePool(c)
     if (!pool.bot_token || !pool.chat_id) return c.json({ error: '未配置 TG 存储池' }, 500)
-    const albumId = form.get('album_id')?.toString() || null
+    const defaultAlbumId = await ensureDefaultAlbum(c)
+    const albumId = form.get('album_id')?.toString() || String(defaultAlbumId)
     const remark = form.get('remark')?.toString() || null
     const original = form.get('original_filename')?.toString() || file.name
     const dominant = form.get('dominant_color_hex')?.toString() || null
@@ -141,8 +164,7 @@ app.post('/api/upload', auth, async (c) => {
       const ins = await tx.prepare('INSERT INTO photos (album_id,tg_pool_id,tg_file_id,tg_file_unique_id,original_filename,remark,width,height,file_size,dominant_color_hex,uploaded_at,tg_message_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
       if (exifJson) await tx.prepare('INSERT OR REPLACE INTO photo_metadata (photo_id,raw_exif_json) VALUES (?,?)').bind(ins.meta.last_row_id, exifJson).run()
     })
-    await tx
-    return c.json({ success: true })
+    return c.json({ success: true, pooled: true, album_id: albumId })
   } catch {
     return c.json({ error: 'Upload failed' }, 500)
   }

@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS albums (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   parent_id INTEGER,
-  cover_photo_id INTEGER
+  cover_photo_id INTEGER,
+  visibility TEXT NOT NULL DEFAULT 'private'
 );
 CREATE INDEX IF NOT EXISTS idx_albums_parent ON albums(parent_id);
 

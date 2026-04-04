@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
 const routes = [
+  { path: '/', component: () => import('@/pages/PublicHome.vue') },
   { path: '/login', component: () => import('@/pages/Login.vue') },
   {
     path: '/admin',
@@ -13,8 +14,7 @@ const routes = [
       { path: 'pools', component: () => import('@/pages/Pools.vue') },
       { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
     ]
-  },
-  { path: '/', redirect: '/login' }
+  }
 ]
 
 const router = createRouter({
