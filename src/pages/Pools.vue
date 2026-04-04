@@ -116,10 +116,13 @@ const copyWebhook = async (pool: any) => {
 }
 
 const copySetWebhook = async (pool: any) => {
-  const url = `${origin}/api/tg/webhook/${pool.id}`
-  const cmd = `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=${encodeURIComponent(url)}`
-  await navigator.clipboard.writeText(cmd)
-  ElMessage.success('setWebhook 命令已复制')
+  try {
+    const { data } = await api.get(`/tg-pools/${pool.id}/webhook-command`)
+    await navigator.clipboard.writeText(data.set_webhook_command)
+    ElMessage.success('setWebhook 命令已复制')
+  } catch {
+    ElMessage.error('生成 setWebhook 命令失败')
+  }
 }
 
 const edit = (pool: any) => {

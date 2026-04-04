@@ -213,6 +213,15 @@ app.delete('/api/tg-pools/:id', auth, async (c) => {
   return c.json({ success: true })
 })
 
+app.get('/api/tg-pools/:id/webhook-command', auth, async (c) => {
+  const id = c.req.param('id')
+  const pool = await c.env.DB.prepare(`SELECT id, bot_token FROM tg_pools WHERE id = ? LIMIT 1`).bind(id).first<any>()
+  if (!pool) return c.json({ error: 'Pool not found' }, 404)
+  const url = `${getOrigin(c)}/api/tg/webhook/${id}`
+  const setWebhookUrl = `https://api.telegram.org/bot${pool.bot_token}/setWebhook?url=${encodeURIComponent(url)}`
+  return c.json({ webhook_url: url, set_webhook_command: setWebhookUrl })
+})
+
 app.get('/api/tg/webhook-url', auth, async (c) => {
   const url = `${getOrigin(c)}/api/tg/webhook/<poolId>`
   return c.json({ webhook_url: url, set_webhook_command: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=${encodeURIComponent(url)}` })
