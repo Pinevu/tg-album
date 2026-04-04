@@ -103,6 +103,11 @@ app.get('/api/stats', auth, async (c) => {
   return c.json({ totalPhotos: totalPhotos?.c || 0, totalAlbums: totalAlbums?.c || 0, totalDeleted: totalDeleted?.c || 0, totalPools: totalPools?.c || 0 })
 })
 
+app.get('/api/tg/webhook-url', auth, async (c) => {
+  const url = 'https://tg-album.pages.dev/api/tg/webhook'
+  return c.json({ webhook_url: url, set_webhook_command: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=${encodeURIComponent(url)}` })
+})
+
 app.get('/api/tg-pools', auth, async (c) => {
   const res = await c.env.DB.prepare('SELECT id,name,chat_id,enabled,created_at FROM tg_pools ORDER BY id DESC').all()
   return c.json({ results: res.results || [] })
@@ -154,6 +159,13 @@ app.get('/api/albums/tree', auth, async (c) => {
 app.post('/api/albums', auth, async (c) => {
   const { name, parent_id, visibility } = await c.req.json()
   await c.env.DB.prepare('INSERT INTO albums (name,parent_id,visibility) VALUES (?,?,?)').bind(name, parent_id ?? null, visibility || 'private').run()
+  return c.json({ success: true })
+})
+
+app.put('/api/albums/:id/cover', auth, async (c) => {
+  const id = c.req.param('id')
+  const { cover_photo_id } = await c.req.json()
+  await c.env.DB.prepare('UPDATE albums SET cover_photo_id = ? WHERE id = ?').bind(cover_photo_id, id).run()
   return c.json({ success: true })
 })
 
@@ -260,6 +272,25 @@ app.post('/api/photos/batch-move', auth, async (c) => {
 app.post('/api/photos/batch-delete', auth, async (c) => {
   const { ids } = await c.req.json()
   if (!ids?.length) return c.json({ success: true })
+  const rows = await c.env.DB.prepare(`SELECT id, tg_pool_id, tg_message_id FROM photos WHERE id IN (${ids.map(() => '?').join(',')})`).bind(...ids).all<any>()
+  for (const row of rows.results || []) {
+    if (row.tg_message_id) {
+      let botToken = c.env.TG_BOT_TOKEN
+      let chatId = c.env.TG_CHAT_ID
+      if (row.tg_pool_id) {
+        const pool = await c.env.DB.prepare('SELECT bot_token, chat_id FROM tg_pools WHERE id = ?').bind(row.tg_pool_id).first<any>()
+        if (pool?.bot_token) botToken = pool.bot_token
+        if (pool?.chat_id) chatId = pool.chat_id
+      }
+      if (botToken && chatId) {
+        await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, message_id: row.tg_message_id })
+        }).catch(() => null)
+      }
+    }
+  }
   const now = Math.floor(Date.now() / 1000)
   await c.env.DB.prepare(`UPDATE photos SET deleted_at = ? WHERE id IN (${ids.map(() => '?').join(',')})`).bind(now, ...ids).run()
   return c.json({ success: true })

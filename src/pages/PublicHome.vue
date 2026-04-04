@@ -24,7 +24,7 @@
       </div>
 
       <div class="columns-1 sm:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
-        <div v-for="photo in photos" :key="photo.id" class="mb-4 break-inside-avoid rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+        <div v-for="photo in photos" :key="photo.id" class="mb-4 break-inside-avoid rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm cursor-pointer" @click="preview(photo)">
           <img :src="`/api/photos/file/${photo.id}`" class="w-full block" />
           <div class="p-3">
             <div class="font-medium line-clamp-1">{{ photo.original_filename || '未命名图片' }}</div>
@@ -33,6 +33,10 @@
         </div>
       </div>
     </main>
+
+    <el-dialog v-model="previewVisible" width="95%" top="4vh">
+      <img v-if="previewPhoto" :src="`/api/photos/file/${previewPhoto.id}`" class="w-full rounded-2xl" />
+    </el-dialog>
   </div>
 </template>
 
@@ -43,6 +47,8 @@ import axios from 'axios'
 const albums = ref<any[]>([])
 const photos = ref<any[]>([])
 const currentAlbumId = ref<number | null>(null)
+const previewVisible = ref(false)
+const previewPhoto = ref<any>(null)
 
 const loadAlbums = async () => {
   const { data } = await axios.get('/api/public/albums')
@@ -59,6 +65,11 @@ const loadPhotos = async () => {
 const selectAlbum = (id: number | null) => {
   currentAlbumId.value = id
   loadPhotos()
+}
+
+const preview = (photo: any) => {
+  previewPhoto.value = photo
+  previewVisible.value = true
 }
 
 onMounted(async () => {

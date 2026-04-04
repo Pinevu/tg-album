@@ -20,8 +20,10 @@
       <div class="flex flex-wrap gap-2">
         <el-button type="primary" @click="save">保存</el-button>
         <el-button @click="testPool">测试连接</el-button>
+        <el-button @click="loadWebhook">获取 Webhook 命令</el-button>
         <el-button @click="resetForm">清空</el-button>
       </div>
+      <el-input v-if="webhookCommand" :model-value="webhookCommand" readonly type="textarea" rows="3" />
     </div>
 
     <div class="space-y-3">
@@ -50,6 +52,7 @@ const editingId = ref<number | null>(null)
 const form = ref({ name: '', bot_token: '', chat_id: '', enabled: true })
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const webhookCommand = ref('')
 
 const load = async () => {
   try {
@@ -94,6 +97,11 @@ const testPool = async () => {
     message.value = '测试连接失败'
     messageType.value = 'error'
   }
+}
+
+const loadWebhook = async () => {
+  const { data } = await api.get('/tg/webhook-url')
+  webhookCommand.value = data.set_webhook_command
 }
 
 const edit = (pool: any) => {

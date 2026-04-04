@@ -15,6 +15,9 @@
           <div class="text-sm font-semibold text-slate-700 mb-2">相册树</div>
           <el-tree :data="albums" @node-click="onAlbumClick" />
         </div>
+        <div class="flex gap-2 flex-wrap">
+          <el-button v-if="currentAlbumId && selectedIds.length === 1" @click="setCover">设为封面</el-button>
+        </div>
         <div class="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-3 space-y-3">
           <div>
             <div class="text-sm font-semibold text-blue-700">上传到 TG 存储池</div>
@@ -91,6 +94,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { searchPhotos, getAlbumTree, batchMove, batchDelete, batchTag, uploadPhoto, listTags, getPhotoDetail, updatePhotoRemark } from '@/utils/api'
+import api from '@/utils/axios'
 import { extractExif, dominantColorHex } from '@/utils/exif'
 
 const albums = ref([])
@@ -164,6 +168,13 @@ const toRecycle = async () => {
   await batchDelete(selectedIds.value)
   selectedIds.value = []
   await search()
+}
+
+const setCover = async () => {
+  if (!currentAlbumId.value || selectedIds.value.length !== 1) return
+  await api.put(`/albums/${currentAlbumId.value}/cover`, { cover_photo_id: selectedIds.value[0] })
+  message.value = '相册封面已设置'
+  messageType.value = 'success'
 }
 
 const handleUpload = async (options: any) => {
