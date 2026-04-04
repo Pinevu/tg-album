@@ -33,7 +33,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getAlbumTree, createAlbum } from '@/utils/api'
+import { getAlbumTree } from '@/utils/api'
+import api from '@/utils/axios'
 
 const albums = ref([])
 const newName = ref('')
@@ -46,8 +47,9 @@ const load = async () => {
 
 const create = async () => {
   if (!newName.value) return
-  await createAlbum(newName.value, undefined)
+  await api.post('/albums', { name: newName.value, visibility: visibility.value })
   newName.value = ''
+  visibility.value = 'private'
   await load()
 }
 
