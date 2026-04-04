@@ -13,6 +13,7 @@
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
     <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+      <!-- 左侧上传区 -->
       <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
         <div>
           <div class="text-sm font-semibold text-slate-700 mb-2">相册树</div>
@@ -20,7 +21,7 @@
         </div>
 
         <div class="flex gap-2 flex-wrap">
-          <el-button v-if="currentAlbumId && selectedIds.length === 1" @click="setCover">设为封面</el-button>
+          <el-button v-if="currentAlbumId && selectedIds.length === 1" @click="setCover" size="small">设为封面</el-button>
         </div>
 
         <div class="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-3 space-y-3">
@@ -29,14 +30,14 @@
             <div class="text-xs text-blue-600 mt-1">选择目标相册与备注，上传后会自动写入 D1。</div>
           </div>
 
-          <el-select v-model="uploadAlbumId" placeholder="选择目标相册">
+          <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small">
             <el-option v-for="album in flatAlbums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
 
-          <el-input v-model="uploadRemark" placeholder="上传备注" />
+          <el-input v-model="uploadRemark" placeholder="上传备注" size="small" />
 
           <el-upload drag :http-request="handleUpload" :show-file-list="false" class="w-full">
-            <div class="px-4 py-4 text-center text-slate-700">点击或拖拽上传图片</div>
+            <div class="px-4 py-4 text-center text-slate-700 text-sm">点击或拖拽上传图片</div>
           </el-upload>
 
           <div v-if="uploadQueue.length" class="space-y-2">
@@ -55,78 +56,117 @@
         </div>
       </div>
 
+      <!-- 右侧图片列表 -->
       <div class="space-y-4">
+        <!-- 搜索栏 -->
         <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm flex flex-wrap gap-3 items-center">
-          <el-date-picker v-model="range" type="daterange" />
-          <el-select v-model="tag" placeholder="标签" filterable class="w-40">
+          <el-date-picker v-model="range" type="daterange" size="small" />
+          <el-select v-model="tag" placeholder="标签" filterable class="w-40" size="small">
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
-          <el-input v-model="keyword" placeholder="文件名 / 备注关键词" class="w-full md:w-64" />
-          <el-button @click="search">搜索</el-button>
+          <el-input v-model="keyword" placeholder="文件名 / 备注关键词" class="w-full md:w-64" size="small" />
+          <el-button @click="search" size="small">搜索</el-button>
         </div>
 
+        <!-- 批量操作栏 -->
         <div v-if="selectedIds.length" class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm flex flex-wrap gap-2 items-center">
-          <el-input v-model="tagInput" placeholder="批量标签（逗号分隔）" class="w-full md:w-60" />
-          <el-button @click="applyTags">打标签</el-button>
-          <el-input-number v-model="moveAlbumId" placeholder="目标相册ID" />
-          <el-button @click="move">批量移动</el-button>
-          <el-button type="danger" @click="toRecycle">放入回收站</el-button>
+          <el-input v-model="tagInput" placeholder="批量标签（逗号分隔）" class="w-full md:w-60" size="small" />
+          <el-button @click="applyTags" size="small">打标签</el-button>
+          <el-input-number v-model="moveAlbumId" placeholder="目标相册ID" size="small" />
+          <el-button @click="move" size="small">批量移动</el-button>
+          <el-button type="danger" @click="toRecycle" size="small">放入回收站</el-button>
         </div>
 
-        <div class="columns-1 sm:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
+        <!-- iOS 风格小图网格 -->
+        <div v-if="photos.length === 0" class="text-center py-16">
+          <div class="text-6xl mb-4">📷</div>
+          <div class="text-slate-500">暂无图片</div>
+        </div>
+
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           <div
             v-for="photo in photos"
             :key="photo.id"
-            class="mb-4 break-inside-avoid relative group rounded-3xl overflow-hidden border bg-white transition-all duration-200 shadow-sm"
+            class="relative group rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-blue-200"
             :class="selectedIds.includes(photo.id)
-              ? 'border-blue-500 ring-4 ring-blue-200 shadow-xl shadow-blue-100/80'
-              : 'border-slate-200 hover:shadow-lg hover:border-blue-200'"
+              ? 'border-blue-500 ring-2 ring-blue-200'
+              : ''"
             @click="toggleSelect(photo.id)"
           >
-            <img :src="photo.previewUrl" class="w-full block" />
-            <div class="p-3 space-y-2">
-              <div class="text-sm font-medium text-slate-800 line-clamp-1">{{ photo.original_filename || '未命名图片' }}</div>
-              <div class="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                <span class="px-2 py-1 rounded-full bg-slate-100">相册：{{ photo.album_name || '未分类' }}</span>
-                <span v-if="photo.tags" class="px-2 py-1 rounded-full bg-slate-100">标签：{{ photo.tags }}</span>
-              </div>
-              <div class="text-xs text-slate-500">{{ photo.camera_model || '未知设备' }}</div>
+            <!-- 小图预览 -->
+            <img :src="photo.previewUrl" class="w-full aspect-square object-cover" />
+
+            <!-- 选中状态标记 -->
+            <div v-if="selectedIds.includes(photo.id)" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shadow-lg">
+              ✓
             </div>
-            <div class="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition p-3 flex flex-col justify-between text-white">
-              <div class="text-xs space-y-1">
-                <div>尺寸：{{ photo.width }}x{{ photo.height }}</div>
-                <div>颜色：{{ photo.dominant_color_hex || '未提取' }}</div>
-              </div>
-              <div class="flex gap-2 flex-wrap">
-                <el-button size="small" @click.stop="openDetail(photo.id)">详情</el-button>
-                <el-button size="small" @click.stop="copyDirectLink(photo.id)">复制直链</el-button>
-              </div>
+
+            <!-- 悬停时显示操作按钮 -->
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-3">
+              <el-button size="small" @click.stop="openDetail(photo.id)" class="!rounded-full">详情</el-button>
+              <el-button size="small" @click.stop="copyDirectLink(photo.id)" class="!rounded-full">复制直链</el-button>
             </div>
-            <div v-if="selectedIds.includes(photo.id)" class="absolute top-2 right-2 rounded-full bg-blue-600 text-white w-6 h-6 flex items-center justify-center text-xs shadow">✓</div>
+
+            <!-- 文件名（小字） -->
+            <div class="p-2">
+              <div class="text-xs font-medium text-slate-800 line-clamp-1">{{ photo.original_filename || '未命名图片' }}</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">{{ photo.camera_model || '未知设备' }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <el-drawer v-model="detailVisible" size="90%" :with-header="true" title="图片详情">
-    <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
-      <img :src="`/api/photos/file/${detail.id}`" class="rounded-2xl w-full border border-slate-200" />
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        <div class="rounded-2xl bg-slate-50 p-3">文件名：{{ detail.original_filename }}</div>
-        <div class="rounded-2xl bg-slate-50 p-3">尺寸：{{ detail.width }}x{{ detail.height }}</div>
-        <div class="rounded-2xl bg-slate-50 p-3">主色：{{ detail.dominant_color_hex }}</div>
-        <div class="rounded-2xl bg-slate-50 p-3">拍摄设备：{{ detail.camera_model || '未知' }}</div>
-        <div class="rounded-2xl bg-slate-50 p-3 break-all">TG file_id：{{ detail.tg_file_id }}</div>
-        <div class="rounded-2xl bg-slate-50 p-3 break-all">TG unique_id：{{ detail.tg_file_unique_id }}</div>
+    <!-- 图片详情抽屉（大图预览） -->
+    <el-drawer v-model="detailVisible" size="90%" :with-header="true" title="图片详情" class="!rounded-3xl">
+      <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
+        <!-- 大图展示 -->
+        <div class="rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+          <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-2xl" />
+        </div>
+
+        <!-- iOS 风格信息卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="rounded-2xl bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">文件名</div>
+            <div class="text-sm font-medium text-slate-800 break-all">{{ detail.original_filename }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">尺寸</div>
+            <div class="text-sm font-medium text-slate-800">{{ detail.width }} x {{ detail.height }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">主色</div>
+            <div class="text-sm font-medium text-slate-800">{{ detail.dominant_color_hex || '未提取' }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">拍摄设备</div>
+            <div class="text-sm font-medium text-slate-800">{{ detail.camera_model || '未知' }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3 md:col-span-2">
+            <div class="text-xs text-slate-500 mb-1">TG file_id</div>
+            <div class="text-xs font-mono text-slate-700 break-all">{{ detail.tg_file_id || '-' }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3 md:col-span-2">
+            <div class="text-xs text-slate-500 mb-1">TG unique_id</div>
+            <div class="text-xs font-mono text-slate-700 break-all">{{ detail.tg_file_unique_id || '-' }}</div>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex flex-wrap gap-2">
+          <el-button @click="copyDirectLink(detail.id)" type="primary" size="large" class="!rounded-full !px-6">复制图片直链</el-button>
+        </div>
+
+        <!-- 备注输入 -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+          <div class="text-sm font-medium text-slate-800 mb-2">备注</div>
+          <el-input v-model="detailRemark" placeholder="添加备注" class="mb-2" />
+          <el-button @click="saveRemark" size="large" class="!rounded-full !w-full">保存备注</el-button>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <el-button @click="copyDirectLink(detail.id)">复制图片直链</el-button>
-      </div>
-      <el-input v-model="detailRemark" placeholder="备注" />
-      <el-button @click="saveRemark">保存备注</el-button>
-    </div>
-  </el-drawer>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup lang="ts">

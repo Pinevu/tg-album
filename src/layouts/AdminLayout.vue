@@ -11,13 +11,14 @@
           <button class="px-3 py-2 rounded-full bg-slate-900 text-white text-sm" @click="logout">退出</button>
         </div>
       </div>
+      <!-- 横向菜单 -->
       <div class="overflow-x-auto no-scrollbar px-3 pb-3">
         <div class="flex gap-2 min-w-max">
-          <a class="px-3 py-2 rounded-full bg-blue-600 text-white text-sm" href="#/admin/dashboard">仪表盘</a>
-          <a class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm" href="#/admin/photos">图片</a>
-          <a class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm" href="#/admin/albums">相册</a>
-          <a class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm" href="#/admin/pools">存储池</a>
-          <a class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm" href="#/admin/recycle">回收站</a>
+          <a :class="['px-3 py-2 rounded-full text-sm font-medium transition-all', $route.path === '/admin/dashboard' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300']" href="#/admin/dashboard">仪表盘</a>
+          <a :class="['px-3 py-2 rounded-full text-sm font-medium transition-all', $route.path === '/admin/photos' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300']" href="#/admin/photos">图片</a>
+          <a :class="['px-3 py-2 rounded-full text-sm font-medium transition-all', $route.path === '/admin/albums' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300']" href="#/admin/albums">相册</a>
+          <a :class="['px-3 py-2 rounded-full text-sm font-medium transition-all', $route.path === '/admin/pools' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300']" href="#/admin/pools">存储池</a>
+          <a :class="['px-3 py-2 rounded-full text-sm font-medium transition-all', $route.path === '/admin/recycle' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300']" href="#/admin/recycle">回收站</a>
         </div>
       </div>
     </header>
