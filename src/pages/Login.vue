@@ -4,7 +4,7 @@
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
-        <div class="text-xs text-slate-400 mt-2">版本 v0.6.34</div>
+        <div class="text-xs text-slate-400 mt-2">版本 v0.6.35</div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />

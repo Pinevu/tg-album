@@ -139,6 +139,8 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
+const actionSheetVisible = ref(false)
+const actionPhotoId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
