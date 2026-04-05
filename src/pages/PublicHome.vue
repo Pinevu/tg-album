@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen text-slate-900 font-sans" :class="[rootClass, isStandalone ? 'pb-6 standalone-safe' : '']">
+  <div class="min-h-screen text-slate-900 font-sans bg-white" :class="[rootClass, isStandalone ? 'pb-6 standalone-safe' : '']">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] bg-[radial-gradient(circle_at_top,#bfdbfe,#ffffff_60%)] flex items-center justify-center px-6">
         <div class="text-center animate-splash-rise">
@@ -145,6 +145,7 @@ const slug = ref('')
 const installPrompt = ref<InstallPromptEvent | null>(null)
 const canInstallAlbum = ref(false)
 const installTip = ref('')
+const iconVersion = ref('')
 const isStandalone = ref(false)
 const showSplash = ref(false)
 const showWelcomeCard = ref(true)
@@ -159,7 +160,7 @@ const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isInstallRoute = computed(() => route.path.startsWith('/app/'))
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
-const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.svg` : '/icon.svg')
+const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.svg${iconVersion.value ? `?v=${iconVersion.value}` : ''}` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 const rootClass = computed(() => albumVisibility.value === 'private' ? 'bg-[#f8fafc]' : 'bg-white')
@@ -188,9 +189,9 @@ const syncHead = () => {
     el.content = content
   }
   setMeta('description', desc)
-  setMeta('theme-color', '#2563eb')
+  setMeta('theme-color', '#ffffff')
   setMeta('apple-mobile-web-app-capable', 'yes')
-  setMeta('apple-mobile-web-app-status-bar-style', 'black-translucent')
+  setMeta('apple-mobile-web-app-status-bar-style', 'default')
   setMeta('apple-mobile-web-app-title', slug.value ? albumTitle.value : '相册系统')
   setMeta('mobile-web-app-capable', 'yes')
   let apple = document.head.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null
@@ -200,6 +201,7 @@ const syncHead = () => {
 
 const loadPublicPhotos = async () => {
   slug.value = ''
+  iconVersion.value = ''
   albumTitle.value = '相册系统'
   albumVisibility.value = 'public'
   coverPhotoId.value = null
