@@ -24,12 +24,12 @@ body {
   border-width: 1px !important;
 }
 .el-button--small {
-  height: 30px !important;
-  min-height: 30px !important;
-  padding: 0 10px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
   border-radius: 10px !important;
   font-size: 12px !important;
-  line-height: 28px !important;
+  line-height: 30px !important;
 }
 .el-input__wrapper,
 .el-textarea__inner,

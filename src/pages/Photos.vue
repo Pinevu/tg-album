@@ -284,7 +284,7 @@ onMounted(async () => {
   width: 100%;
   height: 32px;
   min-height: 32px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #dbe3ef;
   font-size: 12px;
   font-weight: 600;
