@@ -1,6 +1,6 @@
 {
   "name": "tg-album-admin",
-  "version": "0.6.48",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
