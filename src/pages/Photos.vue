@@ -71,13 +71,15 @@
       </section>
     </div>
 
-    <el-dialog v-model="moveDialogVisible" title="移动图片" width="360px" class="!rounded-3xl">
+    <el-dialog v-model="moveDialogVisible" title="移动图片" width="320px" :modal="false" :lock-scroll="false" :show-close="true" class="!rounded-3xl !mt-[22vh]">
       <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
         <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
       </el-select>
       <template #footer>
-        <el-button @click="moveDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+        <div class="grid grid-cols-2 gap-2">
+          <el-button @click="moveDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+        </div>
       </template>
     </el-dialog>
 
