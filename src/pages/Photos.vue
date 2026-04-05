@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 rounded-[36px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-6">
+  <div class="space-y-6 rounded-[36px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-6" @click="closeActiveCard">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
@@ -55,12 +55,12 @@
         <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
         <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card group" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleCardActions(photo.id)">
+          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card group" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click.stop="toggleCardActions(photo.id)">
             <div class="relative">
               <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
               <div :class="['absolute inset-x-2 bottom-2 grid grid-cols-2 gap-2 transition-all duration-200', activeCardId === photo.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none']">
                 <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
-                <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
+                <button type="button" @click.stop.prevent="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
                 <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
                 <button type="button" @click.stop="copyDirectLink(photo.id)" class="action-btn action-green">直链</button>
               </div>
@@ -149,6 +149,10 @@ const toggleSelect = (id: number) => {
 
 const toggleCardActions = (id: number) => {
   activeCardId.value = activeCardId.value === id ? null : id
+}
+
+const closeActiveCard = () => {
+  activeCardId.value = null
 }
 
 const openActionSheet = (id: number) => {
