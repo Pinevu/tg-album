@@ -3,15 +3,12 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; }
-html, body, #app { min-height: 100%; }
-html, body {
-  background: #f8fafc;
-}
+html, body, #app { min-height: 100%; background: #f8fafc !important; }
+html, body { overscroll-behavior: none; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
   color: #0f172a;
-  overscroll-behavior-y: none;
 }
 .el-menu { border-right: none !important; }
 
