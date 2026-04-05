@@ -58,12 +58,6 @@
           <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="openActionSheet(photo.id)">
             <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
                         <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">相册:{{ photo.album_name }}</div>
-            <div class="mt-2 grid grid-cols-2 gap-1.5">
-              <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
-              <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
-              <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
-              <button type="button" @click.stop="copyDirectLink(photo.id)" class="action-btn action-green">直链</button>
-            </div>
           </article>
         </div>
       </section>
@@ -145,7 +139,6 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
-const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
