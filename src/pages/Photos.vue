@@ -82,17 +82,19 @@
     </el-dialog>
 
 
-    <el-dialog v-model="actionSheetVisible" title="图片操作" width="340px" class="!rounded-3xl">
-      <div class="grid grid-cols-2 gap-2 py-1">
-        <button type="button" @click="openDetail(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-neutral">详情</button>
-        <button type="button" @click="openMoveDialog(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-blue">移动</button>
-        <button type="button" @click="deletePhoto(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-red">删除</button>
-        <button type="button" @click="copyDirectLink(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-green">直链</button>
+    <div v-if="actionSheetVisible" class="fixed inset-0 z-[120] bg-black/30" @click="actionSheetVisible = false">
+      <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white p-4 shadow-2xl" @click.stop>
+        <div class="w-12 h-1.5 rounded-full bg-slate-200 mx-auto mb-4"></div>
+        <div class="text-lg font-semibold text-slate-900 mb-3">图片操作</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" @click="openDetail(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-neutral">详情</button>
+          <button type="button" @click="openMoveDialog(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-blue">移动</button>
+          <button type="button" @click="deletePhoto(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-red">删除</button>
+          <button type="button" @click="copyDirectLink(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-green">直链</button>
+        </div>
+        <button type="button" @click="actionSheetVisible = false" class="mt-3 w-full action-btn action-neutral">取消</button>
       </div>
-      <template #footer>
-        <el-button @click="actionSheetVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    </div>
     <el-drawer v-model="detailVisible" size="90%" title="图片详情">
       <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
         <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
