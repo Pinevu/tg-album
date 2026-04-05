@@ -2,9 +2,9 @@
   <div class="space-y-5">
     <div class="flex items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">仪表盘</h1>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">概述</h1>
       </div>
-      <el-button @click="load" type="primary" class="!rounded-2xl">刷新</el-button>
+      <el-button @click="load" type="primary">刷新</el-button>
     </div>
 
     <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -21,7 +21,7 @@
         <div class="panel-value">{{ stats.totalDeleted }}</div>
       </button>
       <button @click="go('/admin/pools')" class="panel-card text-left">
-        <div class="panel-label">存储池</div>
+        <div class="panel-label">存储</div>
         <div class="panel-value">{{ stats.totalPools }}</div>
       </button>
     </div>
@@ -47,7 +47,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all; }
+.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all; }
 .panel-label { @apply text-slate-500 text-sm; }
 .panel-value { @apply text-4xl font-bold mt-3 text-slate-900; }
 </style>
