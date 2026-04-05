@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1>
@@ -12,7 +12,7 @@
         </el-select>
         <el-input v-model="slug" placeholder="slug" class="md:w-36" />
         <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-36" />
-        <el-button @click="saveAlbum" type="primary" class="!rounded-2xl">{{ editingId ? '保存' : '创建' }}</el-button>
+        <el-button @click="saveAlbum" type="primary">{{ editingId ? '保存' : '创建' }}</el-button>
       </div>
     </div>
 
@@ -33,9 +33,9 @@
           <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
         </div>
         <div class="flex flex-wrap gap-2">
-          <el-button v-if="album.slug" @click="copyShareLink(album)" class="!rounded-2xl">复制链接</el-button>
-          <el-button @click="editAlbum(album)" :disabled="album.name === '公开相册'" class="!rounded-2xl">编辑</el-button>
-          <el-button type="danger" @click="removeAlbum(album)" :disabled="album.name === '公开相册' || album.name === '未分类'" class="!rounded-2xl">删除</el-button>
+          <el-button v-if="album.slug" @click="copyShareLink(album)">复制链接</el-button>
+          <el-button @click="editAlbum(album)" :disabled="album.name === '公开相册'">编辑</el-button>
+          <el-button type="danger" @click="removeAlbum(album)" :disabled="album.name === '公开相册' || album.name === '未分类'">删除</el-button>
         </div>
       </div>
     </div>
@@ -124,8 +124,8 @@ onMounted(load)
 </script>
 
 <style scoped>
-.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
-.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
+.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
 .tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
 .tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
 </style>

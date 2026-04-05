@@ -1,12 +1,12 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex items-end justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-slate-900 tracking-tight">回收站</h1>
       </div>
       <div class="flex gap-2">
-        <el-button @click="restore" class="!rounded-2xl" :disabled="!selectedIds.length">还原</el-button>
-        <el-button type="danger" @click="hardDelete" class="!rounded-2xl" :disabled="!selectedIds.length">彻底删除</el-button>
+        <el-button @click="restore" :disabled="!selectedIds.length">还原</el-button>
+        <el-button type="danger" @click="hardDelete" :disabled="!selectedIds.length">彻底删除</el-button>
       </div>
     </div>
 
@@ -58,6 +58,6 @@ onMounted(load)
 </script>
 
 <style scoped>
-.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
-.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 shadow-sm text-center text-slate-400; }
+.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
 </style>
