@@ -108,9 +108,9 @@
 
     <div v-if="viewerVisible" class="fixed inset-0 z-[110] bg-black" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
       <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
-        <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),12px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-white/15 text-white/90 text-xs px-3 py-1 backdrop-blur">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
-          <button @click="closeViewer" class="w-11 h-11 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center">
+        <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),10px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+          <div class="rounded-full bg-black/28 text-white/95 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
+          <button @click="closeViewer" class="w-11 h-11 rounded-full bg-black/28 backdrop-blur-md border border-white/10 text-white flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -128,7 +128,7 @@
         </div>
 
         <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex justify-center pointer-events-none transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-white/15 text-white/90 text-xs px-3 py-1 backdrop-blur">双击放大 · 左右切图 · 下滑关闭</div>
+          <div class="rounded-full bg-black/28 text-white/90 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">双击放大 · 左右切图 · 下滑关闭</div>
         </div>
       </div>
     </div>
@@ -196,9 +196,10 @@ const viewerImageStyle = computed(() => ({
   transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)',
   touchAction: 'none'
 }))
+const viewerDismissScale = computed(() => viewerScale.value > 1 ? 1 : Math.max(0.88, 1 - Math.abs(viewerTranslateY.value) / 1200))
 const viewerContainerStyle = computed(() => ({
-  transform: viewerScale.value === 1 ? `translate3d(0, ${viewerTranslateY.value}px, 0)` : 'translate3d(0,0,0)',
-  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)'
+  transform: viewerScale.value === 1 ? `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerDismissScale.value})` : 'translate3d(0,0,0) scale(1)',
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .28s cubic-bezier(.22,.8,.2,1)'
 }))
 
 const showHudTemporarily = () => {
@@ -399,18 +400,25 @@ const onViewerTouchEnd = (e: TouchEvent) => {
   const dy = (e.changedTouches[0]?.clientY || 0) - viewerTouchStartY.value
   if (viewerScale.value > 1) {
     isDraggingZoomed.value = false
+    const limitX = window.innerWidth * 0.45 * (viewerScale.value - 1)
+    const limitY = window.innerHeight * 0.45 * (viewerScale.value - 1)
+    viewerTranslateX.value = Math.max(-limitX, Math.min(limitX, viewerTranslateX.value))
+    viewerTranslateY.value = Math.max(-limitY, Math.min(limitY, viewerTranslateY.value))
     return
   }
-  if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
-    if (dx < 0 && viewerIndex.value < photos.value.length - 1) viewerIndex.value += 1
-    if (dx > 0 && viewerIndex.value > 0) viewerIndex.value -= 1
-    viewerTranslateX.value = 0
-    viewerTranslateY.value = 0
-    viewerBgOpacity.value = 0.96
-    showHudTemporarily()
+  if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)) {
+    viewerTranslateX.value = dx < 0 ? -22 : 22
+    setTimeout(() => {
+      if (dx < 0 && viewerIndex.value < photos.value.length - 1) viewerIndex.value += 1
+      if (dx > 0 && viewerIndex.value > 0) viewerIndex.value -= 1
+      viewerTranslateX.value = 0
+      viewerTranslateY.value = 0
+      viewerBgOpacity.value = 0.96
+      showHudTemporarily()
+    }, 90)
     return
   }
-  if (dy > 110) {
+  if (dy > 100) {
     closeViewer()
     return
   }
