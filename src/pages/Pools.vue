@@ -1,14 +1,14 @@
 <template>
   <div class="space-y-5">
     <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">TG 存储池</h1>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">存储</h1>
     </div>
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
     <div class="panel-card space-y-3">
       <div class="grid grid-cols-1 gap-3">
-        <el-input v-model="form.name" placeholder="存储池名称" />
+        <el-input v-model="form.name" placeholder="存储名称" />
         <el-input v-model="form.chat_id" placeholder="Chat ID" />
         <el-input v-model="form.bot_token" placeholder="Bot Token" show-password />
       </div>
@@ -36,7 +36,7 @@
         <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
         <div class="flex flex-wrap gap-2">
           <el-button @click="copyWebhook(pool)">复制 Webhook</el-button>
-                    <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
+          <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
           <el-button @click="edit(pool)">编辑</el-button>
           <el-button type="danger" @click="remove(pool.id)">删除</el-button>
         </div>
