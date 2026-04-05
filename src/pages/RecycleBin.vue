@@ -16,6 +16,7 @@
       <div v-for="photo in photos" :key="photo.id" class="panel-card cursor-pointer" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-red-300 border-red-300' : ''" @click="toggleSelect(photo.id)">
         <img :src="`/api/photos/file/${photo.id}`" class="w-full aspect-[3/4] object-cover rounded-2xl" />
         <div class="mt-3 text-sm font-medium text-slate-800 truncate">{{ photo.original_filename }}</div>
+        <div class="text-xs text-slate-500 mt-1">删除于 {{ formatDeletedAt(photo.deleted_at) }}</div>
       </div>
     </div>
   </div>
@@ -53,6 +54,8 @@ const hardDelete = async () => {
   await load()
   ElMessage.success('已彻底删除')
 }
+
+const formatDeletedAt = (ts: number) => ts ? new Date(ts * 1000).toLocaleString('zh-CN') : '-'
 
 onMounted(load)
 </script>
