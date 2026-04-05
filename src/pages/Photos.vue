@@ -60,7 +60,7 @@
             <div class="mt-3 text-sm font-medium text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
             <div v-if="photo.album_name" class="text-xs text-blue-600 mt-1 truncate">{{ photo.album_name }}</div>
             <div class="mt-3 grid grid-cols-2 gap-2">
-              <button type="button" @click.stop="openDetail(photo.id)" class="action-btn">详情</button>
+              <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
               <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
               <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
               <button type="button" @click.stop="copyDirectLink(photo.id)" class="action-btn action-green">直链</button>
@@ -280,8 +280,20 @@ onMounted(async () => {
 .panel-mini { @apply rounded-2xl bg-slate-50 p-4; }
 .label { @apply text-xs text-slate-500 mb-1; }
 .value { @apply text-sm font-medium text-slate-800; }
-.action-btn { @apply w-full h-[30px] rounded-xl border border-slate-200 bg-slate-50 text-[10px] font-semibold text-slate-700; }
-.action-blue { @apply border-blue-200 bg-blue-50 text-blue-600; }
-.action-red { @apply border-red-200 bg-red-50 text-red-500; }
-.action-green { @apply border-emerald-200 bg-emerald-50 text-emerald-600; }
+.action-btn {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 30px;
+  text-align: center;
+  background: #ffffff;
+}
+.action-neutral { color: #334155; background: #ffffff; border-color: #dbeafe; }
+.action-blue { color: #2563eb; background: #eff6ff; border-color: #bfdbfe; }
+.action-red { color: #ef4444; background: #fef2f2; border-color: #fecaca; }
+.action-green { color: #059669; background: #ecfdf5; border-color: #bbf7d0; }
 </style>
