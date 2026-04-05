@@ -72,7 +72,7 @@
     </div>
 
     <el-dialog v-model="moveDialogVisible" title="移动图片" width="360px" class="!rounded-3xl">
-      <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="large">
+      <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
         <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
       </el-select>
       <template #footer>
