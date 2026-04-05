@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; }
-html, body, #app { min-height: 100%; background: #f8fafc !important; }
+html, body, #app { min-height: 100%; background: #ffffff !important; }
 html, body { overscroll-behavior: none; }
 body {
   margin: 0;

@@ -10,7 +10,7 @@
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 bg-white/96 backdrop-blur-2xl border-b border-slate-200/70">
+    <header class="sticky top-0 z-50 bg-white/98 backdrop-blur-2xl border-b border-slate-200/50">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
           <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-200 shrink-0" />
@@ -26,9 +26,9 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white">
-      <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-950">
+    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white" style="overscroll-behavior-y:none;">
+      <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
+        <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="coverUrl" :src="coverUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" />
           <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/55"></div>
           <div class="relative p-7 md:p-8 text-white flex flex-col justify-end min-h-[240px] md:min-h-[280px]">
@@ -77,7 +77,7 @@
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
       <div v-else class="space-y-5">
-        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm">
+        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
           <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
             <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
               <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
@@ -158,7 +158,7 @@ const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isInstallRoute = computed(() => route.path.startsWith('/app/'))
 const isPrivate = computed(() => albumVisibility.value === 'private')
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
-const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.png${iconVersion.value ? `?v=${iconVersion.value}` : ''}` : '/icon.svg')
+const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon-${iconVersion.value || 'default'}.png` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 
