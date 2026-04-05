@@ -87,6 +87,18 @@
       </template>
     </el-dialog>
 
+
+    <el-dialog v-model="actionSheetVisible" title="图片操作" width="320px" class="!rounded-3xl">
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" @click="openDetail(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-neutral">详情</button>
+        <button type="button" @click="openMoveDialog(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-blue">移动</button>
+        <button type="button" @click="deletePhoto(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-red">删除</button>
+        <button type="button" @click="copyDirectLink(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-green">直链</button>
+      </div>
+      <template #footer>
+        <el-button @click="actionSheetVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
     <el-drawer v-model="detailVisible" size="90%" title="图片详情">
       <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
         <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
@@ -141,7 +153,8 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter(i => i !== id)
     : [...selectedIds.value, id]
-  activeCardId.value = activeCardId.value === id ? null : id
+  actionPhotoId.value = id
+  actionSheetVisible.value = true
 }
 
 const loadAlbums = async () => {
