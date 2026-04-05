@@ -147,7 +147,7 @@ app.get('/api/private-albums/:slug/icon.svg', async (c) => {
   const album = await c.env.DB.prepare(`SELECT name, slug FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   const text = String(album.name || '相册').trim().slice(0, 2)
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2563eb" /><stop offset="100%" stop-color="#4f46e5" /></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g)" /><text x="256" y="292" text-anchor="middle" font-size="220" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-weight="700" fill="#ffffff">${text}</text></svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2563eb" /><stop offset="100%" stop-color="#4f46e5" /></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g)" /><text x="256" y="292" text-anchor="middle" font-size="200" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-weight="800" letter-spacing="-8" fill="#ffffff">${text}</text></svg>`
   return new Response(svg, { headers: { 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': 'public, max-age=86400' } })
 })
 
