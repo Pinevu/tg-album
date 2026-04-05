@@ -285,15 +285,16 @@ onMounted(async () => {
   height: 32px;
   min-height: 32px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dbe3ef;
   font-size: 12px;
   font-weight: 600;
   line-height: 30px;
   text-align: center;
   background: #ffffff;
+  color: #334155;
 }
-.action-neutral { color: #334155; background: #ffffff; border-color: #dbeafe; }
-.action-blue { color: #2563eb; background: #eff6ff; border-color: #bfdbfe; }
-.action-red { color: #ef4444; background: #fef2f2; border-color: #fecaca; }
-.action-green { color: #059669; background: #ecfdf5; border-color: #bbf7d0; }
+.action-neutral { color: #334155; background: #ffffff; border-color: #dbe3ef; }
+.action-blue { color: #2563eb; background: #f8fbff; border-color: #dbeafe; }
+.action-red { color: #e11d48; background: #fff8f8; border-color: #fde2e2; }
+.action-green { color: #059669; background: #f7fffb; border-color: #d1fae5; }
 </style>
