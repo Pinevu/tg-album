@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 px-4">
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900 px-4 py-10">
     <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-xl p-8">
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
-        <div class="text-xs text-slate-400 mt-2">版本 v0.6.22</div>
+        <div class="text-xs text-slate-400 mt-2">版本 v0.6.23</div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />

@@ -11,6 +11,7 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
   color: #0f172a;
+  overscroll-behavior-y: none;
 }
 .el-menu { border-right: none !important; }
 
