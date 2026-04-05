@@ -127,8 +127,15 @@
           </div>
         </div>
 
-        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex justify-center pointer-events-none transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex flex-col items-center gap-3 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
           <div class="rounded-full bg-black/28 text-white/90 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">双击放大 · 左右切图 · 下滑关闭</div>
+          <div class="max-w-full overflow-x-auto no-scrollbar px-4">
+            <div class="flex gap-2 min-w-max">
+              <button v-for="(photo, idx) in photos" :key="`viewer-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="rounded-2xl overflow-hidden border-2 transition-all duration-200" :class="idx === viewerIndex ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]' : 'border-white/20'">
+                <img :src="`/api/photos/file/${photo.id}`" class="w-14 h-18 object-cover" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -314,6 +321,8 @@ const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (ph
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
 const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
 
+const jumpViewerTo = (index: number) => { viewerIndex.value = index; resetViewerTransform(); showHudTemporarily() }
+
 const openViewerByPhoto = (photo: any) => {
   const idx = photos.value.findIndex((p: any) => p.id === photo.id)
   viewerIndex.value = idx >= 0 ? idx : 0
@@ -382,10 +391,10 @@ const onViewerTouchMove = (e: TouchEvent) => {
   const dx = (e.touches[0]?.clientX || 0) - viewerTouchStartX.value
   const dy = (e.touches[0]?.clientY || 0) - viewerTouchStartY.value
   if (viewerScale.value > 1) {
-    viewerTranslateX.value = viewerStartTranslateX.value + dx
-    viewerTranslateY.value = viewerStartTranslateY.value + dy
+    viewerTranslateX.value = (viewerStartTranslateX.value + dx) * 0.92
+    viewerTranslateY.value = (viewerStartTranslateY.value + dy) * 0.92
   } else {
-    viewerTranslateX.value = dx * 0.12
+    viewerTranslateX.value = dx * 0.18
     viewerTranslateY.value = Math.max(0, dy)
     viewerBgOpacity.value = Math.max(0.3, 0.96 - Math.abs(dy) / 320)
   }
