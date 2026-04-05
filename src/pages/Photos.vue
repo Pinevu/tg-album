@@ -89,28 +89,42 @@
       </div>
     </Teleport>
 
-    <el-dialog v-model="deleteDialogVisible" title="确认删除" width="360px" class="!rounded-3xl">
-      <div class="text-slate-600">确定删除这张图片？</div>
-      <template #footer>
-        <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
-      </template>
-    </el-dialog>
-    <el-drawer v-model="detailVisible" size="90%" title="图片详情">
-      <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
-        <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="panel-mini"><div class="label">文件名</div><div class="value break-all">{{ detail.original_filename }}</div></div>
-          <div class="panel-mini"><div class="label">尺寸</div><div class="value">{{ detail.width }} x {{ detail.height }}</div></div>
-          <div class="panel-mini"><div class="label">相册</div><div class="value">{{ detail.album_name || '-' }}</div></div>
-          <div class="panel-mini"><div class="label">主色</div><div class="value">{{ detail.dominant_color_hex || '-' }}</div></div>
-        </div>
-        <div>
-          <el-input v-model="detailRemark" placeholder="备注" />
-          <el-button @click="saveRemark" class="mt-3" type="primary">保存备注</el-button>
+    <Teleport to="body">
+      <div v-if="deleteDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[28px] bg-white shadow-2xl border border-slate-200 p-4 pointer-events-auto">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-lg font-semibold text-slate-900">确认删除</div>
+            <button type="button" class="text-slate-400 text-xl leading-none" @click="deleteDialogVisible = false">×</button>
+          </div>
+          <div class="text-slate-600">确定删除这张图片？</div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <el-button @click="deleteDialogVisible = false">取消</el-button>
+            <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
+          </div>
         </div>
       </div>
-    </el-drawer>
+    </Teleport>
+    <Teleport to="body">
+      <div v-if="detailVisible && detail" class="fixed inset-0 z-[9999] pointer-events-none">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] max-w-[92vw] max-h-[82vh] overflow-auto rounded-[28px] bg-white shadow-2xl border border-slate-200 p-4 pointer-events-auto">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-lg font-semibold text-slate-900">图片详情</div>
+            <button type="button" class="text-slate-400 text-xl leading-none" @click="detailVisible = false">×</button>
+          </div>
+          <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
+          <div class="grid grid-cols-1 gap-3 mt-4">
+            <div class="panel-mini"><div class="label">文件名</div><div class="value break-all">{{ detail.original_filename }}</div></div>
+            <div class="panel-mini"><div class="label">尺寸</div><div class="value">{{ detail.width }} x {{ detail.height }}</div></div>
+            <div class="panel-mini"><div class="label">相册</div><div class="value">{{ detail.album_name || '-' }}</div></div>
+            <div class="panel-mini"><div class="label">主色</div><div class="value">{{ detail.dominant_color_hex || '-' }}</div></div>
+          </div>
+          <div class="mt-4">
+            <el-input v-model="detailRemark" placeholder="备注" />
+            <el-button @click="saveRemark" class="mt-3 w-full" type="primary">保存备注</el-button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
