@@ -4,7 +4,7 @@
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
-        <div class="text-xs text-slate-400 mt-2">版本 v1.0.7</div>
+        <div class="text-xs text-slate-400 mt-2">版本 v1.0.8</div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />
@@ -37,17 +37,15 @@ const login = async () => {
   try {
     const { data } = await api.post('/login', { username: username.value, password: password.value })
     auth.setToken(data.token)
-    router.push('/admin/dashboard')
+    router.replace('/admin/dashboard')
   } catch (e: any) {
-    error.value = e?.response?.data?.error || '登录失败，请检查用户名密码或等待后端最新部署完成'
+    error.value = e?.response?.data?.error || '登录失败'
   }
 }
 
 const clearCache = () => {
-  auth.logout()
   localStorage.clear()
   sessionStorage.clear()
-  router.replace('/login')
-  location.reload()
+  location.href = '/login'
 }
 </script>
