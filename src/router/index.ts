@@ -13,7 +13,8 @@ const routes = [
       { path: 'photos', component: () => import('@/pages/Photos.vue') },
       { path: 'albums', component: () => import('@/pages/Albums.vue') },
       { path: 'pools', component: () => import('@/pages/Pools.vue') },
-      { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') }
+      { path: 'recycle', component: () => import('@/pages/RecycleBin.vue') },
+      { path: 'settings', component: () => import('@/pages/Settings.vue') }
     ]
   }
 ]
