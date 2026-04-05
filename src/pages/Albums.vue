@@ -2,18 +2,24 @@
   <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
-      <div class="grid grid-cols-1 md:grid-cols-7 gap-2 w-full md:w-auto">
-        <el-input v-model="newName" placeholder="相册名" class="md:w-36" />
-        <el-select v-model="visibility" class="md:w-28"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
-        <el-input v-model="slug" placeholder="slug" class="md:w-32" />
-        <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-32" />
-        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-44" />
-        <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-40" />
+      <div class="grid grid-cols-1 md:grid-cols-8 gap-2 w-full md:w-auto">
+        <el-input v-model="newName" placeholder="相册名" class="md:w-32" />
+        <el-select v-model="visibility" class="md:w-24"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
+        <el-input v-model="slug" placeholder="slug" class="md:w-28" />
+        <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-28" />
+        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-40" />
+        <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-36" />
+        <el-button @click="clearPwaIcon">清空图标</el-button>
         <el-button @click="saveAlbum" type="primary">{{ editingId ? '保存' : '创建' }}</el-button>
       </div>
     </div>
 
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
+
+    <div class="panel-card bg-white/96 max-w-sm" v-if="pwaIconUrl || slug">
+      <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
+      <img :src="pwaIconUrl || (slug ? `/api/private-albums/${slug}/icon.svg` : '/icon.svg')" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
+    </div>
 
     <div v-if="loading" class="panel-empty">正在加载相册...</div>
     <div v-else-if="flatAlbums.length === 0" class="panel-empty">暂无相册</div>
@@ -21,7 +27,7 @@
     <div v-else class="space-y-3">
       <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : `/api/private-albums/${album.slug}/icon.svg`)" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.svg` : '/icon.svg'))" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
           <div class="min-w-0">
             <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
               <span>{{ album.name }}</span>
@@ -84,6 +90,8 @@ const onIconFileChange = async (event: Event) => {
   reader.onload = () => { pwaIconUrl.value = String(reader.result || '') }
   reader.readAsDataURL(file)
 }
+
+const clearPwaIcon = () => { pwaIconUrl.value = '' }
 
 const resetForm = () => {
   newName.value = ''

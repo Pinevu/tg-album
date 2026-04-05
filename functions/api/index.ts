@@ -167,7 +167,7 @@ app.get('/api/private-albums/:slug/icon.svg', async (c) => {
 app.post('/api/private-albums/:slug/auth', async (c) => {
   const slug = c.req.param('slug')
   const { password } = await c.req.json()
-  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password, cover_photo_id, pwa_icon_url FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   if ((album.access_password || '') !== (password || '')) return c.json({ error: '密码错误' }, 401)
   const photos = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND p.album_id = ? ORDER BY p.uploaded_at DESC LIMIT 400`).bind(album.id).all<any>()

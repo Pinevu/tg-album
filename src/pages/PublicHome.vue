@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[radial-gradient(circle_at_top,#dbeafe,white_42%)] text-slate-900 font-sans" :class="isStandalone ? 'pb-6 standalone-safe' : ''">
+  <div class="min-h-screen bg-[#f8fafc] text-slate-900 font-sans" :class="isStandalone ? 'pb-6 standalone-safe' : ''">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] bg-[radial-gradient(circle_at_top,#bfdbfe,#ffffff_60%)] flex items-center justify-center px-6">
         <div class="text-center animate-splash-rise">
@@ -10,7 +10,7 @@
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 bg-white/82 backdrop-blur-2xl border-b border-slate-200/70">
+    <header class="sticky top-0 z-50 bg-white/88 backdrop-blur-2xl border-b border-slate-200/70">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
           <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-blue-500/15 border border-white/80 shrink-0" />
@@ -26,7 +26,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-4">
+    <main class="max-w-6xl mx-auto px-4 py-5 space-y-4 bg-[#f8fafc]">
       <div v-if="showInstallGuide" class="poster-card max-w-3xl mx-auto overflow-hidden">
         <div class="poster-hero">
           <img v-if="coverUrl" :src="coverUrl" class="poster-cover" />
@@ -83,13 +83,22 @@
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
       <div v-else class="space-y-5">
-        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm">
+        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm touch-pan-y" @touchstart="onTouchStart" @touchend="onTouchEnd">
           <div class="aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
             <img :src="`/api/photos/file/${currentSlide.id}`" class="w-full h-full object-cover" @click="preview(currentSlide)" />
           </div>
           <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/55 to-transparent text-white">
-            <div class="text-lg font-semibold">{{ albumTitle }}</div>
-            <div class="text-sm text-white/85">左右滑动缩略图，或等待自动播放</div>
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-lg font-semibold">{{ albumTitle }}</div>
+                <div class="text-sm text-white/85">左右滑动缩略图，或等待自动播放</div>
+              </div>
+              <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
+            </div>
+            <div class="flex gap-1.5 mt-3">
+              <span v-for="(photo, idx) in photos" :key="photo.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
+            </div>
+            
           </div>
         </div>
 
@@ -142,6 +151,8 @@ const showWelcomeCard = ref(true)
 const coverPhotoId = ref<number | null>(null)
 const currentSlideIndex = ref(0)
 let slideTimer: any = null
+const slidePaused = ref(false)
+const touchStartX = ref(0)
 let manifestLinkEl: HTMLLinkElement | null = null
 const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -238,7 +249,10 @@ const submitPassword = async () => {
 }
 const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
 const goToSlide = (index: number) => { currentSlideIndex.value = index }
-const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3200) }
+const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3200) }
+const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
+const onTouchStart = (e: TouchEvent) => { touchStartX.value = e.changedTouches[0]?.clientX || 0 }
+const onTouchEnd = (e: TouchEvent) => { const dx = (e.changedTouches[0]?.clientX || 0) - touchStartX.value; if (Math.abs(dx) < 40) return; if (dx < 0) currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length; else currentSlideIndex.value = (currentSlideIndex.value - 1 + photos.value.length) % photos.value.length }
 const closePreview = () => { previewVisible.value = false; previewUrl.value = '' }
 const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
 const installAlbumPwa = async () => {
