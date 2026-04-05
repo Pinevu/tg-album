@@ -33,8 +33,9 @@ export const getPools = () => api.get('/tg-pools')
 export const createPool = (payload: any) => api.post('/tg-pools', payload)
 export const updatePool = (id: number, payload: any) => api.put(`/tg-pools/${id}`, payload)
 export const deletePool = (id: number) => api.delete(`/tg-pools/${id}`)
+export const getSettings = () => api.get('/settings')
+export const saveSettings = (payload: any) => api.post('/settings', payload)
 
-// 编辑图片 API
 export const editPhoto = async (file: File, remark: string, originalFilename: string) => {
   const formData = new FormData()
   formData.append('file', file)
