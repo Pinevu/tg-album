@@ -23,7 +23,6 @@
               <a :class="navClass('/admin/albums')" href="/admin/albums">相册</a>
               <a :class="navClass('/admin/pools')" href="/admin/pools">存储</a>
               <a :class="navClass('/admin/recycle')" href="/admin/recycle">回收站</a>
-              <a :class="navClass('/admin/settings')" href="/admin/settings">设置</a>
             </div>
           </div>
         </header>
@@ -60,13 +59,8 @@ const navClass = (path: string) => {
   return ['nav-btn', route.path === path ? 'nav-btn-active' : '']
 }
 
-const heroStyle = computed(() => ({
-  backgroundImage: `url(${bgImage.value})`
-}))
-
-const fadeStyle = computed(() => ({
-  background: `linear-gradient(to bottom, rgba(255,255,255,${bgOpacity.value}) 0%, rgba(255,255,255,0.92) 55%, rgba(248,250,252,1) 100%)`
-}))
+const heroStyle = computed(() => ({ backgroundImage: `url(${bgImage.value})` }))
+const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${bgOpacity.value}) 0%, rgba(255,255,255,0.92) 55%, rgba(248,250,252,1) 100%)` }))
 
 onMounted(async () => {
   try {
@@ -93,15 +87,6 @@ onMounted(async () => {
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
-.nav-btn-active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-  box-shadow: 0 8px 20px rgba(37,99,235,0.18);
-}
-.nav-btn-dark {
-  background: #0f172a;
-  color: white;
-  border-color: #0f172a;
-}
+.nav-btn-active { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 8px 20px rgba(37,99,235,0.18); }
+.nav-btn-dark { background: #0f172a; color: white; border-color: #0f172a; }
 </style>
