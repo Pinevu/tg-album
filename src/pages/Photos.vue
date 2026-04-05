@@ -55,8 +55,16 @@
         <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
         <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="openActionSheet(photo.id)">
-            <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card group" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleCardActions(photo.id)">
+            <div class="relative">
+              <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+              <div :class="['absolute inset-x-2 bottom-2 grid grid-cols-2 gap-2 transition-all duration-200', activeCardId === photo.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none']">
+                <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
+                <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
+                <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
+                <button type="button" @click.stop="copyDirectLink(photo.id)" class="action-btn action-green">直链</button>
+              </div>
+            </div>
                         <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">相册:{{ photo.album_name }}</div>
           </article>
         </div>
@@ -80,21 +88,6 @@
         <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
       </template>
     </el-dialog>
-
-
-    <div v-if="actionSheetVisible" class="fixed inset-0 z-[120] bg-black/30" @click="actionSheetVisible = false">
-      <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white p-4 shadow-2xl" @click.stop>
-        <div class="w-12 h-1.5 rounded-full bg-slate-200 mx-auto mb-4"></div>
-        <div class="text-lg font-semibold text-slate-900 mb-3">图片操作</div>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" @click="openDetail(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-neutral">详情</button>
-          <button type="button" @click="openMoveDialog(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-blue">移动</button>
-          <button type="button" @click="deletePhoto(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-red">删除</button>
-          <button type="button" @click="copyDirectLink(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-green">直链</button>
-        </div>
-        <button type="button" @click="actionSheetVisible = false" class="mt-3 w-full action-btn action-neutral">取消</button>
-      </div>
-    </div>
     <el-drawer v-model="detailVisible" size="90%" title="图片详情">
       <div v-if="detail" class="space-y-4 max-w-2xl mx-auto">
         <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
@@ -143,6 +136,7 @@ const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
 const actionSheetVisible = ref(false)
 const actionPhotoId = ref<number | null>(null)
+const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
@@ -150,6 +144,11 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter(i => i !== id)
     : [...selectedIds.value, id]
+}
+
+
+const toggleCardActions = (id: number) => {
+  activeCardId.value = activeCardId.value === id ? null : id
 }
 
 const openActionSheet = (id: number) => {
