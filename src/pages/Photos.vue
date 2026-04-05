@@ -71,21 +71,23 @@
       </section>
     </div>
 
-    <div v-if="moveDialogVisible" class="fixed inset-0 z-[140] pointer-events-none">
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[28px] bg-white shadow-2xl border border-slate-200 p-4 pointer-events-auto">
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-lg font-semibold text-slate-900">移动图片</div>
-          <button type="button" class="text-slate-400 text-xl leading-none" @click="moveDialogVisible = false">×</button>
-        </div>
-        <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
-          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-        </el-select>
-        <div class="grid grid-cols-2 gap-2 mt-4">
-          <el-button @click="moveDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+    <Teleport to="body">
+      <div v-if="moveDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[28px] bg-white shadow-2xl border border-slate-200 p-4 pointer-events-auto">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-lg font-semibold text-slate-900">移动图片</div>
+            <button type="button" class="text-slate-400 text-xl leading-none" @click="moveDialogVisible = false">×</button>
+          </div>
+          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
+            <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+          </el-select>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <el-button @click="moveDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <el-dialog v-model="deleteDialogVisible" title="确认删除" width="360px" class="!rounded-3xl">
       <div class="text-slate-600">确定删除这张图片？</div>
