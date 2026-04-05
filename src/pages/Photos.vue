@@ -57,7 +57,7 @@
         <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
           <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
             <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
-                        <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
+                        <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">相册:{{ photo.album_name }}</div>
             <div class="mt-2 grid grid-cols-2 gap-1.5">
               <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
               <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
