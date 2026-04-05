@@ -26,7 +26,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white" style="overscroll-behavior-y:none;">
+    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white select-none" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="coverUrl" :src="coverUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" />
@@ -53,17 +53,6 @@
 
       <div v-if="installTip" class="max-w-lg mx-auto rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 px-4 py-3 text-sm">{{ installTip }}</div>
 
-      <div v-if="isStandalone && showWelcomeCard" class="max-w-3xl mx-auto rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div class="p-5 md:p-6 flex items-center gap-4">
-          <img :src="iconUrl" class="w-16 h-16 rounded-[20px] object-cover shadow-sm border border-slate-200" />
-          <div class="min-w-0 flex-1">
-            <div class="text-lg font-semibold text-slate-900 truncate">欢迎回来，{{ albumTitle }}</div>
-            <div class="text-sm text-slate-500 mt-1">现在你正以独立相册模式浏览。</div>
-          </div>
-          <button @click="showWelcomeCard = false" class="text-slate-400 text-sm shrink-0">关闭</button>
-        </div>
-      </div>
-
       <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
         <div>
           <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
@@ -81,7 +70,7 @@
           <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
             <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
               <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
-                <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover" @click="preview(photo)" />
+                <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" />
                 <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
                   <div class="flex items-center justify-between gap-3">
                     <div>
@@ -108,7 +97,7 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
+          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="openViewerByPhoto(photo)">
             <div class="aspect-[3/4] overflow-hidden bg-slate-100">
               <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
             </div>
@@ -117,9 +106,31 @@
       </div>
     </main>
 
-    <div v-if="previewVisible" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md" @click="closePreview">
-      <button @click="closePreview" class="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center z-10 hover:bg-white/30 transition"><svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-      <div class="h-full flex items-center justify-center p-4"><img :src="previewUrl" class="max-w-full max-h-full object-contain rounded-3xl shadow-2xl" @click.stop /></div>
+    <div v-if="viewerVisible" class="fixed inset-0 z-[110] bg-black" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
+      <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
+        <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),12px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+          <div class="rounded-full bg-white/15 text-white/90 text-xs px-3 py-1 backdrop-blur">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
+          <button @click="closeViewer" class="w-11 h-11 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="h-full flex items-center justify-center overflow-hidden" :style="viewerContainerStyle">
+          <div class="relative w-full h-full flex items-center justify-center">
+            <img
+              v-if="currentViewerPhoto"
+              :src="`/api/photos/file/${currentViewerPhoto.id}`"
+              class="max-w-full max-h-full object-contain select-none"
+              :style="viewerImageStyle"
+              draggable="false"
+            />
+          </div>
+        </div>
+
+        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex justify-center pointer-events-none transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+          <div class="rounded-full bg-white/15 text-white/90 text-xs px-3 py-1 backdrop-blur">双击放大 · 左右切图 · 下滑关闭</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -133,8 +144,6 @@ type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Pro
 const route = useRoute()
 const heroRef = ref<HTMLDivElement | null>(null)
 const photos = ref<any[]>([])
-const previewVisible = ref(false)
-const previewUrl = ref('')
 const password = ref('')
 const error = ref('')
 const needPassword = ref(false)
@@ -146,13 +155,33 @@ const installTip = ref('')
 const iconVersion = ref('')
 const isStandalone = ref(false)
 const showSplash = ref(false)
-const showWelcomeCard = ref(true)
 const coverPhotoId = ref<number | null>(null)
 const albumVisibility = ref<'public' | 'private'>('public')
 const currentSlideIndex = ref(0)
 let slideTimer: any = null
 const slidePaused = ref(false)
 let manifestLinkEl: HTMLLinkElement | null = null
+
+const viewerVisible = ref(false)
+const viewerIndex = ref(0)
+const viewerScale = ref(1)
+const viewerTranslateX = ref(0)
+const viewerTranslateY = ref(0)
+const viewerTouchStartX = ref(0)
+const viewerTouchStartY = ref(0)
+const viewerLastTapAt = ref(0)
+const viewerPinchStartDistance = ref(0)
+const viewerPinchStartScale = ref(1)
+const viewerStartTranslateX = ref(0)
+const viewerStartTranslateY = ref(0)
+const viewerTapX = ref(0)
+const viewerTapY = ref(0)
+const viewerBgOpacity = ref(0.96)
+const hudVisible = ref(true)
+let hudTimer: any = null
+const isPinching = ref(false)
+const isDraggingZoomed = ref(false)
+
 const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isInstallRoute = computed(() => route.path.startsWith('/app/'))
@@ -161,6 +190,22 @@ const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && 
 const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon/version/${iconVersion.value || 'default'}.png` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
+const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
+const viewerImageStyle = computed(() => ({
+  transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value})`,
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)',
+  touchAction: 'none'
+}))
+const viewerContainerStyle = computed(() => ({
+  transform: viewerScale.value === 1 ? `translate3d(0, ${viewerTranslateY.value}px, 0)` : 'translate3d(0,0,0)',
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)'
+}))
+
+const showHudTemporarily = () => {
+  hudVisible.value = true
+  if (hudTimer) clearTimeout(hudTimer)
+  hudTimer = setTimeout(() => { if (viewerVisible.value) hudVisible.value = false }, 1800)
+}
 
 const setManifestForSlug = (slugValue?: string) => {
   const href = slugValue ? `/api/private-albums/${encodeURIComponent(slugValue)}/manifest.webmanifest` : '/manifest.webmanifest'
@@ -267,8 +312,113 @@ const goToSlide = (index: number) => { currentSlideIndex.value = index; slidePau
 const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { const next = (currentSlideIndex.value + 1) % photos.value.length; currentSlideIndex.value = next; scrollToIndex(next) }, 4200) }
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
 const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
-const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
-const closePreview = () => { previewVisible.value = false; previewUrl.value = '' }
+
+const openViewerByPhoto = (photo: any) => {
+  const idx = photos.value.findIndex((p: any) => p.id === photo.id)
+  viewerIndex.value = idx >= 0 ? idx : 0
+  viewerVisible.value = true
+  resetViewerTransform()
+  showHudTemporarily()
+}
+const closeViewer = () => {
+  viewerVisible.value = false
+  resetViewerTransform()
+  viewerBgOpacity.value = 0.96
+}
+const resetViewerTransform = () => {
+  viewerScale.value = 1
+  viewerTranslateX.value = 0
+  viewerTranslateY.value = 0
+  isPinching.value = false
+  isDraggingZoomed.value = false
+}
+const zoomAtPoint = (clientX: number, clientY: number) => {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const dx = clientX - vw / 2
+  const dy = clientY - vh / 2
+  if (viewerScale.value > 1) {
+    resetViewerTransform()
+  } else {
+    viewerScale.value = 2
+    viewerTranslateX.value = -dx * 0.35
+    viewerTranslateY.value = -dy * 0.35
+  }
+}
+const onViewerTouchStart = (e: TouchEvent) => {
+  showHudTemporarily()
+  if (e.touches.length === 2) {
+    isPinching.value = true
+    viewerPinchStartDistance.value = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    viewerPinchStartScale.value = viewerScale.value
+    return
+  }
+  viewerTouchStartX.value = e.touches[0]?.clientX || 0
+  viewerTouchStartY.value = e.touches[0]?.clientY || 0
+  viewerTapX.value = viewerTouchStartX.value
+  viewerTapY.value = viewerTouchStartY.value
+  viewerStartTranslateX.value = viewerTranslateX.value
+  viewerStartTranslateY.value = viewerTranslateY.value
+  if (viewerScale.value > 1) isDraggingZoomed.value = true
+  const now = Date.now()
+  if (now - viewerLastTapAt.value < 260) {
+    zoomAtPoint(viewerTapX.value, viewerTapY.value)
+  }
+  viewerLastTapAt.value = now
+}
+const onViewerTouchMove = (e: TouchEvent) => {
+  if (e.touches.length === 2) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    viewerScale.value = Math.min(4, Math.max(1, viewerPinchStartScale.value * (dist / Math.max(1, viewerPinchStartDistance.value))))
+    return
+  }
+  const dx = (e.touches[0]?.clientX || 0) - viewerTouchStartX.value
+  const dy = (e.touches[0]?.clientY || 0) - viewerTouchStartY.value
+  if (viewerScale.value > 1) {
+    viewerTranslateX.value = viewerStartTranslateX.value + dx
+    viewerTranslateY.value = viewerStartTranslateY.value + dy
+  } else {
+    viewerTranslateX.value = dx * 0.12
+    viewerTranslateY.value = Math.max(0, dy)
+    viewerBgOpacity.value = Math.max(0.3, 0.96 - Math.abs(dy) / 320)
+  }
+}
+const onViewerTouchEnd = (e: TouchEvent) => {
+  if (isPinching.value) {
+    isPinching.value = false
+    if (viewerScale.value <= 1.02) resetViewerTransform()
+    return
+  }
+  const dx = (e.changedTouches[0]?.clientX || 0) - viewerTouchStartX.value
+  const dy = (e.changedTouches[0]?.clientY || 0) - viewerTouchStartY.value
+  if (viewerScale.value > 1) {
+    isDraggingZoomed.value = false
+    return
+  }
+  if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0 && viewerIndex.value < photos.value.length - 1) viewerIndex.value += 1
+    if (dx > 0 && viewerIndex.value > 0) viewerIndex.value -= 1
+    viewerTranslateX.value = 0
+    viewerTranslateY.value = 0
+    viewerBgOpacity.value = 0.96
+    showHudTemporarily()
+    return
+  }
+  if (dy > 110) {
+    closeViewer()
+    return
+  }
+  viewerTranslateX.value = 0
+  viewerTranslateY.value = 0
+  viewerBgOpacity.value = 0.96
+}
+
 const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
 const installAlbumPwa = async () => {
   if (!slug.value) return
@@ -298,6 +448,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (slideTimer) clearInterval(slideTimer)
+  if (hudTimer) clearTimeout(hudTimer)
   window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   if (manifestLinkEl && !slug.value) manifestLinkEl.href = '/manifest.webmanifest'
 })
