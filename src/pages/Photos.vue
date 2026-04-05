@@ -73,10 +73,10 @@
 
     <Teleport to="body">
       <div v-if="moveDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[328px] max-w-[90vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-lg font-semibold text-slate-900">移动图片</div>
-            <button type="button" class="text-slate-400 text-xl leading-none" @click="moveDialogVisible = false">×</button>
+            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
+            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="moveDialogVisible = false">×</button>
           </div>
           <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
@@ -91,10 +91,10 @@
 
     <Teleport to="body">
       <div v-if="deleteDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[328px] max-w-[90vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-lg font-semibold text-slate-900">确认删除</div>
-            <button type="button" class="text-slate-400 text-xl leading-none" @click="deleteDialogVisible = false">×</button>
+            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">确认删除</div>
+            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="deleteDialogVisible = false">×</button>
           </div>
           <div class="text-slate-600">确定删除这张图片？</div>
           <div class="grid grid-cols-2 gap-2 mt-4">
@@ -108,8 +108,8 @@
       <div v-if="detailVisible && detail" class="fixed inset-0 z-[9999] pointer-events-none">
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] max-w-[92vw] max-h-[82vh] overflow-auto rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-lg font-semibold text-slate-900">图片详情</div>
-            <button type="button" class="text-slate-400 text-xl leading-none" @click="detailVisible = false">×</button>
+            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片详情</div>
+            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="detailVisible = false">×</button>
           </div>
           <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
           <div class="grid grid-cols-1 gap-3 mt-4">
