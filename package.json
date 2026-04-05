@@ -1,6 +1,6 @@
 {
   "name": "tg-album-admin",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -33,4 +33,4 @@
     "vue-tsc": "^2.1.6",
     "wrangler": "^3.77.0"
   }
-}\n
+}
