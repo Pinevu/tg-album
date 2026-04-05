@@ -54,12 +54,12 @@
 
         <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
-        <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
-            <img :src="photo.previewUrl" class="w-full aspect-[3/4] object-cover rounded-2xl" />
-            <div class="mt-3 text-sm font-medium text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
-            <div v-if="photo.album_name" class="text-xs text-blue-600 mt-1 truncate">{{ photo.album_name }}</div>
-            <div class="mt-3 grid grid-cols-2 gap-2">
+        <div v-else class="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
+            <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+            <div class="mt-2 text-[12px] font-medium text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
+            <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">{{ photo.album_name }}</div>
+            <div class="mt-2 grid grid-cols-2 gap-1.5">
               <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
               <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
               <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
@@ -281,13 +281,13 @@ onMounted(async () => {
 .value { @apply text-sm font-medium text-slate-800; }
 .action-btn {
   width: 100%;
-  height: 32px;
-  min-height: 32px;
+  height: 28px;
+  min-height: 28px;
   border-radius: 10px;
   border: 1px solid #dbe3ef;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 26px;
   text-align: center;
   background: #ffffff;
   color: #334155;
