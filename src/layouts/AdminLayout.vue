@@ -4,10 +4,7 @@
       <header class="sticky top-0 z-20 bg-white/78 backdrop-blur-2xl border-b border-slate-200/80 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
-            <div class="flex items-center gap-2">
-              <div class="text-xl font-bold tracking-tight">{{ siteTitle }}</div>
-              <span class="text-[10px] px-2 py-1 rounded-full bg-slate-900 text-white">Admin v0.6.10</span>
-            </div>
+            <div class="text-xl font-bold tracking-tight">{{ siteTitle }}</div>
             <div class="text-xs text-slate-500">Telegram 图片存储</div>
           </div>
           <div class="flex items-center gap-2">
