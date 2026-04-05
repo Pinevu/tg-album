@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
+  <div class="space-y-6 rounded-[36px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-6">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
@@ -11,9 +11,9 @@
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-4 items-start">
-      <aside class="space-y-4 xl:sticky xl:top-28 self-start">
-        <div class="panel-card space-y-3">
+    <div class="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-5 items-start">
+      <aside>
+        <div class="panel-card space-y-4 bg-white/96">
           <div class="text-sm font-semibold text-slate-700">上传</div>
           <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
@@ -33,7 +33,7 @@
       </aside>
 
       <section class="space-y-4">
-        <div class="panel-card flex flex-wrap gap-3 items-center">
+        <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
           <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="search">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
@@ -41,21 +41,21 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
-          <el-button @click="search" size="small" type="primary" class="!rounded-xl">搜索</el-button>
+          <el-button @click="search" size="small" type="primary">搜索</el-button>
         </div>
 
-        <div v-if="selectedIds.length" class="panel-card flex flex-wrap gap-2 items-center">
+        <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
           <el-select v-model="moveAlbumId" placeholder="移动到相册" class="w-40" size="small">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
-          <el-button @click="moveSelected" size="small" class="!rounded-xl">批量移动</el-button>
-          <el-button type="danger" @click="toRecycle" size="small" class="!rounded-xl">批量删除</el-button>
+          <el-button @click="moveSelected" size="small">批量移动</el-button>
+          <el-button type="danger" @click="toRecycle" size="small">批量删除</el-button>
         </div>
 
         <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
         <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <article v-for="photo in photos" :key="photo.id" class="panel-card cursor-pointer" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
+          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
             <img :src="photo.previewUrl" class="w-full aspect-[3/4] object-cover rounded-2xl" />
             <div class="mt-3 text-sm font-medium text-slate-800 truncate">{{ photo.original_filename || '未命名图片' }}</div>
             <div v-if="photo.album_name" class="text-xs text-blue-600 mt-1 truncate">{{ photo.album_name }}</div>
@@ -99,7 +99,7 @@
         </div>
         <div>
           <el-input v-model="detailRemark" placeholder="备注" />
-          <el-button @click="saveRemark" class="mt-3 !rounded-xl" type="primary">保存备注</el-button>
+          <el-button @click="saveRemark" class="mt-3" type="primary">保存备注</el-button>
         </div>
       </div>
     </el-drawer>
@@ -134,7 +134,6 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
-const range = ref()
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
@@ -275,8 +274,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.panel-card { @apply rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm; }
-.panel-empty { @apply rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
+.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
+.panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
 .panel-mini { @apply rounded-2xl bg-slate-50 p-4; }
 .label { @apply text-xs text-slate-500 mb-1; }
 .value { @apply text-sm font-medium text-slate-800; }
