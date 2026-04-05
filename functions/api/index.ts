@@ -150,7 +150,7 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
   })
 })
 
-app.get('/api/private-albums/:slug/icon-:version.png', async (c) => {
+app.get('/api/private-albums/:slug/icon/version/:version.png', async (c) => {
   const slug = c.req.param('slug')
   const album = await c.env.DB.prepare(`SELECT id, name, slug, cover_photo_id, pwa_icon_url FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)

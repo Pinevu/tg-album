@@ -22,7 +22,7 @@ export const onRequest = async (context: any) => {
   const safeDesc = `私密相册 ${album.name}，可添加到主屏幕作为独立相册使用。`
   const version = hashString(`${album.pwa_icon_url || ''}|${album.cover_photo_id || ''}|${album.name || ''}`)
   const manifestHref = `/api/private-albums/${safeSlug}/manifest.webmanifest`
-  const iconHref = `/api/private-albums/${safeSlug}/icon-${version}.png`
+  const iconHref = `/api/private-albums/${safeSlug}/icon/version/${version}.png`
 
   html = html.replace('<title>相册系统</title>', `<title>${safeTitle}</title>`)
   html = html.replace(

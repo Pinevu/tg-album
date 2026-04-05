@@ -158,7 +158,7 @@ const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isInstallRoute = computed(() => route.path.startsWith('/app/'))
 const isPrivate = computed(() => albumVisibility.value === 'private')
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
-const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon-${iconVersion.value || 'default'}.png` : '/icon.svg')
+const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon/version/${iconVersion.value || 'default'}.png` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 
