@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
@@ -294,7 +294,7 @@ onMounted(async () => {
   color: #334155;
 }
 .action-neutral { color: #334155; background: #ffffff; border-color: #dbe3ef; }
-.action-blue { color: #2563eb; background: #f8fbff; border-color: #dbeafe; }
-.action-red { color: #e11d48; background: #fff8f8; border-color: #fde2e2; }
-.action-green { color: #059669; background: #f7fffb; border-color: #d1fae5; }
+.action-blue { color: #2563eb; background: #ffffff; border-color: #dbeafe; }
+.action-red { color: #e11d48; background: #ffffff; border-color: #fde2e2; }
+.action-green { color: #059669; background: #ffffff; border-color: #d1fae5; }
 </style>
