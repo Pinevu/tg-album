@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#f8fafc] text-slate-900 font-sans" :class="isStandalone ? 'pb-6 standalone-safe' : ''">
+  <div class="min-h-screen text-slate-900 font-sans" :class="[rootClass, isStandalone ? 'pb-6 standalone-safe' : '']">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] bg-[radial-gradient(circle_at_top,#bfdbfe,#ffffff_60%)] flex items-center justify-center px-6">
         <div class="text-center animate-splash-rise">
@@ -10,7 +10,7 @@
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 bg-white/88 backdrop-blur-2xl border-b border-slate-200/70">
+    <header class="sticky top-0 z-50 backdrop-blur-2xl border-b border-slate-200/70" :class="headerClass">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
           <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-blue-500/15 border border-white/80 shrink-0" />
@@ -26,7 +26,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-4 bg-[#f8fafc]">
+    <main class="max-w-6xl mx-auto px-4 py-5 space-y-4">
       <div v-if="showInstallGuide" class="poster-card max-w-3xl mx-auto overflow-hidden">
         <div class="poster-hero">
           <img v-if="coverUrl" :src="coverUrl" class="poster-cover" />
@@ -149,6 +149,7 @@ const isStandalone = ref(false)
 const showSplash = ref(false)
 const showWelcomeCard = ref(true)
 const coverPhotoId = ref<number | null>(null)
+const albumVisibility = ref<'public' | 'private'>('public')
 const currentSlideIndex = ref(0)
 let slideTimer: any = null
 const slidePaused = ref(false)
@@ -161,6 +162,8 @@ const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && 
 const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.svg` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
+const rootClass = computed(() => albumVisibility.value === 'private' ? 'bg-[#f8fafc]' : 'bg-white')
+const headerClass = computed(() => albumVisibility.value === 'private' ? 'bg-white/92' : 'bg-white')
 const currentSlide = computed(() => photos.value[currentSlideIndex.value] || photos.value[0] || { id: coverPhotoId.value })
 
 const setManifestForSlug = (slugValue?: string) => {
@@ -198,6 +201,7 @@ const syncHead = () => {
 const loadPublicPhotos = async () => {
   slug.value = ''
   albumTitle.value = '相册系统'
+  albumVisibility.value = 'public'
   coverPhotoId.value = null
   setManifestForSlug()
   syncHead()
@@ -210,6 +214,7 @@ const initPrivateAlbum = async (slugValue: string) => {
     const pureSlug = slugValue.replace(/^app\//, '')
     const { data } = await axios.get(`/api/private-albums/${encodeURIComponent(pureSlug)}`)
     albumTitle.value = data.name || '私密相册'
+    albumVisibility.value = 'private'
     slug.value = pureSlug
     setManifestForSlug(pureSlug)
     syncHead()
@@ -249,10 +254,10 @@ const submitPassword = async () => {
 }
 const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
 const goToSlide = (index: number) => { currentSlideIndex.value = index }
-const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3200) }
+const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3800) }
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
 const onTouchStart = (e: TouchEvent) => { touchStartX.value = e.changedTouches[0]?.clientX || 0 }
-const onTouchEnd = (e: TouchEvent) => { const dx = (e.changedTouches[0]?.clientX || 0) - touchStartX.value; if (Math.abs(dx) < 40) return; if (dx < 0) currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length; else currentSlideIndex.value = (currentSlideIndex.value - 1 + photos.value.length) % photos.value.length }
+const onTouchEnd = (e: TouchEvent) => { const dx = (e.changedTouches[0]?.clientX || 0) - touchStartX.value; if (Math.abs(dx) < 28) return; slidePaused.value = true; if (dx < 0) currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length; else currentSlideIndex.value = (currentSlideIndex.value - 1 + photos.value.length) % photos.value.length }
 const closePreview = () => { previewVisible.value = false; previewUrl.value = '' }
 const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
 const installAlbumPwa = async () => {
@@ -286,7 +291,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.standalone-safe { padding-top: env(safe-area-inset-top); }
+.standalone-safe { padding-top: env(safe-area-inset-top); background:#fff; }
+html, body { background:#fff !important; }
 .top-btn { height: 44px; padding: 0 16px; border-radius: 18px; font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(15,23,42,.06); }
 .top-btn-blue { background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; }
 .top-btn-white { background:rgba(255,255,255,.88); border:1px solid #e2e8f0; color:#475569; }
