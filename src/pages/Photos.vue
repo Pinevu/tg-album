@@ -55,7 +55,7 @@
         <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
         <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="toggleSelect(photo.id)">
+          <article v-for="photo in photos" :key="photo.id" class="panel-card bg-white/96 cursor-pointer photo-card" :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''" @click="openActionSheet(photo.id)">
             <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
                         <div v-if="photo.album_name" class="text-[11px] text-blue-600 mt-0.5 truncate">相册:{{ photo.album_name }}</div>
             <div class="mt-2 grid grid-cols-2 gap-1.5">
@@ -88,8 +88,8 @@
     </el-dialog>
 
 
-    <el-dialog v-model="actionSheetVisible" title="图片操作" width="320px" class="!rounded-3xl">
-      <div class="grid grid-cols-2 gap-2">
+    <el-dialog v-model="actionSheetVisible" title="图片操作" width="340px" class="!rounded-3xl">
+      <div class="grid grid-cols-2 gap-2 py-1">
         <button type="button" @click="openDetail(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-neutral">详情</button>
         <button type="button" @click="openMoveDialog(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-blue">移动</button>
         <button type="button" @click="deletePhoto(actionPhotoId!) ; actionSheetVisible=false" class="action-btn action-red">删除</button>
@@ -153,6 +153,9 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter(i => i !== id)
     : [...selectedIds.value, id]
+}
+
+const openActionSheet = (id: number) => {
   actionPhotoId.value = id
   actionSheetVisible.value = true
 }
