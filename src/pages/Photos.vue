@@ -71,7 +71,7 @@
       </section>
     </div>
 
-    <el-dialog v-model="moveDialogVisible" title="移动图片" width="320px" :modal="false" :lock-scroll="false" :show-close="true" class="!rounded-3xl !mt-[22vh]">
+    <el-dialog v-model="moveDialogVisible" title="移动图片" width="320px" :modal="false" :lock-scroll="false" :show-close="true" class="!rounded-3xl">
       <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
         <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
       </el-select>
