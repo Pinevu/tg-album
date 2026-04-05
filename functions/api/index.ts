@@ -116,6 +116,32 @@ app.get('/api/private-albums/:slug', async (c) => {
   return c.json({ id: album.id, name: album.name, slug: album.slug, visibility: album.visibility, need_password: true })
 })
 
+app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
+  const slug = c.req.param('slug')
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  if (!album) return c.json({ error: 'Album not found' }, 404)
+  const manifest = {
+    id: `/${album.slug}`,
+    name: `${album.name}`,
+    short_name: album.name,
+    description: `私密相册：${album.name}`,
+    start_url: `/${album.slug}?source=pwa`,
+    scope: `/${album.slug}`,
+    display: 'standalone',
+    background_color: '#f8fafc',
+    theme_color: '#2563eb',
+    icons: [
+      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }
+    ]
+  }
+  return new Response(JSON.stringify(manifest), {
+    headers: {
+      'content-type': 'application/manifest+json; charset=utf-8',
+      'cache-control': 'public, max-age=3600'
+    }
+  })
+})
+
 app.post('/api/private-albums/:slug/auth', async (c) => {
   const slug = c.req.param('slug')
   const { password } = await c.req.json()

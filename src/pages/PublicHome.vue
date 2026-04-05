@@ -13,11 +13,18 @@
             <div class="text-sm text-slate-500">照片集</div>
           </div>
         </div>
-        <a href="/login" class="rounded-2xl border border-slate-200 bg-white/80 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-white hover:text-slate-800 transition">管理入口</a>
+        <div class="flex items-center gap-2">
+          <button v-if="canInstallAlbum" @click="installAlbumPwa" class="rounded-2xl border border-blue-200 bg-blue-50 text-blue-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-blue-100 transition">安装相册</button>
+          <a href="/login" class="rounded-2xl border border-slate-200 bg-white/80 text-slate-600 px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-white hover:text-slate-800 transition">管理入口</a>
+        </div>
       </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
+      <div v-if="installTip" class="max-w-md mx-auto mb-4 rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 text-sm">
+        {{ installTip }}
+      </div>
+
       <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white/92 backdrop-blur p-6 shadow-lg space-y-4">
         <div>
           <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
@@ -56,9 +63,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }>
+}
 
 const route = useRoute()
 const photos = ref<any[]>([])
@@ -69,10 +81,27 @@ const error = ref('')
 const needPassword = ref(false)
 const albumTitle = ref('公开相册')
 const slug = ref('')
+const installPrompt = ref<InstallPromptEvent | null>(null)
+const canInstallAlbum = ref(false)
+const installTip = ref('')
+let manifestLinkEl: HTMLLinkElement | null = null
 
 const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 
+const setManifestForSlug = (slugValue?: string) => {
+  const href = slugValue ? `/api/private-albums/${encodeURIComponent(slugValue)}/manifest.webmanifest` : '/manifest.webmanifest'
+  let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'manifest'
+    document.head.appendChild(link)
+  }
+  link.href = href
+  manifestLinkEl = link
+}
+
 const loadPublicPhotos = async () => {
+  setManifestForSlug()
   const { data } = await axios.get('/api/public/photos')
   photos.value = data.results || []
 }
@@ -82,6 +111,7 @@ const initPrivateAlbum = async (slugValue: string) => {
     const { data } = await axios.get(`/api/private-albums/${encodeURIComponent(slugValue)}`)
     albumTitle.value = data.name || '私密相册'
     slug.value = slugValue
+    setManifestForSlug(slugValue)
     const cached = localStorage.getItem(passwordCacheKey(slugValue))
     if (cached) {
       const parsed = JSON.parse(cached)
@@ -123,9 +153,36 @@ const closePreview = () => {
   previewUrl.value = ''
 }
 
+const handleBeforeInstallPrompt = (event: Event) => {
+  event.preventDefault()
+  installPrompt.value = event as InstallPromptEvent
+  canInstallAlbum.value = !!slug.value
+}
+
+const installAlbumPwa = async () => {
+  if (!slug.value) return
+  if (installPrompt.value) {
+    await installPrompt.value.prompt()
+    await installPrompt.value.userChoice.catch(() => null)
+    return
+  }
+  installTip.value = 'iPhone 请点浏览器分享按钮，再选择“添加到主屏幕”；Android 若未弹出安装，请使用浏览器菜单中的“安装应用”。'
+}
+
 onMounted(async () => {
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
-  if (slugParam) await initPrivateAlbum(slugParam)
-  else await loadPublicPhotos()
+  if (slugParam) {
+    canInstallAlbum.value = true
+    await initPrivateAlbum(slugParam)
+  } else {
+    canInstallAlbum.value = false
+    await loadPublicPhotos()
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
+  if (manifestLinkEl && !slug.value) manifestLinkEl.href = '/manifest.webmanifest'
 })
 </script>

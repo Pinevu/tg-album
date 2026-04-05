@@ -1,7 +1,8 @@
 {
   "name": "相册系统",
   "short_name": "相册系统",
-  "start_url": "/#/login",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
@@ -9,7 +10,8 @@
     {
       "src": "/icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
