@@ -82,10 +82,30 @@
 
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
-      <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-        <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
-          <div class="aspect-[3/4] overflow-hidden bg-slate-100">
-            <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+      <div v-else class="space-y-5">
+        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm">
+          <div class="aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
+            <img :src="`/api/photos/file/${currentSlide.id}`" class="w-full h-full object-cover" @click="preview(currentSlide)" />
+          </div>
+          <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/55 to-transparent text-white">
+            <div class="text-lg font-semibold">{{ albumTitle }}</div>
+            <div class="text-sm text-white/85">左右滑动缩略图，或等待自动播放</div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto no-scrollbar">
+          <div class="flex gap-3 min-w-max">
+            <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200" :class="idx === currentSlideIndex ? 'border-blue-400 ring-2 ring-blue-200' : 'border-slate-200'">
+              <img :src="`/api/photos/file/${photo.id}`" class="w-28 h-36 object-cover" />
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
+            <div class="aspect-[3/4] overflow-hidden bg-slate-100">
+              <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+            </div>
           </div>
         </div>
       </div>
@@ -120,6 +140,8 @@ const isStandalone = ref(false)
 const showSplash = ref(false)
 const showWelcomeCard = ref(true)
 const coverPhotoId = ref<number | null>(null)
+const currentSlideIndex = ref(0)
+let slideTimer: any = null
 let manifestLinkEl: HTMLLinkElement | null = null
 const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -128,6 +150,7 @@ const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && 
 const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.svg` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
+const currentSlide = computed(() => photos.value[currentSlideIndex.value] || photos.value[0] || { id: coverPhotoId.value })
 
 const setManifestForSlug = (slugValue?: string) => {
   const href = slugValue ? `/api/private-albums/${encodeURIComponent(slugValue)}/manifest.webmanifest` : '/manifest.webmanifest'
@@ -202,6 +225,8 @@ const submitPassword = async () => {
   try {
     const { data } = await axios.post(`/api/private-albums/${encodeURIComponent(slug.value)}/auth`, { password: password.value })
     photos.value = data.results || []
+    currentSlideIndex.value = 0
+    startSlideShow()
     albumTitle.value = data.album?.name || albumTitle.value
     coverPhotoId.value = data.album?.cover_photo_id || photos.value[0]?.id || null
     needPassword.value = false
@@ -212,6 +237,8 @@ const submitPassword = async () => {
   }
 }
 const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
+const goToSlide = (index: number) => { currentSlideIndex.value = index }
+const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3200) }
 const closePreview = () => { previewVisible.value = false; previewUrl.value = '' }
 const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
 const installAlbumPwa = async () => {
@@ -238,6 +265,7 @@ onMounted(async () => {
   else { canInstallAlbum.value = false; await loadPublicPhotos() }
 })
 onBeforeUnmount(() => {
+  if (slideTimer) clearInterval(slideTimer)
   window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   if (manifestLinkEl && !slug.value) manifestLinkEl.href = '/manifest.webmanifest'
 })

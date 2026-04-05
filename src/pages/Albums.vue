@@ -1,17 +1,14 @@
 <template>
   <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-2 w-full md:w-auto">
-        <el-input v-model="newName" placeholder="相册名" class="md:w-40" />
-        <el-select v-model="visibility" class="md:w-28">
-          <el-option label="公开" value="public" />
-          <el-option label="私密" value="private" />
-        </el-select>
-        <el-input v-model="slug" placeholder="slug" class="md:w-36" />
-        <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-36" />
+      <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
+      <div class="grid grid-cols-1 md:grid-cols-7 gap-2 w-full md:w-auto">
+        <el-input v-model="newName" placeholder="相册名" class="md:w-36" />
+        <el-select v-model="visibility" class="md:w-28"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
+        <el-input v-model="slug" placeholder="slug" class="md:w-32" />
+        <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-32" />
+        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-44" />
+        <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-40" />
         <el-button @click="saveAlbum" type="primary">{{ editingId ? '保存' : '创建' }}</el-button>
       </div>
     </div>
@@ -23,14 +20,18 @@
 
     <div v-else class="space-y-3">
       <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
-            <span>{{ album.name }}</span>
-            <span v-if="album.name === '公开相册'" class="tag-blue">系统锁定</span>
-            <span v-if="album.name === '未分类'" class="tag-amber">默认相册</span>
+        <div class="flex items-center gap-3 min-w-0">
+          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : `/api/private-albums/${album.slug}/icon.svg`)" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+          <div class="min-w-0">
+            <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
+              <span>{{ album.name }}</span>
+              <span v-if="album.name === '公开相册'" class="tag-blue">系统锁定</span>
+              <span v-if="album.name === '未分类'" class="tag-amber">默认相册</span>
+            </div>
+            <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
+            <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
+            <div class="text-[11px] text-slate-400 mt-1">图标优先级：自定义图标 > 相册封面 > 文字图标</div>
           </div>
-          <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
-          <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
         </div>
         <div class="flex flex-wrap gap-2">
           <el-button v-if="album.slug" @click="copyShareLink(album)">复制链接</el-button>
@@ -55,6 +56,7 @@ const newName = ref('')
 const visibility = ref('private')
 const slug = ref('')
 const accessPassword = ref('')
+const pwaIconUrl = ref('')
 const editingId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => (nodes || []).flatMap((n) => [n, ...((n.children && Array.isArray(n.children)) ? flatten(n.children) : [])])
@@ -74,19 +76,29 @@ const load = async () => {
   }
 }
 
+const onIconFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => { pwaIconUrl.value = String(reader.result || '') }
+  reader.readAsDataURL(file)
+}
+
 const resetForm = () => {
   newName.value = ''
   visibility.value = 'private'
   slug.value = ''
   accessPassword.value = ''
+  pwaIconUrl.value = ''
   editingId.value = null
 }
 
 const saveAlbum = async () => {
   if (!newName.value.trim()) return
   try {
-    if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined)
-    else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined)
+    if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined)
+    else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined)
     ElMessage.success('保存成功')
     resetForm()
     await load()
@@ -102,6 +114,7 @@ const editAlbum = (album: any) => {
   visibility.value = album.visibility || 'private'
   slug.value = album.slug || ''
   accessPassword.value = album.access_password || ''
+  pwaIconUrl.value = album.pwa_icon_url || ''
 }
 
 const removeAlbum = async (album: any) => {
