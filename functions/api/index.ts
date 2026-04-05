@@ -58,6 +58,9 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'albums', 'access_password'))) {
     try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN access_password TEXT`).run() } catch {}
   }
+  if (!(await tableHasColumn(c, 'albums', 'pwa_icon_url'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN pwa_icon_url TEXT`).run() } catch {}
+  }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
   if (!defaultAlbum) {
