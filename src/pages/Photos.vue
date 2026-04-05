@@ -133,6 +133,7 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
+const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
@@ -140,6 +141,7 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter(i => i !== id)
     : [...selectedIds.value, id]
+  activeCardId.value = activeCardId.value === id ? null : id
 }
 
 const loadAlbums = async () => {
@@ -295,4 +297,6 @@ onMounted(async () => {
 .action-blue { color: #2563eb; background: #ffffff; border-color: #dbeafe; }
 .action-red { color: #e11d48; background: #ffffff; border-color: #fde2e2; }
 .action-green { color: #059669; background: #ffffff; border-color: #d1fae5; }
+.compact-photo-card { padding: 10px; }
+.action-btn { height: 24px; min-height: 24px; border-radius: 9999px; font-size: 10px; line-height: 22px; }
 </style>
