@@ -18,7 +18,8 @@
 
     <div class="panel-card bg-white/96 max-w-sm" v-if="pwaIconUrl || slug">
       <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
-      <img :src="pwaIconUrl || (slug ? `/api/private-albums/${slug}/icon.svg` : '/icon.svg')" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
+      <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
+      <div class="mt-3 text-xs text-slate-500">当前来源：{{ iconSourceLabel }}</div>
     </div>
 
     <div v-if="loading" class="panel-empty">正在加载相册...</div>
@@ -37,6 +38,7 @@
             <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
             <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
             <div class="text-[11px] text-slate-400 mt-1">图标优先级：自定义图标 > 相册封面 > 文字图标</div>
+            <div class="text-[11px] text-slate-400 mt-1">当前来源：{{ album.pwa_icon_url ? '自定义图标' : (album.cover_photo_id ? '相册封面' : '文字图标') }}</div>
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -67,6 +69,8 @@ const editingId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => (nodes || []).flatMap((n) => [n, ...((n.children && Array.isArray(n.children)) ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
+const iconPreviewUrl = computed(() => pwaIconUrl.value || (slug.value ? `/api/private-albums/${slug.value}/icon.svg?v=${Date.now()}` : '/icon.svg'))
+const iconSourceLabel = computed(() => pwaIconUrl.value ? '自定义图标' : (slug.value ? '系统生成图标' : '默认图标'))
 
 const load = async () => {
   loading.value = true
