@@ -1,67 +1,61 @@
 <template>
-  <div class="min-h-screen text-slate-900 font-sans bg-white" :class="[rootClass, isStandalone ? 'pb-6 standalone-safe' : '']">
+  <div class="min-h-screen bg-white text-slate-900 font-sans" :class="isStandalone ? 'standalone-safe' : ''">
     <transition name="fade-scale">
-      <div v-if="showSplash" class="fixed inset-0 z-[120] bg-[radial-gradient(circle_at_top,#bfdbfe,#ffffff_60%)] flex items-center justify-center px-6">
+      <div v-if="showSplash" class="fixed inset-0 z-[120] bg-white flex items-center justify-center px-6">
         <div class="text-center animate-splash-rise">
-          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-2xl border border-white/70 mx-auto object-cover" />
+          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-xl border border-slate-200 mx-auto object-cover" />
           <div class="mt-5 text-2xl font-bold tracking-tight text-slate-900">{{ albumTitle }}</div>
           <div class="mt-1 text-sm text-slate-500">正在打开你的独立相册…</div>
         </div>
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 backdrop-blur-2xl border-b border-slate-200/70" :class="headerClass">
+    <header class="sticky top-0 z-50 bg-white/96 backdrop-blur-2xl border-b border-slate-200/70">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
-          <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-blue-500/15 border border-white/80 shrink-0" />
+          <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-200 shrink-0" />
           <div class="min-w-0">
             <div class="text-[18px] md:text-[22px] font-bold tracking-tight text-slate-900 truncate">{{ albumTitle }}</div>
-            <div class="text-xs md:text-sm text-slate-500 truncate">{{ isStandalone ? '独立相册' : '照片集' }}</div>
+            <div class="text-xs md:text-sm text-slate-500 truncate">{{ isStandalone ? '独立相册' : (isPrivate ? '私密相册' : '摄影作品流') }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button v-if="canInstallAlbum && !isStandalone" @click="installAlbumPwa" class="top-btn top-btn-blue">安装相册</button>
+          <button v-if="canInstallAlbum && !isStandalone && isPrivate" @click="installAlbumPwa" class="top-btn top-btn-neutral">安装相册</button>
           <a v-if="!isStandalone" href="/login" class="top-btn top-btn-white">管理入口</a>
         </div>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-4">
-      <div v-if="showInstallGuide" class="poster-card max-w-3xl mx-auto overflow-hidden">
-        <div class="poster-hero">
-          <img v-if="coverUrl" :src="coverUrl" class="poster-cover" />
-          <div class="poster-overlay"></div>
-          <div class="poster-content">
+    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white">
+      <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-950">
+          <img v-if="coverUrl" :src="coverUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" />
+          <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/55"></div>
+          <div class="relative p-7 md:p-8 text-white flex flex-col justify-end min-h-[240px] md:min-h-[280px]">
             <img :src="iconUrl" class="w-20 h-20 rounded-[24px] border border-white/70 shadow-2xl object-cover" />
-            <div class="mt-4 text-3xl font-bold tracking-tight text-white">{{ albumTitle }}</div>
+            <div class="mt-4 text-3xl font-bold tracking-tight">{{ albumTitle }}</div>
             <div class="mt-2 text-sm text-white/85">把这个私密相册安装到主屏幕，像独立 App 一样直接打开。</div>
           </div>
         </div>
         <div class="p-5 bg-white">
           <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-sm text-slate-600">
-            <template v-if="isIOS()">
-              <div>1. 先确认你现在打开的是专属安装页</div>
-              <div>2. 点击 Safari 的分享按钮</div>
-              <div>3. 选择“添加到主屏幕”</div>
-              <div>4. 保持名称为「{{ albumTitle }}」，确认添加</div>
-            </template>
-            <template v-else>
-              <div>1. 点击下方“立即安装”</div>
-              <div>2. 如未弹出安装框，请在浏览器菜单中选择“安装应用”</div>
-            </template>
+            <div>1. 先确认你现在打开的是专属安装页</div>
+            <div>2. 点击 Safari 的分享按钮</div>
+            <div>3. 选择“添加到主屏幕”</div>
+            <div>4. 保持名称为「{{ albumTitle }}」，确认添加</div>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
-            <button @click="installAlbumPwa" class="rounded-2xl bg-blue-600 text-white px-4 py-2.5 text-sm font-medium shadow-sm">立即安装</button>
+            <button @click="installAlbumPwa" class="rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium shadow-sm">立即安装</button>
             <a :href="normalAlbumUrl" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">普通浏览打开</a>
           </div>
         </div>
       </div>
 
-      <div v-if="installTip" class="max-w-lg mx-auto rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 text-sm">{{ installTip }}</div>
+      <div v-if="installTip" class="max-w-lg mx-auto rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 px-4 py-3 text-sm">{{ installTip }}</div>
 
-      <div v-if="isStandalone && showWelcomeCard" class="max-w-3xl mx-auto rounded-[30px] border border-white/80 bg-white/86 backdrop-blur-xl shadow-lg overflow-hidden">
+      <div v-if="isStandalone && showWelcomeCard" class="max-w-3xl mx-auto rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="p-5 md:p-6 flex items-center gap-4">
-          <img :src="iconUrl" class="w-16 h-16 rounded-[20px] object-cover shadow-lg border border-slate-200" />
+          <img :src="iconUrl" class="w-16 h-16 rounded-[20px] object-cover shadow-sm border border-slate-200" />
           <div class="min-w-0 flex-1">
             <div class="text-lg font-semibold text-slate-900 truncate">欢迎回来，{{ albumTitle }}</div>
             <div class="text-sm text-slate-500 mt-1">现在你正以独立相册模式浏览。</div>
@@ -70,7 +64,7 @@
         </div>
       </div>
 
-      <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white/92 backdrop-blur p-6 shadow-lg space-y-4">
+      <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
         <div>
           <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
           <div class="text-sm text-slate-500 mt-1">输入访问密码</div>
@@ -83,37 +77,40 @@
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
       <div v-else class="space-y-5">
-        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm touch-pan-y" @touchstart="onTouchStart" @touchend="onTouchEnd">
-          <div class="aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
-            <img :src="`/api/photos/file/${currentSlide.id}`" class="w-full h-full object-cover" @click="preview(currentSlide)" />
-          </div>
-          <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/55 to-transparent text-white">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <div class="text-lg font-semibold">{{ albumTitle }}</div>
-                <div class="text-sm text-white/85">左右滑动缩略图，或等待自动播放</div>
+        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm">
+          <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
+            <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
+              <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
+                <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover" @click="preview(photo)" />
+                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <div class="text-lg font-semibold">{{ albumTitle }}</div>
+                      <div class="text-sm text-white/85">左右滑动主图，体验更接近 iOS Photos</div>
+                    </div>
+                    <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
+                  </div>
+                  <div class="flex gap-1.5 mt-3">
+                    <span v-for="(dot, idx) in photos" :key="dot.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
+                  </div>
+                </div>
               </div>
-              <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
             </div>
-            <div class="flex gap-1.5 mt-3">
-              <span v-for="(photo, idx) in photos" :key="photo.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
-            </div>
-            
           </div>
         </div>
 
-        <div class="overflow-x-auto no-scrollbar">
-          <div class="flex gap-3 min-w-max">
-            <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200" :class="idx === currentSlideIndex ? 'border-blue-400 ring-2 ring-blue-200' : 'border-slate-200'">
+        <div class="overflow-x-auto no-scrollbar carousel-touch">
+          <div class="flex gap-3 min-w-max snap-x snap-mandatory">
+            <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
               <img :src="`/api/photos/file/${photo.id}`" class="w-28 h-36 object-cover" />
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
+          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="preview(photo)">
             <div class="aspect-[3/4] overflow-hidden bg-slate-100">
-              <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+              <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
             </div>
           </div>
         </div>
@@ -134,6 +131,7 @@ import axios from 'axios'
 
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }> }
 const route = useRoute()
+const heroRef = ref<HTMLDivElement | null>(null)
 const photos = ref<any[]>([])
 const previewVisible = ref(false)
 const previewUrl = ref('')
@@ -154,18 +152,15 @@ const albumVisibility = ref<'public' | 'private'>('public')
 const currentSlideIndex = ref(0)
 let slideTimer: any = null
 const slidePaused = ref(false)
-const touchStartX = ref(0)
 let manifestLinkEl: HTMLLinkElement | null = null
 const passwordCacheKey = (slugValue: string) => `private_album_auth_${slugValue}`
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isInstallRoute = computed(() => route.path.startsWith('/app/'))
+const isPrivate = computed(() => albumVisibility.value === 'private')
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
-const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.svg${iconVersion.value ? `?v=${iconVersion.value}` : ''}` : '/icon.svg')
+const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.png${iconVersion.value ? `?v=${iconVersion.value}` : ''}` : '/icon.svg')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
-const rootClass = computed(() => albumVisibility.value === 'private' ? 'bg-[#f8fafc]' : 'bg-white')
-const headerClass = computed(() => albumVisibility.value === 'private' ? 'bg-white/92' : 'bg-white')
-const currentSlide = computed(() => photos.value[currentSlideIndex.value] || photos.value[0] || { id: coverPhotoId.value })
 
 const setManifestForSlug = (slugValue?: string) => {
   const href = slugValue ? `/api/private-albums/${encodeURIComponent(slugValue)}/manifest.webmanifest` : '/manifest.webmanifest'
@@ -209,6 +204,8 @@ const loadPublicPhotos = async () => {
   syncHead()
   const { data } = await axios.get('/api/public/photos')
   photos.value = data.results || []
+  currentSlideIndex.value = 0
+  startSlideShow()
 }
 
 const initPrivateAlbum = async (slugValue: string) => {
@@ -218,6 +215,7 @@ const initPrivateAlbum = async (slugValue: string) => {
     albumTitle.value = data.name || '私密相册'
     albumVisibility.value = 'private'
     slug.value = pureSlug
+    iconVersion.value = data.icon_version || ''
     setManifestForSlug(pureSlug)
     syncHead()
     const cached = localStorage.getItem(passwordCacheKey(pureSlug))
@@ -244,22 +242,32 @@ const submitPassword = async () => {
     const { data } = await axios.post(`/api/private-albums/${encodeURIComponent(slug.value)}/auth`, { password: password.value })
     photos.value = data.results || []
     currentSlideIndex.value = 0
-    startSlideShow()
     albumTitle.value = data.album?.name || albumTitle.value
     coverPhotoId.value = data.album?.cover_photo_id || photos.value[0]?.id || null
+    iconVersion.value = data.album?.pwa_icon_url || data.album?.cover_photo_id ? `${Date.now()}` : iconVersion.value
     needPassword.value = false
     syncHead()
+    startSlideShow()
     localStorage.setItem(passwordCacheKey(slug.value), JSON.stringify({ password: password.value, expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000 }))
   } catch (e: any) {
     error.value = e?.response?.data?.error || '访问失败'
   }
 }
-const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
-const goToSlide = (index: number) => { currentSlideIndex.value = index }
-const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length }, 3800) }
+
+const scrollToIndex = (index: number, behavior: ScrollBehavior = 'smooth') => {
+  if (!heroRef.value) return
+  heroRef.value.scrollTo({ left: heroRef.value.clientWidth * index, behavior })
+}
+const onHeroScroll = () => {
+  if (!heroRef.value) return
+  const index = Math.round(heroRef.value.scrollLeft / heroRef.value.clientWidth)
+  currentSlideIndex.value = Math.max(0, Math.min(index, photos.value.length - 1))
+}
+const goToSlide = (index: number) => { currentSlideIndex.value = index; slidePaused.value = true; scrollToIndex(index) }
+const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { const next = (currentSlideIndex.value + 1) % photos.value.length; currentSlideIndex.value = next; scrollToIndex(next) }, 4200) }
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
-const onTouchStart = (e: TouchEvent) => { touchStartX.value = e.changedTouches[0]?.clientX || 0 }
-const onTouchEnd = (e: TouchEvent) => { const dx = (e.changedTouches[0]?.clientX || 0) - touchStartX.value; if (Math.abs(dx) < 28) return; slidePaused.value = true; if (dx < 0) currentSlideIndex.value = (currentSlideIndex.value + 1) % photos.value.length; else currentSlideIndex.value = (currentSlideIndex.value - 1 + photos.value.length) % photos.value.length }
+const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
+const preview = (photo: any) => { previewUrl.value = `/api/photos/file/${photo.id}`; previewVisible.value = true }
 const closePreview = () => { previewVisible.value = false; previewUrl.value = '' }
 const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
 const installAlbumPwa = async () => {
@@ -273,18 +281,21 @@ const installAlbumPwa = async () => {
   if (installPrompt.value) { await installPrompt.value.prompt(); await installPrompt.value.userChoice.catch(() => null); return }
   installTip.value = `如果没有出现安装弹窗，请直接打开：${appUrl}`
 }
+
 watch(() => route.fullPath, () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
 })
+
 onMounted(async () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
   showSplash.value = isStandalone.value
-  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1400)
+  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1200)
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
   if (slugParam) { canInstallAlbum.value = true; await initPrivateAlbum(slugParam) }
   else { canInstallAlbum.value = false; await loadPublicPhotos() }
 })
+
 onBeforeUnmount(() => {
   if (slideTimer) clearInterval(slideTimer)
   window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
@@ -294,15 +305,16 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .standalone-safe { padding-top: env(safe-area-inset-top); background:#fff; }
-html, body { background:#fff !important; }
-.top-btn { height: 44px; padding: 0 16px; border-radius: 18px; font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(15,23,42,.06); }
-.top-btn-blue { background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; }
-.top-btn-white { background:rgba(255,255,255,.88); border:1px solid #e2e8f0; color:#475569; }
-.poster-card { border-radius: 32px; border: 1px solid rgba(191,219,254,.9); background: rgba(255,255,255,.92); box-shadow: 0 18px 48px rgba(37,99,235,.12); }
-.poster-hero { position: relative; min-height: 260px; background: linear-gradient(135deg, #2563eb, #4f46e5); overflow: hidden; }
+.top-btn { height: 44px; padding: 0 16px; border-radius: 18px; font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,23,42,.05); }
+.top-btn-neutral { background:#f8fafc; border:1px solid #e2e8f0; color:#0f172a; }
+.top-btn-white { background:#fff; border:1px solid #e2e8f0; color:#475569; }
+.poster-card { border-radius: 32px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(15,23,42,.05); }
 .poster-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.poster-overlay { position:absolute; inset:0; background: linear-gradient(to bottom, rgba(15,23,42,.18), rgba(15,23,42,.45)); }
+.poster-overlay { position:absolute; inset:0; background: linear-gradient(to bottom, rgba(15,23,42,.18), rgba(15,23,42,.55)); }
 .poster-content { position:relative; z-index:1; padding:28px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; min-height:260px; }
+.carousel-touch { -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+.no-scrollbar::-webkit-scrollbar { display:none; }
+.no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
 .fade-scale-enter-active, .fade-scale-leave-active { transition: opacity .35s ease, transform .35s ease; }
 .fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(1.02); }
 @keyframes splash-rise { 0% { opacity: 0; transform: translateY(10px) scale(.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
