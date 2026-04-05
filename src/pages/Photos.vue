@@ -11,62 +11,75 @@
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="space-y-4">
-      <div class="panel-card bg-white/96 space-y-4">
-        <div class="text-sm font-semibold text-slate-700">上传</div>
-        <div class="grid grid-cols-1 md:grid-cols-[180px_1fr_auto] gap-3 items-center">
-          <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
-            <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-          </el-select>
-          <el-input v-model="uploadRemark" placeholder="备注" size="small" />
-          <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full md:w-56">
-            <div class="px-4 py-4 text-center text-slate-700 text-sm">点击或拖拽上传</div>
-          </el-upload>
+    <div class="panel-card bg-white/96 space-y-4">
+      <div class="text-sm font-semibold text-slate-700">上传</div>
+      <div class="grid grid-cols-1 md:grid-cols-[180px_1fr_auto] gap-3 items-center">
+        <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
+          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+        </el-select>
+        <el-input v-model="uploadRemark" placeholder="备注" size="small" />
+        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full md:w-56">
+          <div class="px-4 py-4 text-center text-slate-700 text-sm">点击或拖拽上传</div>
+        </el-upload>
+      </div>
+      <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2">
+        <div v-for="item in uploadQueue" :key="item.id" class="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+          <img :src="item.url" class="w-full h-16 object-cover rounded-xl" />
+          <el-progress :percentage="item.progress" :stroke-width="5" :show-text="false" class="mt-2" />
         </div>
       </div>
-
-      <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
-        <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="search">
-          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-        </el-select>
-        <el-select v-model="tag" placeholder="标签" filterable class="w-32" size="small">
-          <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
-        </el-select>
-        <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
-        <el-button @click="search" size="small" type="primary">搜索</el-button>
-      </div>
-
-      <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
-        <el-select v-model="moveAlbumId" placeholder="移动到相册" class="w-40" size="small">
-          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-        </el-select>
-        <el-button @click="moveSelected" size="small">批量移动</el-button>
-        <el-button type="danger" @click="toRecycle" size="small">批量删除</el-button>
-      </div>
-
-      <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
-
-      <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-        <article
-          v-for="photo in photos"
-          :key="photo.id"
-          class="panel-card bg-white/96 cursor-pointer photo-card"
-          :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''"
-          @click.stop="toggleCardActions(photo.id)"
-        >
-          <div class="relative">
-            <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
-            <div :class="['absolute inset-x-2 bottom-2 grid grid-cols-2 gap-2 transition-all duration-200', activeCardId === photo.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none']">
-              <button type="button" @click.stop="openDetail(photo.id)" class="action-btn action-neutral">详情</button>
-              <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-btn action-blue">移动</button>
-              <button type="button" @click.stop="deletePhoto(photo.id)" class="action-btn action-red">删除</button>
-              <button type="button" @click.stop="copyDirectLink(photo)" class="action-btn action-green">直链</button>
-            </div>
-          </div>
-          <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
-        </article>
-      </div>
     </div>
+
+    <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
+      <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="search">
+        <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+      </el-select>
+      <el-select v-model="tag" placeholder="标签" filterable class="w-32" size="small">
+        <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
+      </el-select>
+      <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
+      <el-button @click="search" size="small" type="primary">搜索</el-button>
+    </div>
+
+    <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
+      <el-select v-model="moveAlbumId" placeholder="移动到相册" class="w-40" size="small">
+        <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+      </el-select>
+      <el-button @click="moveSelected" size="small">批量移动</el-button>
+      <el-button type="danger" @click="toRecycle" size="small">批量删除</el-button>
+    </div>
+
+    <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
+
+    <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
+      <article
+        v-for="photo in photos"
+        :key="photo.id"
+        class="panel-card bg-white/96 cursor-pointer photo-card"
+        :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''"
+        @click="openActionPanel(photo)"
+      >
+        <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+        <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
+      </article>
+    </div>
+
+    <Teleport to="body">
+      <div v-if="actionPanelVisible && actionPhoto" class="fixed inset-0 z-[9999] pointer-events-none">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片操作</div>
+            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeActionPanel">×</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" @click="openDetail(actionPhoto.id)" class="action-btn action-neutral">详情</button>
+            <button type="button" @click="openMoveDialog(actionPhoto.id)" class="action-btn action-blue">移动</button>
+            <button type="button" @click="deletePhoto(actionPhoto.id)" class="action-btn action-red">删除</button>
+            <button type="button" @click="copyDirectLink(actionPhoto)" class="action-btn action-green">直链</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <Teleport to="body">
       <div v-if="moveDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
@@ -146,16 +159,19 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
-const activeCardId = ref<number | null>(null)
+const actionPanelVisible = ref(false)
+const actionPhoto = ref<any>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
-const closeActiveCard = () => {
-  activeCardId.value = null
+const openActionPanel = (photo: any) => {
+  actionPhoto.value = photo
+  actionPanelVisible.value = true
 }
 
-const toggleCardActions = (id: number) => {
-  activeCardId.value = activeCardId.value === id ? null : id
+const closeActionPanel = () => {
+  actionPanelVisible.value = false
+  actionPhoto.value = null
 }
 
 const loadAlbums = async () => {
@@ -200,13 +216,13 @@ const sanitizeFilename = (name?: string) => {
 }
 
 const buildDirectLink = (photo: any) => {
-  const ts = photo?.uploaded_at ? Number(photo.uploaded_at) * 1000 : Date.now()
   const filename = sanitizeFilename(photo?.original_filename)
   return `${location.origin}/api/photos/file/${photo.id}/${encodeURIComponent(filename)}`
 }
 
 const copyDirectLink = async (photo: any) => {
   await navigator.clipboard.writeText(buildDirectLink(photo))
+  closeActionPanel()
   ElMessage.success('直链已复制')
 }
 
@@ -239,14 +255,14 @@ const openDetail = async (id: number) => {
   const { data } = await getPhotoDetail(id)
   detail.value = data
   detailVisible.value = true
-  activeCardId.value = null
+  closeActionPanel()
 }
 
 const openMoveDialog = (id: number) => {
   activeMoveId.value = id
   moveToAlbumId.value = undefined
   moveDialogVisible.value = true
-  activeCardId.value = null
+  closeActionPanel()
 }
 
 const confirmMove = async () => {
@@ -266,7 +282,7 @@ const confirmMove = async () => {
 const deletePhoto = (id: number) => {
   activeDeleteId.value = id
   deleteDialogVisible.value = true
-  activeCardId.value = null
+  closeActionPanel()
 }
 
 const confirmDelete = async () => {
@@ -298,19 +314,16 @@ onMounted(async () => {
 .value { @apply text-sm font-medium text-slate-800; }
 .action-btn {
   width: 100%;
-  height: 28px;
-  min-height: 28px;
+  height: 32px;
+  min-height: 32px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.65);
-  font-size: 11px;
+  border: 1px solid #dbe3ef;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 26px;
+  line-height: 30px;
   text-align: center;
-  background: rgba(255,255,255,.72);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #ffffff;
   color: #334155;
-  box-shadow: 0 4px 14px rgba(15,23,42,.08);
 }
 .action-neutral { color: #334155; }
 .action-blue { color: #2563eb; }
