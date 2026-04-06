@@ -2,24 +2,36 @@
   <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
-      <div class="grid grid-cols-1 md:grid-cols-8 gap-2 w-full md:w-auto">
+      <div class="grid grid-cols-1 md:grid-cols-10 gap-2 w-full md:w-auto">
         <el-input v-model="newName" placeholder="相册名" class="md:w-32" />
         <el-select v-model="visibility" class="md:w-24"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
         <el-input v-model="slug" placeholder="slug" class="md:w-28" />
         <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-28" />
-        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-40" />
+        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-36" />
+        <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" class="md:w-40" />
         <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-36" />
         <el-button @click="clearPwaIcon">清空图标</el-button>
+        <el-button @click="clearSplashImage">清空背景</el-button>
         <el-button @click="saveAlbum" type="primary">{{ editingId ? '保存' : '创建' }}</el-button>
       </div>
     </div>
 
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/96 max-w-sm" v-if="pwaIconUrl || slug">
-      <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
-      <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
-      <div class="mt-3 text-xs text-slate-500">当前来源：{{ iconSourceLabel }}</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" v-if="pwaIconUrl || slug || pwaSplashImageUrl">
+      <div class="panel-card bg-white/96 max-w-sm">
+        <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
+        <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
+        <div class="mt-3 text-xs text-slate-500">当前来源：{{ iconSourceLabel }}</div>
+      </div>
+      <div class="panel-card bg-white/96">
+        <div class="text-sm text-slate-500 mb-3">当前启动背景图预览</div>
+        <div class="aspect-[16/10] rounded-[20px] overflow-hidden border border-slate-200 bg-slate-50">
+          <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover" />
+          <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm">暂无启动背景图</div>
+        </div>
+        <div class="mt-3 text-xs text-slate-500">当前来源：{{ splashSourceLabel }}</div>
+      </div>
     </div>
 
     <div v-if="loading" class="panel-empty">正在加载相册...</div>
@@ -65,12 +77,15 @@ const visibility = ref('private')
 const slug = ref('')
 const accessPassword = ref('')
 const pwaIconUrl = ref('')
+const pwaSplashImageUrl = ref('')
 const editingId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => (nodes || []).flatMap((n) => [n, ...((n.children && Array.isArray(n.children)) ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
 const iconPreviewUrl = computed(() => pwaIconUrl.value || (slug.value ? `/api/private-albums/${slug.value}/icon.svg?v=${Date.now()}` : '/icon.svg'))
+const splashPreviewUrl = computed(() => pwaSplashImageUrl.value || '')
 const iconSourceLabel = computed(() => pwaIconUrl.value ? '自定义图标' : (slug.value ? '系统生成图标' : '默认图标'))
+const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? '独立启动背景图' : '未设置，前台将回退到相册封面图')
 
 const load = async () => {
   loading.value = true
@@ -96,6 +111,7 @@ const onIconFileChange = async (event: Event) => {
 }
 
 const clearPwaIcon = () => { pwaIconUrl.value = '' }
+const clearSplashImage = () => { pwaSplashImageUrl.value = '' }
 
 const resetForm = () => {
   newName.value = ''
@@ -103,14 +119,15 @@ const resetForm = () => {
   slug.value = ''
   accessPassword.value = ''
   pwaIconUrl.value = ''
+  pwaSplashImageUrl.value = ''
   editingId.value = null
 }
 
 const saveAlbum = async () => {
   if (!newName.value.trim()) return
   try {
-    if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined)
-    else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined)
+    if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined, pwaSplashImageUrl.value || undefined)
+    else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined, pwaSplashImageUrl.value || undefined)
     ElMessage.success('保存成功')
     resetForm()
     await load()
@@ -127,6 +144,7 @@ const editAlbum = (album: any) => {
   slug.value = album.slug || ''
   accessPassword.value = album.access_password || ''
   pwaIconUrl.value = album.pwa_icon_url || ''
+  pwaSplashImageUrl.value = album.pwa_splash_image_url || ''
 }
 
 const removeAlbum = async (album: any) => {
