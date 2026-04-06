@@ -227,8 +227,6 @@ const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
-const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
-
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 
@@ -249,11 +247,6 @@ const toggleCardActions = (id: number) => {
 const handleWindowClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (!target.closest('.photo-card')) closeActionPanel()
-}
-
-const selectBulkMoveAlbum = (album: any) => {
-  bulkMoveToAlbumId.value = album.id
-  bulkMovePickerOpen.value = false
 }
 
 const loadAlbums = async () => {
