@@ -1,11 +1,13 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900 font-sans" :class="isStandalone ? 'standalone-safe' : ''">
     <transition name="fade-scale">
-      <div v-if="showSplash" class="fixed inset-0 z-[120] bg-white flex items-center justify-center px-6">
-        <div class="text-center animate-splash-rise">
-          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-xl border border-slate-200 mx-auto object-cover" />
-          <div class="mt-5 text-2xl font-bold tracking-tight text-slate-900">{{ albumTitle }}</div>
-          <div class="mt-1 text-sm text-slate-500">正在打开你的独立相册…</div>
+      <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
+        <img v-if="coverUrl" :src="coverUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.03]" />
+        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.12),rgba(15,23,42,.42))]"></div>
+        <div class="relative text-center animate-splash-rise">
+          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-2xl border border-white/60 mx-auto object-cover" />
+          <div class="mt-5 text-2xl font-bold tracking-tight text-white">{{ albumTitle }}</div>
+          <div class="mt-1 text-sm text-white/85">正在打开你的独立相册…</div>
         </div>
       </div>
     </transition>
