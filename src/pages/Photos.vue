@@ -204,8 +204,6 @@ const photos = ref<any[]>([])
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 const selectionMode = ref(false)
-const selectedIds = ref<number[]>([])
-const selectionMode = ref(false)
 const currentAlbumId = ref<number | undefined>()
 const tag = ref('')
 const keyword = ref('')
@@ -220,9 +218,6 @@ const bulkMoveDialogVisible = ref(false)
 const bulkMoveToAlbumId = ref<number | undefined>()
 const bulkMovePickerOpen = ref(false)
 const movePickerOpen = ref(false)
-const bulkMoveDialogVisible = ref(false)
-const bulkMoveToAlbumId = ref<number | undefined>()
-const bulkMovePickerOpen = ref(false)
 const deleteDialogVisible = ref(false)
 const moving = ref(false)
 const deleting = ref(false)
@@ -353,6 +348,7 @@ const selectMoveAlbum = (album: any) => {
   moveToAlbumId.value = album.id
   movePickerOpen.value = false
 }
+
 const selectBulkMoveAlbum = (album: any) => {
   bulkMoveToAlbumId.value = album.id
   bulkMovePickerOpen.value = false
@@ -379,34 +375,6 @@ const confirmBulkMove = async () => {
     await batchMove(selectedIds.value, bulkMoveToAlbumId.value)
     clearSelection()
     closeBulkMoveDialog()
-    await search()
-    ElMessage.success('批量移动成功')
-  } finally {
-    moving.value = false
-  }
-}
-
-const toRecycleSelected = async () => {
-  if (!selectedIds.value.length) return
-  deleting.value = true
-  try {
-    await batchDelete(selectedIds.value)
-    clearSelection()
-    await search()
-    ElMessage.success('已批量放入回收站')
-  } finally {
-    deleting.value = false
-  }
-}
-
-const confirmBulkMove = async () => {
-  if (!bulkMoveToAlbumId.value || !selectedIds.value.length) return ElMessage.warning('请选择目标相册')
-  moving.value = true
-  try {
-    await batchMove(selectedIds.value, bulkMoveToAlbumId.value)
-    clearSelection()
-    bulkMoveDialogVisible.value = false
-    bulkMovePickerOpen.value = false
     await search()
     ElMessage.success('批量移动成功')
   } finally {
