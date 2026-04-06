@@ -14,15 +14,18 @@
         <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
         <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
 
-        <div class="grid grid-cols-2 gap-2 items-center">
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
           <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500" />
-          <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500" />
+          <el-button @click="clearPwaIcon" class="!w-[112px] !min-w-[112px] !px-0">清空图标</el-button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 items-stretch">
-          <el-button @click="clearPwaIcon" class="!w-full !min-w-0 !px-0">清空图标</el-button>
-          <el-button @click="clearSplashImage" class="!w-full !min-w-0 !px-0">清空背景</el-button>
-          <el-button @click="saveAlbum" type="primary" class="!w-full !min-w-0 !px-0">{{ editingId ? '保存' : '创建' }}</el-button>
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+          <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500" />
+          <el-button @click="clearSplashImage" class="!w-[112px] !min-w-[112px] !px-0">清空背景</el-button>
+        </div>
+
+        <div>
+          <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
         </div>
       </div>
     </div>
