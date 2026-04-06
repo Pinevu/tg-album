@@ -332,21 +332,24 @@ onMounted(async () => {
 .value { @apply text-sm font-medium text-slate-800; }
 .action-btn {
   width: 100%;
-  height: 32px;
-  min-height: 32px;
-  border-radius: 10px;
-  border: 1px solid #dbe3ef;
-  font-size: 12px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(226,232,240,.92);
+  font-size: 11px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 32px;
   text-align: center;
-  background: #ffffff;
+  background: rgba(255,255,255,.94);
   color: #334155;
+  backdrop-filter: blur(8px);
 }
 .action-neutral { color: #334155; }
 .action-blue { color: #2563eb; }
 .action-red { color: #e11d48; }
 .action-green { color: #059669; }
+.action-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 10px rgba(15,23,42,.06)}
+.action-icon{font-size:11px;line-height:1;display:inline-flex;align-items:center;justify-content:center;width:12px}
 
 .float-btn{height:30px;border-radius:999px;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,.9);font-size:10px;font-weight:600;color:#334155;box-shadow:0 3px 8px rgba(15,23,42,.05);padding:0 6px;line-height:28px;text-align:center}
 </style>
