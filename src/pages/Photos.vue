@@ -63,10 +63,10 @@
           <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
           <div v-if="actionPhoto && actionPhoto.id === photo.id" class="absolute inset-0 bg-black/18 rounded-xl flex items-center justify-center" @click.stop>
             <div class="grid grid-cols-2 gap-1.5 w-[104px]">
-              <button type="button" @click.stop="openDetail(photo.id)" class="float-btn">详情</button>
-              <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn text-blue-700">移动</button>
-              <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn text-rose-600">删除</button>
-              <button type="button" @click.stop="copyDirectLink(photo)" class="float-btn text-emerald-700">直链</button>
+              <button type="button" @click.stop="openDetail(photo.id)" class="float-btn float-btn-neutral"><span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg></span><span>详情</span></button>
+              <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn float-btn-blue"><span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></span><span>移动</span></button>
+              <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn float-btn-red"><span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></span><span>删除</span></button>
+              <button type="button" @click.stop="copyDirectLink(photo)" class="float-btn float-btn-green"><span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></span><span>直链</span></button>
             </div>
           </div>
         </div>
