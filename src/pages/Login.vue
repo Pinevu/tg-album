@@ -4,7 +4,7 @@
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
-        <div class="text-xs text-slate-400 mt-2">版本 v1.2.9</div>
+        <div class="text-xs text-slate-400 mt-2">版本 v1.3.0</div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />
@@ -12,9 +12,9 @@
 
       <el-input v-model="username" placeholder="用户名" class="mb-3" />
       <el-input v-model="password" placeholder="密码" show-password class="mb-5" />
-      <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
         <el-button type="primary" class="w-full" size="large" @click="login">登录</el-button>
-        <el-button class="w-full" @click="clearCache">清除本地缓存并返回登录页</el-button>
+        <el-button class="w-full" @click="clearCache">清除缓存</el-button>
       </div>
     </div>
   </div>

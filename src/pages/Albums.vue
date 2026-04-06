@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+  <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-3.5 md:p-4.5">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
       <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
-      <div class="grid grid-cols-1 md:grid-cols-13 gap-2 w-full md:w-auto">
+      <div class="grid grid-cols-1 md:grid-cols-13 gap-1.5 w-full md:w-auto">
         <el-input v-model="newName" placeholder="相册名" class="md:w-32" />
         <el-select v-model="visibility" class="md:w-24"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
         <el-input v-model="slug" placeholder="slug" class="md:w-28" />
@@ -21,13 +21,13 @@
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" v-if="pwaIconUrl || slug || pwaSplashImageUrl">
-      <div class="panel-card bg-white/96 max-w-sm">
+      <div class="panel-card bg-white/96 max-w-sm p-3">
         <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
         <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
-        <div class="mt-3 text-xs text-slate-500">当前来源：{{ iconSourceLabel }}</div>
+        <div class="mt-2.5 text-[11px] text-slate-500">当前来源：{{ iconSourceLabel }}</div>
       </div>
-      <div class="panel-card bg-white/96">
-        <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
+      <div class="panel-card bg-white/96 p-3">
+        <div class="text-sm text-slate-500 mb-2.5">当前启动背景图模拟预览</div>
         <div class="mx-auto w-[250px] rounded-[36px] bg-slate-900 p-[8px] shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
           <div class="rounded-[28px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
             <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-black/70 z-20 border border-white/10"></div>
@@ -42,17 +42,17 @@
             <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 rounded-full bg-white/70"></div>
           </div>
         </div>
-        <div class="mt-3 text-xs text-slate-500">当前来源：{{ splashSourceLabel }}</div>
+        <div class="mt-2.5 text-[11px] text-slate-500">当前来源：{{ splashSourceLabel }}</div>
       </div>
     </div>
 
     <div v-if="loading" class="panel-empty">正在加载相册...</div>
     <div v-else-if="flatAlbums.length === 0" class="panel-empty">暂无相册</div>
 
-    <div v-else class="space-y-3">
-      <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div v-else class="space-y-2.5">
+      <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 p-3.5">
         <div class="flex items-center gap-3 min-w-0">
-          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.svg` : '/icon.svg'))" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.svg` : '/icon.svg'))" class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
           <div class="min-w-0">
             <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
               <span>{{ album.name }}</span>
@@ -61,8 +61,8 @@
             </div>
             <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
             <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
-            <div class="text-[11px] text-slate-400 mt-1">图标优先级：自定义图标 > 相册封面 > 文字图标</div>
-            <div class="text-[11px] text-slate-400 mt-1">当前来源：{{ album.pwa_icon_url ? '自定义图标' : (album.cover_photo_id ? '相册封面' : '文字图标') }}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">图标优先级：自定义图标 > 相册封面 > 文字图标</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">当前来源：{{ album.pwa_icon_url ? '自定义图标' : (album.cover_photo_id ? '相册封面' : '文字图标') }}</div>
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
