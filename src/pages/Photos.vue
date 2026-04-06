@@ -5,7 +5,7 @@
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
       </div>
       <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
-        当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张
+        当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
       </div>
     </div>
 
@@ -28,6 +28,11 @@
           <el-progress :percentage="item.progress" :stroke-width="5" :show-text="false" class="mt-2" />
         </div>
       </div>
+    </div>
+
+    <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
+      <button type="button" @click="bulkMoveDialogVisible = true; bulkMoveToAlbumId = undefined; bulkMovePickerOpen = false" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">批量移动已选</button>
+      <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-4 h-9 text-sm font-medium">取消选择</button>
     </div>
 
     <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
@@ -67,8 +72,9 @@
           </div>
         </div>
 
-        <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
-          相册:{{ photo.album_name }}
+        <div class="mt-2 flex items-center justify-between gap-2">
+          <div v-if="photo.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
+          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-6 h-6 rounded-full border text-[11px] font-semibold flex items-center justify-center" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-400'">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
         </div>
       </article>
     </div>
@@ -150,6 +156,7 @@ const pageRef = ref<HTMLElement | null>(null)
 const albums = ref<any[]>([])
 const photos = ref<any[]>([])
 const tags = ref<any[]>([])
+const selectedIds = ref<number[]>([])
 const currentAlbumId = ref<number | undefined>()
 const tag = ref('')
 const keyword = ref('')
@@ -161,6 +168,9 @@ const detail = ref<any>(null)
 const moveDialogVisible = ref(false)
 const moveToAlbumId = ref<number | undefined>()
 const movePickerOpen = ref(false)
+const bulkMoveDialogVisible = ref(false)
+const bulkMoveToAlbumId = ref<number | undefined>()
+const bulkMovePickerOpen = ref(false)
 const deleteDialogVisible = ref(false)
 const moving = ref(false)
 const deleting = ref(false)
@@ -171,10 +181,17 @@ const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
+const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 
 const closeActionPanel = () => {
   activeCardId.value = null
 }
+
+const toggleSelect = (id: number) => {
+  selectedIds.value = selectedIds.value.includes(id) ? selectedIds.value.filter(i => i !== id) : [...selectedIds.value, id]
+}
+
+const clearSelection = () => { selectedIds.value = [] }
 
 const toggleCardActions = (id: number) => {
   activeCardId.value = activeCardId.value === id ? null : id
@@ -268,10 +285,18 @@ const closeMoveDialog = () => {
   moveDialogVisible.value = false
   movePickerOpen.value = false
 }
+const closeBulkMoveDialog = () => {
+  bulkMoveDialogVisible.value = false
+  bulkMovePickerOpen.value = false
+}
 
 const selectMoveAlbum = (album: any) => {
   moveToAlbumId.value = album.id
   movePickerOpen.value = false
+}
+const selectBulkMoveAlbum = (album: any) => {
+  bulkMoveToAlbumId.value = album.id
+  bulkMovePickerOpen.value = false
 }
 
 const confirmMove = async () => {
@@ -283,6 +308,20 @@ const confirmMove = async () => {
     activeMoveId.value = null
     await search()
     ElMessage.success('移动成功')
+  } finally {
+    moving.value = false
+  }
+}
+
+const confirmBulkMove = async () => {
+  if (!bulkMoveToAlbumId.value || !selectedIds.value.length) return ElMessage.warning('请选择目标相册')
+  moving.value = true
+  try {
+    await batchMove(selectedIds.value, bulkMoveToAlbumId.value)
+    clearSelection()
+    closeBulkMoveDialog()
+    await search()
+    ElMessage.success('批量移动成功')
   } finally {
     moving.value = false
   }

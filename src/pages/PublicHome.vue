@@ -77,7 +77,7 @@
                   <div class="flex items-center justify-between gap-3">
                     <div>
                       <div class="text-lg font-semibold">{{ albumTitle }}</div>
-                      <div class="text-sm text-white/85">左右滑动主图，体验更接近 iOS Photos</div>
+                      
                     </div>
                     <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
                   </div>
