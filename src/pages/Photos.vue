@@ -33,9 +33,33 @@
       </div>
     </div>
 
-    <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] flex flex-wrap gap-2 items-center">
-      <button type="button" @click="bulkMoveDialogVisible = true; bulkMoveToAlbumId = undefined; bulkMovePickerOpen = false" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">批量移动已选</button>
-      <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-4 h-9 text-sm font-medium">取消选择</button>
+    <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] space-y-3">
+      <div class="flex items-center justify-between gap-2 text-sm">
+        <div class="font-medium text-slate-700">已选择 {{ selectedIds.length }} 张图片</div>
+        <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-3 h-8 text-sm font-medium">取消选择</button>
+      </div>
+
+      <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-11 rounded-[16px] border border-slate-300 bg-white px-4 text-left text-slate-500 flex items-center justify-between">
+        <span>{{ bulkSelectedMoveAlbumName || '选择要移动到的相册' }}</span>
+        <span class="text-slate-400">⌄</span>
+      </button>
+
+      <div v-if="bulkMovePickerOpen" class="rounded-[18px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden shadow-inner">
+        <button
+          v-for="album in albums"
+          :key="album.id"
+          type="button"
+          @click="selectBulkMoveAlbum(album)"
+          class="w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+        >
+          {{ album.name }}
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" @click="confirmBulkMove" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">确认批量移动</button>
+        <button type="button" @click="toRecycleSelected" class="rounded-xl bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-sm font-medium">批量删除</button>
+      </div>
     </div>
 
     <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
@@ -78,7 +102,7 @@
 
         <div class="mt-2 flex items-center justify-between gap-2">
           <div v-if="photo.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
-          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-8 h-8 rounded-full border text-[12px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white shadow-md' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
+          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
         </div>
       </article>
     </div>
@@ -329,6 +353,19 @@ const confirmBulkMove = async () => {
     ElMessage.success('批量移动成功')
   } finally {
     moving.value = false
+  }
+}
+
+const toRecycleSelected = async () => {
+  if (!selectedIds.value.length) return
+  deleting.value = true
+  try {
+    await batchDelete(selectedIds.value)
+    clearSelection()
+    await search()
+    ElMessage.success('已批量放入回收站')
+  } finally {
+    deleting.value = false
   }
 }
 
