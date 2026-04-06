@@ -62,7 +62,7 @@
         <div class="relative">
           <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
           <div v-if="actionPhoto && actionPhoto.id === photo.id" class="absolute inset-0 bg-black/18 rounded-xl flex items-center justify-center" @click.stop>
-            <div class="grid grid-cols-2 gap-2 w-[124px]">
+            <div class="grid grid-cols-2 gap-1.5 w-[112px]">
               <button type="button" @click.stop="openDetail(photo.id)" class="float-btn">详情</button>
               <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn text-blue-700">移动</button>
               <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn text-rose-600">删除</button>
@@ -348,5 +348,5 @@ onMounted(async () => {
 .action-red { color: #e11d48; }
 .action-green { color: #059669; }
 
-.float-btn{height:44px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,.95);font-size:12px;font-weight:700;color:#334155;box-shadow:0 6px 18px rgba(15,23,42,.08)}
+.float-btn{height:34px;border-radius:999px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border:1px solid rgba(226,232,240,.95);font-size:11px;font-weight:600;color:#334155;box-shadow:0 4px 10px rgba(15,23,42,.06);padding:0 8px;line-height:32px;text-align:center}
 </style>
