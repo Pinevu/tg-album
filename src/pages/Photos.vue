@@ -88,7 +88,7 @@
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
             <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="moveDialogVisible = false">×</button>
           </div>
-          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
+          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default" teleported append-to="body" placement="bottom-start" popper-class="move-album-popper">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
           <div class="grid grid-cols-2 gap-2 mt-4">
@@ -329,4 +329,8 @@ onMounted(async () => {
 .action-blue { color: #2563eb; }
 .action-red { color: #e11d48; }
 .action-green { color: #059669; }
+</style>
+
+<style scoped>
+.move-album-popper{z-index:10050 !important;}
 </style>
