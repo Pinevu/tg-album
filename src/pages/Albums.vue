@@ -1,20 +1,29 @@
 <template>
   <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-3.5 md:p-4.5">
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+    <div class="space-y-3">
       <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
-      <div class="grid grid-cols-1 md:grid-cols-13 gap-1.5 w-full md:w-auto">
-        <el-input v-model="newName" placeholder="相册名" class="md:w-32" />
-        <el-select v-model="visibility" class="md:w-24"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
-        <el-input v-model="slug" placeholder="slug" class="md:w-28" />
-        <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-28" />
-        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-32" />
-        <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" class="md:w-36" />
-        <el-select v-model="pwaSplashPosition" class="md:w-32"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
-        <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-32" />
-        <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500 md:w-32" />
-        <el-button @click="clearPwaIcon">清空图标</el-button>
-        <el-button @click="clearSplashImage">清空背景</el-button>
-        <el-button @click="saveAlbum" type="primary">{{ editingId ? '保存' : '创建' }}</el-button>
+      <div class="w-full max-w-[780px] space-y-2.5">
+        <div class="grid grid-cols-2 gap-2">
+          <el-input v-model="newName" placeholder="相册名" />
+          <el-select v-model="visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
+          <el-input v-model="slug" placeholder="slug" />
+          <el-input v-model="accessPassword" placeholder="密码" show-password />
+        </div>
+
+        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" />
+        <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
+        <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
+
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500" />
+          <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <el-button @click="clearPwaIcon" class="!w-full">清空图标</el-button>
+          <el-button @click="clearSplashImage" class="!w-full">清空背景</el-button>
+          <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+        </div>
       </div>
     </div>
 
