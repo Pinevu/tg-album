@@ -109,7 +109,7 @@
     <div v-if="viewerVisible" class="fixed inset-0 z-[110] bg-black" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
       <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
         <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),10px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-black/28 text-white/95 text-[11px] px-3 py-1.5 backdrop-blur-md border border-white/10 tracking-wide">{{ viewerIndex + 1 }} / {{ photos.length }} · {{ currentViewerPhoto?.original_filename || '照片' }}</div>
+          <div class="rounded-full bg-black/28 text-white/95 text-[10px] px-3 py-1.5 backdrop-blur-md border border-white/10 tracking-wide max-w-[72vw] truncate">{{ viewerIndex + 1 }} / {{ photos.length }} · {{ currentViewerPhoto?.original_filename || '照片' }}</div>
           <button @click="closeViewer" class="w-11 h-11 rounded-full bg-black/28 backdrop-blur-md border border-white/10 text-white flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -171,6 +171,7 @@ const slidePaused = ref(false)
 let manifestLinkEl: HTMLLinkElement | null = null
 
 const viewerVisible = ref(false)
+const viewerOpening = ref(false)
 const viewerIndex = ref(0)
 const viewerScale = ref(1)
 const viewerTranslateX = ref(0)
@@ -200,14 +201,16 @@ const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPh
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
 const viewerImageStyle = computed(() => ({
-  transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value})`,
-  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .32s cubic-bezier(.16,1,.3,1)',
+  transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value * (viewerOpening.value ? 0.96 : 1)})`,
+  opacity: viewerOpening.value ? 0.92 : 1,
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .32s cubic-bezier(.16,1,.3,1), opacity .28s ease',
   touchAction: 'none'
 }))
 const viewerDismissScale = computed(() => viewerScale.value > 1 ? 1 : Math.max(0.82, 1 - Math.abs(viewerTranslateY.value) / 780))
 const viewerContainerStyle = computed(() => ({
   transform: viewerScale.value === 1 ? `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerDismissScale.value})` : 'translate3d(0,0,0) scale(1)',
-  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .34s cubic-bezier(.16,1,.3,1)'
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .34s cubic-bezier(.16,1,.3,1)',
+  opacity: viewerBgOpacity.value
 }))
 
 const showHudTemporarily = () => {
@@ -336,15 +339,23 @@ const jumpViewerTo = (index: number) => { viewerIndex.value = index; resetViewer
 const openViewerByPhoto = (photo: any) => {
   const idx = photos.value.findIndex((p: any) => p.id === photo.id)
   viewerIndex.value = idx >= 0 ? idx : 0
+  viewerOpening.value = true
   viewerVisible.value = true
   resetViewerTransform()
   showHudTemporarily()
+  setTimeout(() => { viewerOpening.value = false }, 40)
   setTimeout(centerViewerStrip, 10)
 }
 const closeViewer = () => {
-  viewerVisible.value = false
-  resetViewerTransform()
-  viewerBgOpacity.value = 0.96
+  viewerOpening.value = true
+  viewerScale.value = Math.max(0.92, viewerScale.value * 0.96)
+  viewerBgOpacity.value = 0
+  setTimeout(() => {
+    viewerVisible.value = false
+    viewerOpening.value = false
+    resetViewerTransform()
+    viewerBgOpacity.value = 0.96
+  }, 160)
 }
 const resetViewerTransform = () => {
   viewerScale.value = 1
@@ -424,8 +435,8 @@ const onViewerTouchEnd = (e: TouchEvent) => {
   const dy = (e.changedTouches[0]?.clientY || 0) - viewerTouchStartY.value
   if (viewerScale.value > 1) {
     isDraggingZoomed.value = false
-    const limitX = window.innerWidth * 0.45 * (viewerScale.value - 1)
-    const limitY = window.innerHeight * 0.45 * (viewerScale.value - 1)
+    const limitX = window.innerWidth * 0.42 * (viewerScale.value - 1)
+    const limitY = window.innerHeight * 0.42 * (viewerScale.value - 1)
     viewerTranslateX.value = Math.max(-limitX, Math.min(limitX, viewerTranslateX.value))
     viewerTranslateY.value = Math.max(-limitY, Math.min(limitY, viewerTranslateY.value))
     return
