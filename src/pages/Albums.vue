@@ -9,7 +9,7 @@
         <el-input v-model="accessPassword" placeholder="密码" show-password class="md:w-28" />
         <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" class="md:w-32" />
         <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" class="md:w-36" />
-        <el-select v-model="pwaSplashPosition" class="md:w-28"><el-option label="居中" value="center" /><el-option label="顶部" value="top" /><el-option label="底部" value="bottom" /></el-select>
+        <el-select v-model="pwaSplashPosition" class="md:w-32"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
         <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500 md:w-32" />
         <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500 md:w-32" />
         <el-button @click="clearPwaIcon">清空图标</el-button>
@@ -28,14 +28,18 @@
       </div>
       <div class="panel-card bg-white/96">
         <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
-        <div class="aspect-[16/10] rounded-[20px] overflow-hidden border border-slate-200 bg-slate-50 relative shadow-sm">
-          <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.04]" :style="{ objectPosition: splashObjectPosition }" />
-          <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm">暂无启动背景图</div>
-          <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/45"></div>
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <img :src="iconPreviewUrl" class="w-16 h-16 rounded-[20px] border border-white/60 shadow-2xl object-cover" />
-            <div class="mt-3 text-white font-bold text-lg tracking-tight">{{ newName || slug || '相册系统' }}</div>
-            <div class="mt-1 text-white/85 text-xs">正在打开你的独立相册…</div>
+        <div class="mx-auto w-[250px] rounded-[36px] bg-slate-900 p-[8px] shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+          <div class="rounded-[28px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-black/70 z-20 border border-white/10"></div>
+            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.04]" :style="{ objectPosition: splashObjectPosition }" />
+            <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black/8 via-black/10 to-black/46"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-5">
+              <img :src="iconPreviewUrl" class="w-16 h-16 rounded-[20px] border border-white/60 shadow-2xl object-cover" />
+              <div class="mt-4 text-white font-bold text-[22px] tracking-tight">{{ newName || slug || '相册系统' }}</div>
+              <div class="mt-1 text-white/85 text-xs">正在打开你的独立相册…</div>
+            </div>
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 rounded-full bg-white/70"></div>
           </div>
         </div>
         <div class="mt-3 text-xs text-slate-500">当前来源：{{ splashSourceLabel }}</div>
@@ -94,8 +98,9 @@ const flatAlbums = computed(() => flatten(albums.value))
 const iconPreviewUrl = computed(() => pwaIconUrl.value || (slug.value ? `/api/private-albums/${slug.value}/icon.svg?v=${Date.now()}` : '/icon.svg'))
 const splashPreviewUrl = computed(() => pwaSplashImageUrl.value || '')
 const iconSourceLabel = computed(() => pwaIconUrl.value ? '自定义图标' : (slug.value ? '系统生成图标' : '默认图标'))
-const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? `独立启动背景图（优先显示，位置：${pwaSplashPosition.value === 'top' ? '顶部' : pwaSplashPosition.value === 'bottom' ? '底部' : '居中'}）` : '未设置，前台将回退到相册封面图')
-const splashObjectPosition = computed(() => pwaSplashPosition.value === 'top' ? 'center top' : pwaSplashPosition.value === 'bottom' ? 'center bottom' : 'center center')
+const splashPositionLabel = computed(() => pwaSplashPosition.value === 'top' ? '顶部偏上' : pwaSplashPosition.value === 'upper' ? '偏上' : pwaSplashPosition.value === 'lower' ? '偏下' : pwaSplashPosition.value === 'bottom' ? '底部偏下' : '居中')
+const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? `独立启动背景图（优先显示，位置：${splashPositionLabel.value}）` : '未设置，前台将回退到相册封面图')
+const splashObjectPosition = computed(() => pwaSplashPosition.value === 'top' ? 'center 10%' : pwaSplashPosition.value === 'upper' ? 'center 30%' : pwaSplashPosition.value === 'lower' ? 'center 70%' : pwaSplashPosition.value === 'bottom' ? 'center 90%' : 'center center')
 
 const load = async () => {
   loading.value = true

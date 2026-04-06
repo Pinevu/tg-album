@@ -3,10 +3,10 @@
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
         <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
-        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.10),rgba(15,23,42,.46))]"></div>
-        <div class="relative text-center animate-splash-rise-soft">
-          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-2xl border border-white/60 mx-auto object-cover" />
-          <div class="mt-5 text-2xl font-bold tracking-tight text-white">{{ albumTitle }}</div>
+        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.08),rgba(15,23,42,.52))]"></div>
+        <div class="relative text-center animate-splash-rise-soft px-8">
+          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-[0_20px_40px_rgba(15,23,42,0.22)] border border-white/65 mx-auto object-cover" />
+          <div class="mt-5 text-[29px] font-bold tracking-tight text-white">{{ albumTitle }}</div>
           <div class="mt-1 text-sm text-white/85">正在打开你的独立相册…</div>
         </div>
       </div>
@@ -203,7 +203,7 @@ const splashImageUrl = ref('')
 const splashImagePosition = ref('center')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const splashBgUrl = computed(() => splashImageUrl.value || coverUrl.value)
-const splashBgPosition = computed(() => splashImagePosition.value === 'top' ? 'center top' : splashImagePosition.value === 'bottom' ? 'center bottom' : 'center center')
+const splashBgPosition = computed(() => splashImagePosition.value === 'top' ? 'center 10%' : splashImagePosition.value === 'upper' ? 'center 30%' : splashImagePosition.value === 'lower' ? 'center 70%' : splashImagePosition.value === 'bottom' ? 'center 90%' : 'center center')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
 const viewerImageStyle = computed(() => ({
@@ -502,7 +502,7 @@ watch(viewerIndex, () => {
 onMounted(async () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
   showSplash.value = isStandalone.value
-  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1550)
+  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1850)
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
   if (slugParam) { canInstallAlbum.value = true; await initPrivateAlbum(slugParam) }
@@ -532,7 +532,7 @@ onBeforeUnmount(() => {
 .fade-scale-enter-active, .fade-scale-leave-active { transition: opacity .35s ease, transform .35s ease; }
 .fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(1.02); }
 @keyframes splash-rise { 0% { opacity: 0; transform: translateY(14px) scale(.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes splash-zoom { 0% { transform: scale(1.12); opacity: .88; } 100% { transform: scale(1.08); opacity: 1; } }
+@keyframes splash-zoom { 0% { transform: scale(1.16); opacity: .82; } 100% { transform: scale(1.08); opacity: 1; } }
 .animate-splash-rise-soft { animation: splash-rise .52s cubic-bezier(.22,1,.36,1) both; }
 .animate-splash-zoom { animation: splash-zoom 1.15s ease-out both; }
 </style>
