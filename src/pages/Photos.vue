@@ -4,8 +4,11 @@
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
       </div>
-      <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
-        当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
+      <div class="flex items-center gap-2">
+        <button type="button" @click="selectionMode = !selectionMode; if (!selectionMode) clearSelection()" class="rounded-2xl border px-4 py-2 text-sm font-medium" :class="selectionMode ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-600'">{{ selectionMode ? '退出选择' : '选择模式' }}</button>
+        <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
+          当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
+        </div>
       </div>
     </div>
 
@@ -30,7 +33,7 @@
       </div>
     </div>
 
-    <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
+    <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] flex flex-wrap gap-2 items-center">
       <button type="button" @click="bulkMoveDialogVisible = true; bulkMoveToAlbumId = undefined; bulkMovePickerOpen = false" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">批量移动已选</button>
       <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-4 h-9 text-sm font-medium">取消选择</button>
     </div>
@@ -52,8 +55,9 @@
       <article
         v-for="photo in photos"
         :key="photo.id"
-        class="panel-card bg-white/96 cursor-pointer photo-card relative"
-        @click.stop="toggleCardActions(photo.id)"
+        class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
+        :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
+        @click.stop="selectionMode ? toggleSelect(photo.id) : toggleCardActions(photo.id)"
       >
         <div class="relative">
           <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
@@ -74,7 +78,7 @@
 
         <div class="mt-2 flex items-center justify-between gap-2">
           <div v-if="photo.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
-          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-6 h-6 rounded-full border text-[11px] font-semibold flex items-center justify-center" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-400'">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
+          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-8 h-8 rounded-full border text-[12px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white shadow-md' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
         </div>
       </article>
     </div>
@@ -157,6 +161,7 @@ const albums = ref<any[]>([])
 const photos = ref<any[]>([])
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
+const selectionMode = ref(false)
 const currentAlbumId = ref<number | undefined>()
 const tag = ref('')
 const keyword = ref('')
