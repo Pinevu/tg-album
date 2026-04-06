@@ -109,7 +109,7 @@
     <div v-if="viewerVisible" class="fixed inset-0 z-[110] bg-black" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
       <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
         <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),10px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-black/28 text-white/95 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
+          <div class="rounded-full bg-black/28 text-white/95 text-[11px] px-3 py-1.5 backdrop-blur-md border border-white/10 tracking-wide">{{ viewerIndex + 1 }} / {{ photos.length }} · {{ currentViewerPhoto?.original_filename || '照片' }}</div>
           <button @click="closeViewer" class="w-11 h-11 rounded-full bg-black/28 backdrop-blur-md border border-white/10 text-white flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -129,7 +129,7 @@
 
         <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex flex-col items-center gap-3 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
           <div class="rounded-full bg-black/28 text-white/90 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">双击放大 · 左右切图 · 下滑关闭</div>
-          <div class="max-w-full overflow-x-auto no-scrollbar px-4">
+          <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar px-4">
             <div class="flex gap-2 min-w-max">
               <button v-for="(photo, idx) in photos" :key="`viewer-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="rounded-2xl overflow-hidden border-2 transition-all duration-200" :class="idx === viewerIndex ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]' : 'border-white/20'">
                 <img :src="`/api/photos/file/${photo.id}`" class="w-14 h-18 object-cover" />
@@ -150,6 +150,7 @@ import axios from 'axios'
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }> }
 const route = useRoute()
 const heroRef = ref<HTMLDivElement | null>(null)
+const viewerStripRef = ref<HTMLDivElement | null>(null)
 const photos = ref<any[]>([])
 const password = ref('')
 const error = ref('')
@@ -203,7 +204,7 @@ const viewerImageStyle = computed(() => ({
   transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)',
   touchAction: 'none'
 }))
-const viewerDismissScale = computed(() => viewerScale.value > 1 ? 1 : Math.max(0.88, 1 - Math.abs(viewerTranslateY.value) / 1200))
+const viewerDismissScale = computed(() => viewerScale.value > 1 ? 1 : Math.max(0.82, 1 - Math.abs(viewerTranslateY.value) / 780))
 const viewerContainerStyle = computed(() => ({
   transform: viewerScale.value === 1 ? `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerDismissScale.value})` : 'translate3d(0,0,0) scale(1)',
   transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .28s cubic-bezier(.22,.8,.2,1)'
@@ -213,6 +214,15 @@ const showHudTemporarily = () => {
   hudVisible.value = true
   if (hudTimer) clearTimeout(hudTimer)
   hudTimer = setTimeout(() => { if (viewerVisible.value) hudVisible.value = false }, 1800)
+}
+
+const centerViewerStrip = () => {
+  if (!viewerStripRef.value) return
+  const el = viewerStripRef.value.querySelectorAll('button')[viewerIndex.value] as HTMLElement | undefined
+  if (!el) return
+  const container = viewerStripRef.value
+  const left = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2
+  container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
 }
 
 const setManifestForSlug = (slugValue?: string) => {
@@ -321,7 +331,7 @@ const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (ph
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
 const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
 
-const jumpViewerTo = (index: number) => { viewerIndex.value = index; resetViewerTransform(); showHudTemporarily() }
+const jumpViewerTo = (index: number) => { viewerIndex.value = index; resetViewerTransform(); showHudTemporarily(); setTimeout(centerViewerStrip, 10) }
 
 const openViewerByPhoto = (photo: any) => {
   const idx = photos.value.findIndex((p: any) => p.id === photo.id)
@@ -329,6 +339,7 @@ const openViewerByPhoto = (photo: any) => {
   viewerVisible.value = true
   resetViewerTransform()
   showHudTemporarily()
+  setTimeout(centerViewerStrip, 10)
 }
 const closeViewer = () => {
   viewerVisible.value = false
@@ -396,7 +407,7 @@ const onViewerTouchMove = (e: TouchEvent) => {
   } else {
     viewerTranslateX.value = dx * 0.18
     viewerTranslateY.value = Math.max(0, dy)
-    viewerBgOpacity.value = Math.max(0.3, 0.96 - Math.abs(dy) / 320)
+    viewerBgOpacity.value = Math.max(0.18, 0.96 - Math.abs(dy) / 220)
   }
 }
 const onViewerTouchEnd = (e: TouchEvent) => {
@@ -416,7 +427,7 @@ const onViewerTouchEnd = (e: TouchEvent) => {
     return
   }
   if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)) {
-    viewerTranslateX.value = dx < 0 ? -22 : 22
+    viewerTranslateX.value = dx < 0 ? -42 : 42
     setTimeout(() => {
       if (dx < 0 && viewerIndex.value < photos.value.length - 1) viewerIndex.value += 1
       if (dx > 0 && viewerIndex.value > 0) viewerIndex.value -= 1
@@ -424,6 +435,7 @@ const onViewerTouchEnd = (e: TouchEvent) => {
       viewerTranslateY.value = 0
       viewerBgOpacity.value = 0.96
       showHudTemporarily()
+      centerViewerStrip()
     }, 90)
     return
   }
