@@ -57,29 +57,22 @@
         :key="photo.id"
         class="panel-card bg-white/96 cursor-pointer photo-card"
         :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''"
-        @click="openActionPanel(photo)"
+        
       >
-        <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+        <div class="relative">
+          <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="grid grid-cols-2 gap-2 w-[140px]">
+              <button type="button" @click.stop="openDetail(photo.id)" class="float-btn">详情</button>
+              <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn text-blue-700">移动</button>
+              <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn text-rose-600">删除</button>
+              <button type="button" @click.stop="copyDirectLink(photo)" class="float-btn text-emerald-700">直链</button>
+            </div>
+          </div>
+        </div>
         <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
       </article>
     </div>
-
-    <Teleport to="body">
-      <div v-if="actionPanelVisible && actionPhoto" class="fixed inset-0 z-[9999] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片操作</div>
-            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeActionPanel">×</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" @click="openDetail(actionPhoto.id)" class="action-btn action-neutral">详情</button>
-            <button type="button" @click="openMoveDialog(actionPhoto.id)" class="action-btn action-blue">移动</button>
-            <button type="button" @click="deletePhoto(actionPhoto.id)" class="action-btn action-red">删除</button>
-            <button type="button" @click="copyDirectLink(actionPhoto)" class="action-btn action-green">直链</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
 
     <Teleport to="body">
       <div v-if="moveDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
@@ -88,7 +81,7 @@
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
             <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="moveDialogVisible = false">×</button>
           </div>
-          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default">
+          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default" teleported append-to="body" popper-class="move-album-popper">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
           <div class="grid grid-cols-2 gap-2 mt-4">
@@ -159,20 +152,8 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
-const actionPanelVisible = ref(false)
-const actionPhoto = ref<any>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
-
-const openActionPanel = (photo: any) => {
-  actionPhoto.value = photo
-  actionPanelVisible.value = true
-}
-
-const closeActionPanel = () => {
-  actionPanelVisible.value = false
-  actionPhoto.value = null
-}
 
 const loadAlbums = async () => {
   const { data } = await getAlbums()
@@ -222,7 +203,6 @@ const buildDirectLink = (photo: any) => {
 
 const copyDirectLink = async (photo: any) => {
   await navigator.clipboard.writeText(buildDirectLink(photo))
-  closeActionPanel()
   ElMessage.success('直链已复制')
 }
 
@@ -255,14 +235,12 @@ const openDetail = async (id: number) => {
   const { data } = await getPhotoDetail(id)
   detail.value = data
   detailVisible.value = true
-  closeActionPanel()
 }
 
 const openMoveDialog = (id: number) => {
   activeMoveId.value = id
   moveToAlbumId.value = undefined
   moveDialogVisible.value = true
-  closeActionPanel()
 }
 
 const confirmMove = async () => {
@@ -282,7 +260,6 @@ const confirmMove = async () => {
 const deletePhoto = (id: number) => {
   activeDeleteId.value = id
   deleteDialogVisible.value = true
-  closeActionPanel()
 }
 
 const confirmDelete = async () => {
@@ -329,4 +306,9 @@ onMounted(async () => {
 .action-blue { color: #2563eb; }
 .action-red { color: #e11d48; }
 .action-green { color: #059669; }
+</style>
+
+<style scoped>
+.float-btn{height:40px;border-radius:999px;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,.9);font-size:12px;font-weight:700;color:#334155;box-shadow:0 6px 18px rgba(15,23,42,.08)}
+.move-album-popper{z-index:10050 !important;}
 </style>
