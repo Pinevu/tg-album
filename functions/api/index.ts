@@ -69,6 +69,9 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'albums', 'pwa_splash_image_url'))) {
     try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN pwa_splash_image_url TEXT`).run() } catch {}
   }
+  if (!(await tableHasColumn(c, 'albums', 'pwa_splash_position'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN pwa_splash_position TEXT NOT NULL DEFAULT 'center'`).run() } catch {}
+  }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
   if (!defaultAlbum) {
@@ -122,14 +125,14 @@ app.post('/api/login', async (c) => {
 
 app.get('/api/private-albums/:slug', async (c) => {
   const slug = c.req.param('slug')
-  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
-  return c.json({ id: album.id, name: album.name, slug: album.slug, visibility: album.visibility, need_password: true, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null, icon_version: hashString(`${album.pwa_icon_url || ''}|${album.cover_photo_id || ''}|${album.name || ''}`) })
+  return c.json({ id: album.id, name: album.name, slug: album.slug, visibility: album.visibility, need_password: true, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null, pwa_splash_position: album.pwa_splash_position || 'center', icon_version: hashString(`${album.pwa_icon_url || ''}|${album.cover_photo_id || ''}|${album.name || ''}`) })
 })
 
 app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
   const slug = c.req.param('slug')
-  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   const manifest = {
     id: `/app/${album.slug}`,
@@ -243,11 +246,11 @@ app.get('/api/private-albums/:slug/icon.svg', async (c) => {
 app.post('/api/private-albums/:slug/auth', async (c) => {
   const slug = c.req.param('slug')
   const { password } = await c.req.json()
-  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password, cover_photo_id, pwa_icon_url, pwa_splash_image_url FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
+  const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   if ((album.access_password || '') !== (password || '')) return c.json({ error: '密码错误' }, 401)
   const photos = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND p.album_id = ? ORDER BY p.uploaded_at DESC LIMIT 400`).bind(album.id).all<any>()
-  return c.json({ album: { id: album.id, name: album.name, slug: album.slug, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null }, results: photos.results || [] })
+  return c.json({ album: { id: album.id, name: album.name, slug: album.slug, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null, pwa_splash_position: album.pwa_splash_position || 'center' }, results: photos.results || [] })
 })
 
 app.get('/api/public/albums', async (c) => {
@@ -399,13 +402,13 @@ app.get('/api/albums', auth, async (c) => {
 })
 
 app.get('/api/albums/tree', auth, async (c) => {
-  const res = await c.env.DB.prepare(`SELECT id, name, parent_id, visibility, cover_photo_id, slug, access_password, pwa_icon_url, pwa_splash_image_url FROM albums ORDER BY id ASC`).all<AlbumRow>()
+  const res = await c.env.DB.prepare(`SELECT id, name, parent_id, visibility, cover_photo_id, slug, access_password, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums ORDER BY id ASC`).all<AlbumRow>()
   return c.json({ results: buildTree(res.results || []) })
 })
 
 app.post('/api/albums', auth, async (c) => {
-  const { name, parent_id, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url } = await c.req.json()
-  await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url) VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(name, parent_id ?? null, visibility || 'private', slug || null, access_password || null, pwa_icon_url || null, pwa_splash_image_url || null).run()
+  const { name, parent_id, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url, pwa_splash_position } = await c.req.json()
+  await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url, pwa_splash_position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(name, parent_id ?? null, visibility || 'private', slug || null, access_password || null, pwa_icon_url || null, pwa_splash_image_url || null, pwa_splash_position || 'center').run()
   return c.json({ success: true })
 })
 
@@ -414,8 +417,8 @@ app.put('/api/albums/:id', auth, async (c) => {
   const existing = await c.env.DB.prepare(`SELECT id, name FROM albums WHERE id = ?`).bind(id).first<any>()
   if (!existing) return c.json({ error: 'Album not found' }, 404)
   if (existing.name === '公开相册') return c.json({ error: '公开相册已锁定，不可编辑' }, 400)
-  const { name, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url } = await c.req.json()
-  await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ?, slug = ?, access_password = ?, pwa_icon_url = ?, pwa_splash_image_url = ? WHERE id = ?`).bind(name, visibility || 'private', slug || null, access_password || null, pwa_icon_url || null, pwa_splash_image_url || null, id).run()
+  const { name, visibility, slug, access_password, pwa_icon_url, pwa_splash_image_url, pwa_splash_position } = await c.req.json()
+  await c.env.DB.prepare(`UPDATE albums SET name = ?, visibility = ?, slug = ?, access_password = ?, pwa_icon_url = ?, pwa_splash_image_url = ?, pwa_splash_position = ? WHERE id = ?`).bind(name, visibility || 'private', slug || null, access_password || null, pwa_icon_url || null, pwa_splash_image_url || null, pwa_splash_position || 'center', id).run()
   return c.json({ success: true })
 })
 

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-white text-slate-900 font-sans" :class="isStandalone ? 'standalone-safe' : ''">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
-        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" />
+        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
         <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.10),rgba(15,23,42,.46))]"></div>
         <div class="relative text-center animate-splash-rise-soft">
           <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-2xl border border-white/60 mx-auto object-cover" />
@@ -31,7 +31,7 @@
     <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white select-none" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
-          <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" />
+          <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
           <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/55"></div>
           <div class="relative p-7 md:p-8 text-white flex flex-col justify-end min-h-[240px] md:min-h-[280px]">
             <img :src="iconUrl" class="w-20 h-20 rounded-[24px] border border-white/70 shadow-2xl object-cover" />
@@ -200,8 +200,10 @@ const isPrivate = computed(() => albumVisibility.value === 'private')
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
 const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon/version/${iconVersion.value || 'default'}.png` : '/icon.svg')
 const splashImageUrl = ref('')
+const splashImagePosition = ref('center')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const splashBgUrl = computed(() => splashImageUrl.value || coverUrl.value)
+const splashBgPosition = computed(() => splashImagePosition.value === 'top' ? 'center top' : splashImagePosition.value === 'bottom' ? 'center bottom' : 'center center')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
 const viewerImageStyle = computed(() => ({
@@ -271,6 +273,7 @@ const loadPublicPhotos = async () => {
   albumVisibility.value = 'public'
   coverPhotoId.value = null
   splashImageUrl.value = ''
+  splashImagePosition.value = 'center'
   setManifestForSlug()
   syncHead()
   const { data } = await axios.get('/api/public/photos')
@@ -300,6 +303,7 @@ const initPrivateAlbum = async (slugValue: string) => {
       localStorage.removeItem(passwordCacheKey(pureSlug))
     }
     splashImageUrl.value = data.pwa_splash_image_url || ''
+    splashImagePosition.value = data.pwa_splash_position || 'center'
     needPassword.value = true
   } catch {
     needPassword.value = false
@@ -317,6 +321,7 @@ const submitPassword = async () => {
     albumTitle.value = data.album?.name || albumTitle.value
     coverPhotoId.value = data.album?.cover_photo_id || photos.value[0]?.id || null
     splashImageUrl.value = data.album?.pwa_splash_image_url || ''
+    splashImagePosition.value = data.album?.pwa_splash_position || 'center'
     iconVersion.value = data.album?.pwa_icon_url || data.album?.cover_photo_id ? `${Date.now()}` : iconVersion.value
     needPassword.value = false
     syncHead()
@@ -497,7 +502,7 @@ watch(viewerIndex, () => {
 onMounted(async () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
   showSplash.value = isStandalone.value
-  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1200)
+  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1550)
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
   if (slugParam) { canInstallAlbum.value = true; await initPrivateAlbum(slugParam) }
