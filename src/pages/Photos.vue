@@ -1,11 +1,11 @@
 <template>
-  <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
+  <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex items-end justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">图片管理</h1>
       </div>
       <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
-        已选中 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
+        当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张
       </div>
     </div>
 
@@ -41,14 +41,6 @@
       <el-button @click="search" size="small" type="primary">搜索</el-button>
     </div>
 
-    <div v-if="selectedIds.length" class="panel-card bg-white/96 flex flex-wrap gap-2 items-center">
-      <el-select v-model="moveAlbumId" placeholder="移动到相册" class="w-40" size="small">
-        <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-      </el-select>
-      <el-button @click="moveSelected" size="small">批量移动</el-button>
-      <el-button type="danger" @click="toRecycle" size="small">批量删除</el-button>
-    </div>
-
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
     <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -56,36 +48,45 @@
         v-for="photo in photos"
         :key="photo.id"
         class="panel-card bg-white/96 cursor-pointer photo-card relative"
-        :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''"
-        @click="openActionPanel(photo)"
+        @click.stop="toggleCardActions(photo.id)"
       >
         <div class="relative">
           <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
-          <div v-if="actionPhoto && actionPhoto.id === photo.id" class="absolute inset-0 bg-black/18 rounded-xl flex items-center justify-center" @click.stop>
-            <div class="grid grid-cols-2 gap-1.5 w-[104px]">
-              <button type="button" @click.stop="openDetail(photo.id)" class="float-btn">详情</button>
-              <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn text-blue-700">移动</button>
-              <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn text-rose-600">删除</button>
-              <button type="button" @click.stop="copyDirectLink(photo)" class="float-btn text-emerald-700">直链</button>
+
+          <div
+            v-if="activeCardId === photo.id"
+            class="absolute inset-0 rounded-xl bg-black/18 flex items-center justify-center"
+            @click.stop
+          >
+            <div class="grid grid-cols-2 gap-2 w-[124px]">
+              <button type="button" @click.stop="openDetail(photo.id)" class="action-mini-btn">详情</button>
+              <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-mini-btn text-blue-700">移动</button>
+              <button type="button" @click.stop="deletePhoto(photo.id)" class="action-mini-btn text-rose-600">删除</button>
+              <button type="button" @click.stop="copyDirectLink(photo)" class="action-mini-btn text-emerald-700">直链</button>
             </div>
           </div>
         </div>
-        <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
+
+        <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
+          相册:{{ photo.album_name }}
+        </div>
       </article>
     </div>
 
     <Teleport to="body">
-      <div v-if="moveDialogVisible" class="fixed inset-0 z-[10020] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+      <div v-if="moveDialogVisible" class="fixed inset-0 z-[10020] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
+        <div class="w-[340px] max-w-[92vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
           <div class="flex items-center justify-between mb-3">
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
-            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="moveDialogVisible = false">×</button>
+            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeMoveDialog">×</button>
           </div>
+
           <button type="button" @click="movePickerOpen = !movePickerOpen" class="w-full h-12 rounded-[18px] border border-slate-300 bg-white px-4 text-left text-slate-500 flex items-center justify-between">
             <span>{{ selectedMoveAlbumName || '选择目标相册' }}</span>
             <span class="text-slate-400">⌄</span>
           </button>
-          <div v-if="movePickerOpen" class="mt-3 rounded-[18px] border border-slate-200 bg-white overflow-hidden max-h-56 overflow-y-auto">
+
+          <div v-if="movePickerOpen" class="mt-3 rounded-[18px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden shadow-inner">
             <button
               v-for="album in albums"
               :key="album.id"
@@ -96,8 +97,9 @@
               {{ album.name }}
             </button>
           </div>
+
           <div class="grid grid-cols-2 gap-2 mt-4">
-            <el-button @click="moveDialogVisible = false">取消</el-button>
+            <el-button @click="closeMoveDialog">取消</el-button>
             <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
           </div>
         </div>
@@ -105,8 +107,8 @@
     </Teleport>
 
     <Teleport to="body">
-      <div v-if="deleteDialogVisible" class="fixed inset-0 z-[9999] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+      <div v-if="deleteDialogVisible" class="fixed inset-0 z-[10030] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
+        <div class="w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
           <div class="flex items-center justify-between mb-3">
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">确认删除</div>
             <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="deleteDialogVisible = false">×</button>
@@ -121,8 +123,8 @@
     </Teleport>
 
     <Teleport to="body">
-      <div v-if="detailVisible && detail" class="fixed inset-0 z-[9999] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] max-w-[92vw] max-h-[82vh] overflow-auto rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
+      <div v-if="detailVisible && detail" class="fixed inset-0 z-[10040] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
+        <div class="w-[360px] max-w-[92vw] max-h-[82vh] overflow-auto rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
           <div class="flex items-center justify-between mb-3">
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片详情</div>
             <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="detailVisible = false">×</button>
@@ -139,17 +141,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { searchPhotos, getAlbums, batchMove, batchDelete, uploadPhoto, listTags, getPhotoDetail } from '@/utils/api'
+import { searchPhotos, getAlbums, uploadPhoto, listTags, getPhotoDetail, batchMove, batchDelete } from '@/utils/api'
 import { extractExif, dominantColorHex } from '@/utils/exif'
 
+const pageRef = ref<HTMLElement | null>(null)
 const albums = ref<any[]>([])
 const photos = ref<any[]>([])
 const tags = ref<any[]>([])
-const selectedIds = ref<number[]>([])
 const currentAlbumId = ref<number | undefined>()
-const moveAlbumId = ref<number | undefined>()
 const tag = ref('')
 const keyword = ref('')
 const uploadAlbumId = ref<number | undefined>()
@@ -165,35 +166,32 @@ const moving = ref(false)
 const deleting = ref(false)
 const activeMoveId = ref<number | null>(null)
 const activeDeleteId = ref<number | null>(null)
-const actionPanelVisible = ref(false)
-const actionPhoto = ref<any>(null)
+const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
-const openActionPanel = (photo: any) => {
-  if (actionPhoto.value?.id === photo.id) {
-    closeActionPanel()
-    return
-  }
-  actionPhoto.value = photo
-  actionPanelVisible.value = true
-}
+const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 
 const closeActionPanel = () => {
-  actionPanelVisible.value = false
-  actionPhoto.value = null
+  activeCardId.value = null
 }
 
-const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
-const selectMoveAlbum = (album: any) => {
-  moveToAlbumId.value = album.id
-  movePickerOpen.value = false
+const toggleCardActions = (id: number) => {
+  activeCardId.value = activeCardId.value === id ? null : id
+}
+
+const handleWindowClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.photo-card')) closeActionPanel()
 }
 
 const loadAlbums = async () => {
   const { data } = await getAlbums()
   albums.value = data.results || []
-  if (!uploadAlbumId.value && albums.value.length) uploadAlbumId.value = albums.value[0].id
+  if (!uploadAlbumId.value) {
+    const uncategorized = albums.value.find((a: any) => a.name === '未分类')
+    uploadAlbumId.value = uncategorized?.id || albums.value[0]?.id
+  }
 }
 
 const loadTags = async () => {
@@ -208,22 +206,6 @@ const search = async () => {
   if (keyword.value) params.keyword = keyword.value
   const { data } = await searchPhotos(params)
   photos.value = (data.results || []).map((p: any) => ({ ...p, previewUrl: `/api/photos/file/${p.id}` }))
-}
-
-const moveSelected = async () => {
-  if (!moveAlbumId.value || !selectedIds.value.length) return
-  await batchMove(selectedIds.value, moveAlbumId.value)
-  selectedIds.value = []
-  await search()
-  ElMessage.success('已移动')
-}
-
-const toRecycle = async () => {
-  if (!selectedIds.value.length) return
-  await batchDelete(selectedIds.value)
-  selectedIds.value = []
-  await search()
-  ElMessage.success('已删除')
 }
 
 const sanitizeFilename = (name?: string) => {
@@ -282,13 +264,22 @@ const openMoveDialog = (id: number) => {
   closeActionPanel()
 }
 
+const closeMoveDialog = () => {
+  moveDialogVisible.value = false
+  movePickerOpen.value = false
+}
+
+const selectMoveAlbum = (album: any) => {
+  moveToAlbumId.value = album.id
+  movePickerOpen.value = false
+}
+
 const confirmMove = async () => {
   if (!moveToAlbumId.value || !activeMoveId.value) return ElMessage.warning('请选择目标相册')
   moving.value = true
   try {
     await batchMove([activeMoveId.value], moveToAlbumId.value)
-    moveDialogVisible.value = false
-    movePickerOpen.value = false
+    closeMoveDialog()
     activeMoveId.value = null
     await search()
     ElMessage.success('移动成功')
@@ -318,9 +309,14 @@ const confirmDelete = async () => {
 }
 
 onMounted(async () => {
+  window.addEventListener('click', handleWindowClick)
   await loadAlbums()
   await loadTags()
   await search()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', handleWindowClick)
 })
 </script>
 
@@ -330,26 +326,15 @@ onMounted(async () => {
 .panel-mini { @apply rounded-2xl bg-slate-50 p-4; }
 .label { @apply text-xs text-slate-500 mb-1; }
 .value { @apply text-sm font-medium text-slate-800; }
-.action-btn {
-  width: 100%;
+.action-mini-btn {
   height: 34px;
-  min-height: 34px;
   border-radius: 999px;
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(226,232,240,.92);
   font-size: 11px;
   font-weight: 600;
-  line-height: 32px;
-  text-align: center;
-  background: rgba(255,255,255,.94);
   color: #334155;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 10px rgba(15,23,42,.06);
 }
-.action-neutral { color: #334155; }
-.action-blue { color: #2563eb; }
-.action-red { color: #e11d48; }
-.action-green { color: #059669; }
-.action-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 10px rgba(15,23,42,.06)}
-.action-icon{font-size:11px;line-height:1;display:inline-flex;align-items:center;justify-content:center;width:12px}
-
-.float-btn{height:30px;border-radius:999px;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,.9);font-size:10px;font-weight:600;color:#334155;box-shadow:0 3px 8px rgba(15,23,42,.05);padding:0 6px;line-height:28px;text-align:center}
 </style>
