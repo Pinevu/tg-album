@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-white text-slate-900 font-sans" :class="isStandalone ? 'standalone-safe' : ''">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
-        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.05]" />
-        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.12),rgba(15,23,42,.42))]"></div>
-        <div class="relative text-center animate-splash-rise">
+        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" />
+        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.10),rgba(15,23,42,.46))]"></div>
+        <div class="relative text-center animate-splash-rise-soft">
           <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-2xl border border-white/60 mx-auto object-cover" />
           <div class="mt-5 text-2xl font-bold tracking-tight text-white">{{ albumTitle }}</div>
           <div class="mt-1 text-sm text-white/85">正在打开你的独立相册…</div>
@@ -526,6 +526,8 @@ onBeforeUnmount(() => {
 .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
 .fade-scale-enter-active, .fade-scale-leave-active { transition: opacity .35s ease, transform .35s ease; }
 .fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(1.02); }
-@keyframes splash-rise { 0% { opacity: 0; transform: translateY(10px) scale(.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-.animate-splash-rise { animation: splash-rise .45s ease-out both; }
+@keyframes splash-rise { 0% { opacity: 0; transform: translateY(14px) scale(.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes splash-zoom { 0% { transform: scale(1.12); opacity: .88; } 100% { transform: scale(1.08); opacity: 1; } }
+.animate-splash-rise-soft { animation: splash-rise .52s cubic-bezier(.22,1,.36,1) both; }
+.animate-splash-zoom { animation: splash-zoom 1.15s ease-out both; }
 </style>
