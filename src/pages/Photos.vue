@@ -55,31 +55,24 @@
       <article
         v-for="photo in photos"
         :key="photo.id"
-        class="panel-card bg-white/96 cursor-pointer photo-card"
+        class="panel-card bg-white/96 cursor-pointer photo-card relative"
         :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-200 border-blue-400' : ''"
         @click="openActionPanel(photo)"
       >
-        <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+        <div class="relative">
+          <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+          <div v-if="actionPhoto && actionPhoto.id === photo.id" class="absolute inset-0 bg-black/18 rounded-xl flex items-center justify-center" @click.stop>
+            <div class="grid grid-cols-2 gap-2 w-[124px]">
+              <button type="button" @click.stop="openDetail(photo.id)" class="float-btn">详情</button>
+              <button type="button" @click.stop="openMoveDialog(photo.id)" class="float-btn text-blue-700">移动</button>
+              <button type="button" @click.stop="deletePhoto(photo.id)" class="float-btn text-rose-600">删除</button>
+              <button type="button" @click.stop="copyDirectLink(photo)" class="float-btn text-emerald-700">直链</button>
+            </div>
+          </div>
+        </div>
         <div v-if="photo.album_name" class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
       </article>
     </div>
-
-    <Teleport to="body">
-      <div v-if="actionPanelVisible && actionPhoto" class="fixed inset-0 z-[10010] pointer-events-none">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] max-w-[86vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4 pointer-events-auto">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片操作</div>
-            <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeActionPanel">×</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" @click="openDetail(actionPhoto.id)" class="action-btn action-neutral">详情</button>
-            <button type="button" @click="openMoveDialog(actionPhoto.id)" class="action-btn action-blue">移动</button>
-            <button type="button" @click="deletePhoto(actionPhoto.id)" class="action-btn action-red">删除</button>
-            <button type="button" @click="copyDirectLink(actionPhoto)" class="action-btn action-green">直链</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
 
     <Teleport to="body">
       <div v-if="moveDialogVisible" class="fixed inset-0 z-[10020] pointer-events-none">
@@ -88,9 +81,21 @@
             <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
             <button type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="moveDialogVisible = false">×</button>
           </div>
-          <el-select v-model="moveToAlbumId" placeholder="选择目标相册" class="w-full" size="default" teleported :teleported="true" popper-class="move-album-popper" placement="bottom-start">
-            <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-          </el-select>
+          <button type="button" @click="movePickerOpen = !movePickerOpen" class="w-full h-12 rounded-[18px] border border-slate-300 bg-white px-4 text-left text-slate-500 flex items-center justify-between">
+            <span>{{ selectedMoveAlbumName || '选择目标相册' }}</span>
+            <span class="text-slate-400">⌄</span>
+          </button>
+          <div v-if="movePickerOpen" class="mt-3 rounded-[18px] border border-slate-200 bg-white overflow-hidden max-h-56 overflow-y-auto">
+            <button
+              v-for="album in albums"
+              :key="album.id"
+              type="button"
+              @click="selectMoveAlbum(album)"
+              class="w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+            >
+              {{ album.name }}
+            </button>
+          </div>
           <div class="grid grid-cols-2 gap-2 mt-4">
             <el-button @click="moveDialogVisible = false">取消</el-button>
             <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
@@ -134,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { searchPhotos, getAlbums, batchMove, batchDelete, uploadPhoto, listTags, getPhotoDetail } from '@/utils/api'
 import { extractExif, dominantColorHex } from '@/utils/exif'
@@ -154,6 +159,7 @@ const detailVisible = ref(false)
 const detail = ref<any>(null)
 const moveDialogVisible = ref(false)
 const moveToAlbumId = ref<number | undefined>()
+const movePickerOpen = ref(false)
 const deleteDialogVisible = ref(false)
 const moving = ref(false)
 const deleting = ref(false)
@@ -165,6 +171,10 @@ const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 
 const openActionPanel = (photo: any) => {
+  if (actionPhoto.value?.id === photo.id) {
+    closeActionPanel()
+    return
+  }
   actionPhoto.value = photo
   actionPanelVisible.value = true
 }
@@ -172,6 +182,12 @@ const openActionPanel = (photo: any) => {
 const closeActionPanel = () => {
   actionPanelVisible.value = false
   actionPhoto.value = null
+}
+
+const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
+const selectMoveAlbum = (album: any) => {
+  moveToAlbumId.value = album.id
+  movePickerOpen.value = false
 }
 
 const loadAlbums = async () => {
@@ -261,6 +277,7 @@ const openDetail = async (id: number) => {
 const openMoveDialog = (id: number) => {
   activeMoveId.value = id
   moveToAlbumId.value = undefined
+  movePickerOpen.value = false
   moveDialogVisible.value = true
   closeActionPanel()
 }
@@ -271,6 +288,7 @@ const confirmMove = async () => {
   try {
     await batchMove([activeMoveId.value], moveToAlbumId.value)
     moveDialogVisible.value = false
+    movePickerOpen.value = false
     activeMoveId.value = null
     await search()
     ElMessage.success('移动成功')
@@ -329,5 +347,6 @@ onMounted(async () => {
 .action-blue { color: #2563eb; }
 .action-red { color: #e11d48; }
 .action-green { color: #059669; }
-.move-album-popper{z-index:12000 !important;}
+
+.float-btn{height:44px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,.95);font-size:12px;font-weight:700;color:#334155;box-shadow:0 6px 18px rgba(15,23,42,.08)}
 </style>
