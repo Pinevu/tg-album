@@ -201,19 +201,19 @@ const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.v
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
 const viewerImageStyle = computed(() => ({
   transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value})`,
-  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .24s cubic-bezier(.22,.8,.2,1)',
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .32s cubic-bezier(.16,1,.3,1)',
   touchAction: 'none'
 }))
 const viewerDismissScale = computed(() => viewerScale.value > 1 ? 1 : Math.max(0.82, 1 - Math.abs(viewerTranslateY.value) / 780))
 const viewerContainerStyle = computed(() => ({
   transform: viewerScale.value === 1 ? `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerDismissScale.value})` : 'translate3d(0,0,0) scale(1)',
-  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .28s cubic-bezier(.22,.8,.2,1)'
+  transition: isPinching.value || isDraggingZoomed.value ? 'none' : 'transform .34s cubic-bezier(.16,1,.3,1)'
 }))
 
 const showHudTemporarily = () => {
   hudVisible.value = true
   if (hudTimer) clearTimeout(hudTimer)
-  hudTimer = setTimeout(() => { if (viewerVisible.value) hudVisible.value = false }, 1800)
+  hudTimer = setTimeout(() => { if (viewerVisible.value) hudVisible.value = false }, 1400)
 }
 
 const centerViewerStrip = () => {
@@ -358,12 +358,16 @@ const zoomAtPoint = (clientX: number, clientY: number) => {
   const vh = window.innerHeight
   const dx = clientX - vw / 2
   const dy = clientY - vh / 2
-  if (viewerScale.value > 1) {
-    resetViewerTransform()
-  } else {
+  if (viewerScale.value < 1.5) {
     viewerScale.value = 2
     viewerTranslateX.value = -dx * 0.35
     viewerTranslateY.value = -dy * 0.35
+  } else if (viewerScale.value < 2.5) {
+    viewerScale.value = 3
+    viewerTranslateX.value = -dx * 0.55
+    viewerTranslateY.value = -dy * 0.55
+  } else {
+    resetViewerTransform()
   }
 }
 const onViewerTouchStart = (e: TouchEvent) => {
@@ -402,12 +406,12 @@ const onViewerTouchMove = (e: TouchEvent) => {
   const dx = (e.touches[0]?.clientX || 0) - viewerTouchStartX.value
   const dy = (e.touches[0]?.clientY || 0) - viewerTouchStartY.value
   if (viewerScale.value > 1) {
-    viewerTranslateX.value = (viewerStartTranslateX.value + dx) * 0.92
-    viewerTranslateY.value = (viewerStartTranslateY.value + dy) * 0.92
+    viewerTranslateX.value = (viewerStartTranslateX.value + dx) * 0.88
+    viewerTranslateY.value = (viewerStartTranslateY.value + dy) * 0.88
   } else {
-    viewerTranslateX.value = dx * 0.18
+    viewerTranslateX.value = dx * 0.24
     viewerTranslateY.value = Math.max(0, dy)
-    viewerBgOpacity.value = Math.max(0.18, 0.96 - Math.abs(dy) / 220)
+    viewerBgOpacity.value = Math.max(0.12, 0.96 - Math.abs(dy) / 180)
   }
 }
 const onViewerTouchEnd = (e: TouchEvent) => {
@@ -427,7 +431,7 @@ const onViewerTouchEnd = (e: TouchEvent) => {
     return
   }
   if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)) {
-    viewerTranslateX.value = dx < 0 ? -42 : 42
+    viewerTranslateX.value = dx < 0 ? -68 : 68
     setTimeout(() => {
       if (dx < 0 && viewerIndex.value < photos.value.length - 1) viewerIndex.value += 1
       if (dx > 0 && viewerIndex.value > 0) viewerIndex.value -= 1
@@ -463,6 +467,13 @@ const installAlbumPwa = async () => {
 
 watch(() => route.fullPath, () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
+})
+
+watch(viewerIndex, () => {
+  if (viewerVisible.value) {
+    setTimeout(centerViewerStrip, 10)
+    showHudTemporarily()
+  }
 })
 
 onMounted(async () => {
