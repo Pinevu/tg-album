@@ -19,10 +19,10 @@
           <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500" />
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <el-button @click="clearPwaIcon" class="!w-full">清空图标</el-button>
-          <el-button @click="clearSplashImage" class="!w-full">清空背景</el-button>
-          <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+        <div class="grid grid-cols-3 gap-2 items-stretch">
+          <el-button @click="clearPwaIcon" class="!w-full !min-w-0 !px-0">清空图标</el-button>
+          <el-button @click="clearSplashImage" class="!w-full !min-w-0 !px-0">清空背景</el-button>
+          <el-button @click="saveAlbum" type="primary" class="!w-full !min-w-0 !px-0">{{ editingId ? '保存' : '创建' }}</el-button>
         </div>
       </div>
     </div>
