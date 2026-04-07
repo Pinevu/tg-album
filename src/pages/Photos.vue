@@ -63,18 +63,20 @@
     </div>
 
     <div class="panel-card bg-white/96 space-y-3">
-      <div class="flex flex-wrap gap-2 items-center">
-        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
-        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
-        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
-        <div class="inline-flex rounded-xl border border-slate-200 overflow-hidden bg-white">
-          <button type="button" @click="changePageSize(10)" class="px-3 h-8 text-sm" :class="pageSize === 10 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">10/页</button>
-          <button type="button" @click="changePageSize(20)" class="px-3 h-8 text-sm border-l border-slate-200" :class="pageSize === 20 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">20/页</button>
-          <button type="button" @click="changePageSize(50)" class="px-3 h-8 text-sm border-l border-slate-200" :class="pageSize === 50 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">50/页</button>
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
+        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
+        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
+      </div>
+      <div class="flex items-center justify-between gap-2 flex-nowrap">
+        <div class="inline-flex rounded-xl border border-slate-200 overflow-hidden bg-white shrink-0">
+          <button type="button" @click="changePageSize(10)" class="px-3 h-9 text-sm" :class="pageSize === 10 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">10/页</button>
+          <button type="button" @click="changePageSize(20)" class="px-3 h-9 text-sm border-l border-slate-200" :class="pageSize === 20 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">20/页</button>
+          <button type="button" @click="changePageSize(50)" class="px-3 h-9 text-sm border-l border-slate-200" :class="pageSize === 50 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">50/页</button>
         </div>
-        <div class="flex items-center gap-2 ml-auto">
-          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-20 h-8 rounded-xl border border-slate-200 px-3 text-sm" />
-          <button type="button" @click="jumpToPage" class="rounded-xl border border-slate-200 bg-white text-slate-600 px-3 h-8 text-sm">跳转</button>
+        <div class="flex items-center gap-2 shrink-0">
+          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-20 h-9 rounded-xl border border-slate-200 px-3 text-sm" />
+          <button type="button" @click="jumpToPage" class="rounded-xl border border-slate-200 bg-white text-slate-600 px-3 h-9 text-sm">跳转</button>
         </div>
       </div>
       <div class="flex flex-wrap gap-3 items-center">
@@ -110,7 +112,6 @@
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
           <div class="relative">
-            <div v-if="item.showDateHeader" class="absolute top-2 left-2 z-10 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium bg-white/92 border border-slate-200/90 text-slate-500 backdrop-blur shadow-sm">{{ item.dateLabel }}</div>
             <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
@@ -129,9 +130,12 @@
             </div>
           </div>
 
-          <div class="mt-2 flex items-center justify-between gap-2">
-            <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
-            <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
+          <div class="mt-2 space-y-1.5">
+            <div v-if="item.showDateHeader" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-500">{{ item.dateLabel }}</div>
+            <div class="flex items-center justify-between gap-2">
+              <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
+              <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
+            </div>
           </div>
         </article>
       </div>
