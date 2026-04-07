@@ -72,6 +72,12 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'albums', 'pwa_splash_position'))) {
     try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN pwa_splash_position TEXT NOT NULL DEFAULT 'center'`).run() } catch {}
   }
+  if (!(await tableHasColumn(c, 'photos', 'tg_pool_id'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN tg_pool_id INTEGER`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'remark'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN remark TEXT`).run() } catch {}
+  }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
   if (!defaultAlbum) {
