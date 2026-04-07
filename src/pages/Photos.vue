@@ -69,8 +69,8 @@
         </div>
         <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
         <div class="grid grid-cols-2 gap-2 items-center">
-          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-full !h-9 !rounded-2xl !border !border-slate-200 !shadow-none !bg-white !text-slate-700 hover:!bg-slate-50">搜索</el-button>
-          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm w-full whitespace-nowrap flex items-center justify-center">检测失效</button>
+          <button type="button" @click="page = 1; search()" class="action-ghost-btn">搜索</button>
+          <button type="button" @click="recheckBroken" class="action-ghost-btn action-ghost-btn-danger">检测失效</button>
         </div>
       </div>
       <div class="flex items-center justify-between text-sm text-slate-500 gap-3 px-1">
@@ -493,4 +493,7 @@ onBeforeUnmount(() => {
 
 .photos-toolbar-grid > *{min-width:0;}
 .photos-toolbar-grid button,.photos-toolbar-grid input{box-sizing:border-box;}
+
+.action-ghost-btn{width:100%;height:36px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
+.action-ghost-btn-danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48;}
 </style>
