@@ -120,7 +120,6 @@
               <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
             </div>
           </div>
-          </div>
         </article>
       </div>
 
