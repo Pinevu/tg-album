@@ -53,18 +53,22 @@
       <div class="grid grid-cols-[repeat(2,auto)_1fr_auto] gap-2 items-center">
         <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
         <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
-        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm min-w-0" />
-        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm whitespace-nowrap">跳转</button>
+        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm min-w-0 text-center bg-white" />
+        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm whitespace-nowrap px-3">跳转</button>
       </div>
-      <div class="flex flex-wrap gap-3 items-center">
-        <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="page = 1; search()">
-          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-        </el-select>
-        <el-select v-model="tag" placeholder="标签" filterable class="w-32" size="small">
-          <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
-        </el-select>
-        <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
-        <el-button @click="page = 1; search()" size="small" type="primary">搜索</el-button>
+      <div class="space-y-2">
+        <div class="flex gap-2 items-center">
+          <el-select v-model="currentAlbumId" placeholder="相册" class="flex-1" size="small" clearable @change="page = 1; search()">
+            <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+          </el-select>
+          <el-select v-model="tag" placeholder="标签" filterable class="flex-1" size="small">
+            <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
+          </el-select>
+        </div>
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+          <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
+          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px]">搜索</el-button>
+        </div>
       </div>
       <div class="flex items-center justify-between text-sm text-slate-500">
         <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
