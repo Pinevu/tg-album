@@ -104,8 +104,10 @@
         <div class="relative">
           <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
+          <div v-if="selectedIds.includes(photo.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(photo.id) + 1 }}</div>
+
           <div
-            v-if="activeCardId === photo.id"
+            v-if="!selectionMode && activeCardId === photo.id"
             class="absolute inset-0 rounded-xl bg-black/18 flex items-center justify-center"
             @click.stop
           >
@@ -237,7 +239,7 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id) ? selectedIds.value.filter(i => i !== id) : [...selectedIds.value, id]
 }
 
-const clearSelection = () => { selectedIds.value = []; bulkMovePickerOpen.value = false }
+const clearSelection = () => { selectedIds.value = []; bulkMovePickerOpen.value = false; selectionMode.value = false }
 
 const toggleCardActions = (id: number) => {
   activeCardId.value = activeCardId.value === id ? null : id
