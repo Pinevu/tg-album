@@ -21,8 +21,8 @@
           <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
         </el-select>
         <el-input v-model="uploadRemark" placeholder="备注" size="small" />
-        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full md:w-56">
-          <div class="px-4 py-4 text-center text-slate-700 text-sm">点击或拖拽上传</div>
+        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full md:w-44">
+          <div class="px-3 py-3 text-center text-slate-700 text-sm">点击或拖拽</div>
         </el-upload>
       </div>
       <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2">
@@ -96,9 +96,9 @@
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
     <div v-else class="panel-card bg-white/96 flex items-center justify-between gap-3">
-      <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">上一页</button>
+      <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
       <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
-      <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">下一页</button>
+      <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
     </div>
 
     <div v-else class="space-y-5">
@@ -107,11 +107,11 @@
           v-for="item in photosWithDateMarkers"
           :key="item.id"
           class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
-          :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
+          :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : (latestUploadedPhotoId === item.id ? 'ring-2 ring-emerald-300 border-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.12)]' : '')"
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
           <div class="relative">
-            <div v-if="item.showDateHeader" class="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-white/92 border border-slate-200 text-slate-500 backdrop-blur">{{ item.dateLabel }}</div>
+            <div v-if="item.showDateHeader" class="absolute top-2 left-2 z-10 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium bg-white/92 border border-slate-200/90 text-slate-500 backdrop-blur shadow-sm">{{ item.dateLabel }}</div>
             <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
@@ -138,9 +138,9 @@
       </div>
 
       <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
-        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">上一页</button>
+        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
         <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
-        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">下一页</button>
+        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
       </div>
     </div>
 
@@ -251,6 +251,7 @@ const activeDeleteId = ref<number | null>(null)
 const activeCardId = ref<number | null>(null)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const latestUploadedPhotoId = ref<number | null>(null)
 
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
@@ -372,11 +373,14 @@ const handleUpload = async (options: any) => {
     const color = await dominantColorHex(file)
     if (color) form.append('dominant_color_hex', color)
     if (exif.raw_exif_json) form.append('exif_json', exif.raw_exif_json)
-    await uploadPhoto(form)
+    const { data } = await uploadPhoto(form)
     item.progress = 100
     uploadRemark.value = ''
+    page.value = 1
+    latestUploadedPhotoId.value = data?.id || null
     await search()
-    ElMessage.success('上传成功')
+    setTimeout(() => { latestUploadedPhotoId.value = null }, 6000)
+    ElMessage.success('上传成功，已跳到最新图片')
   } catch {
     message.value = '上传失败'
     messageType.value = 'error'
