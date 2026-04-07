@@ -64,14 +64,18 @@
 
     <div class="panel-card bg-white/96 space-y-3">
       <div class="flex flex-wrap gap-2 items-center">
-        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">今天</button>
-        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">本周</button>
-        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">本月</button>
-        <el-select v-model="pageSize" class="w-28" size="small" @change="changePageSize">
-          <el-option :value="10" label="10 / 页" />
-          <el-option :value="20" label="20 / 页" />
-          <el-option :value="50" label="50 / 页" />
-        </el-select>
+        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
+        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
+        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border px-3 h-8 text-sm" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
+        <div class="inline-flex rounded-xl border border-slate-200 overflow-hidden bg-white">
+          <button type="button" @click="changePageSize(10)" class="px-3 h-8 text-sm" :class="pageSize === 10 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">10/页</button>
+          <button type="button" @click="changePageSize(20)" class="px-3 h-8 text-sm border-l border-slate-200" :class="pageSize === 20 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">20/页</button>
+          <button type="button" @click="changePageSize(50)" class="px-3 h-8 text-sm border-l border-slate-200" :class="pageSize === 50 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">50/页</button>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-20 h-8 rounded-xl border border-slate-200 px-3 text-sm" />
+          <button type="button" @click="jumpToPage" class="rounded-xl border border-slate-200 bg-white text-slate-600 px-3 h-8 text-sm">跳转</button>
+        </div>
       </div>
       <div class="flex flex-wrap gap-3 items-center">
         <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="page = 1; search()">
@@ -91,6 +95,12 @@
 
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
+    <div v-else class="panel-card bg-white/96 flex items-center justify-between gap-3">
+      <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">上一页</button>
+      <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
+      <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">下一页</button>
+    </div>
+
     <div v-else class="space-y-5">
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
         <article
@@ -100,8 +110,8 @@
           :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
-          <div v-if="item.showDateHeader" class="mb-2 text-[12px] font-semibold text-slate-500">{{ item.dateLabel }}</div>
           <div class="relative">
+            <div v-if="item.showDateHeader" class="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-white/92 border border-slate-200 text-slate-500 backdrop-blur">{{ item.dateLabel }}</div>
             <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
@@ -213,6 +223,10 @@ const photos = ref<any[]>([])
 const totalPhotos = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
+const pageJump = ref('')
+const quickRange = ref('')
+const dateStart = ref<number | undefined>()
+const dateEnd = ref<number | undefined>()
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 const selectionMode = ref(false)
@@ -290,6 +304,8 @@ const search = async () => {
   if (currentAlbumId.value) params.album_id = currentAlbumId.value
   if (tag.value) params.tag = tag.value
   if (keyword.value) params.keyword = keyword.value
+  if (dateStart.value) params.date_start = dateStart.value
+  if (dateEnd.value) params.date_end = dateEnd.value
   const { data } = await searchPhotos(params)
   totalPhotos.value = Number(data.total || 0)
   photos.value = (data.results || []).map((p: any) => ({ ...p, previewUrl: `/api/photos/file/${p.id}` }))
@@ -298,6 +314,31 @@ const search = async () => {
 const changePage = async (next: number) => {
   if (next < 1 || next > totalPages.value) return
   page.value = next
+  await search()
+}
+
+const changePageSize = async (size: number) => {
+  pageSize.value = size
+  page.value = 1
+  await search()
+}
+
+const jumpToPage = async () => {
+  const n = Number(pageJump.value)
+  if (!Number.isFinite(n)) return
+  await changePage(n)
+}
+
+const applyQuickRange = async (mode: 'today' | 'week' | 'month') => {
+  quickRange.value = mode
+  const now = new Date()
+  const start = new Date(now)
+  if (mode === 'today') start.setHours(0,0,0,0)
+  if (mode === 'week') { const day = start.getDay() || 7; start.setDate(start.getDate() - day + 1); start.setHours(0,0,0,0) }
+  if (mode === 'month') { start.setDate(1); start.setHours(0,0,0,0) }
+  dateStart.value = Math.floor(start.getTime()/1000)
+  dateEnd.value = Math.floor(Date.now()/1000)
+  page.value = 1
   await search()
 }
 
