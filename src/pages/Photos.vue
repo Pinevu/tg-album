@@ -1,23 +1,15 @@
 <template>
   <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
-    <div class="flex items-center justify-end gap-2">
-      <button type="button" @click="selectionMode = !selectionMode; if (!selectionMode) clearSelection()" class="rounded-2xl border px-4 py-2 text-sm font-medium" :class="selectionMode ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-600'">{{ selectionMode ? '退出选择' : '选择模式' }}</button>
-      <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
-        当前页 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 / 共 <span class="font-semibold text-blue-600">{{ totalPhotos }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
-      </div>
-    </div>
-
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/98 space-y-4 border-blue-100/80">
-      <div class="text-sm font-semibold text-slate-700">上传</div>
-      <div class="grid grid-cols-1 md:grid-cols-[180px_1fr_auto] gap-3 items-center">
+    <div class="panel-card bg-white/98 space-y-3 border-blue-100/80">
+      <div class="grid grid-cols-2 gap-2 items-center">
         <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
           <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
         </el-select>
         <el-input v-model="uploadRemark" placeholder="备注" size="small" />
-        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full md:w-44">
-          <div class="px-3 py-3 text-center text-slate-700 text-sm">点击或拖拽</div>
+        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
+          <div class="px-3 py-2.5 text-center text-slate-700 text-sm">点击或拖拽上传</div>
         </el-upload>
       </div>
       <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2">
@@ -59,11 +51,11 @@
 
     <div class="panel-card bg-white/98 space-y-3 border-slate-200">
       <div class="grid grid-cols-3 gap-2">
-        <button type="button" @click="applyQuickRange('today')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
-        <button type="button" @click="applyQuickRange('week')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
-        <button type="button" @click="applyQuickRange('month')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
+        <button type="button" @click="applyQuickRange('today')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天 {{ quickRangeCounts.today }}</button>
+        <button type="button" @click="applyQuickRange('week')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周 {{ quickRangeCounts.week }}</button>
+        <button type="button" @click="applyQuickRange('month')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月 {{ quickRangeCounts.month }}</button>
       </div>
-      <div class="grid grid-cols-5 gap-2 items-center">
+      <div class="grid grid-cols-[repeat(3,auto)_1fr_auto] gap-2 items-center">
         <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
         <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
         <button type="button" @click="changePageSize(50)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 50 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">50/页</button>
@@ -103,6 +95,7 @@
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
           <div class="relative">
+            <div v-if="item.showDateHeader" class="absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-white/82 border border-slate-200/70 text-slate-400 backdrop-blur shadow-sm">{{ item.dateLabel }}</div>
             <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
@@ -121,9 +114,7 @@
             </div>
           </div>
 
-          <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
-            <div v-if="item.showDateHeader" class="self-center inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-slate-50 border border-slate-200 text-slate-400">{{ item.dateLabel }}</div>
-            <div class="flex items-center justify-between gap-2">
+          <div class="mt-2 min-h-[34px] flex items-center justify-between gap-2">
               <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
               <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
             </div>

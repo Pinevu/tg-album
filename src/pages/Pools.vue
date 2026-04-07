@@ -34,11 +34,16 @@
         </div>
         <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
         <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
-        <div class="flex flex-wrap gap-2">
-          <el-button @click="copyWebhook(pool)">复制 Webhook</el-button>
-          <el-button @click="openSetWebhook(pool)">打开 setWebhook</el-button>
-          <el-button @click="edit(pool)">编辑</el-button>
-          <el-button type="danger" @click="remove(pool.id)">删除</el-button>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-slate-500">启用</span>
+            <el-switch :model-value="!!pool.enabled" @change="togglePoolEnabled(pool, $event)" />
+          </div>
+          <div class="grid grid-cols-3 gap-2 flex-1 max-w-[320px]">
+            <el-button @click="openSetWebhook(pool)" class="!w-full">setWebhook</el-button>
+            <el-button @click="edit(pool)" class="!w-full">编辑</el-button>
+            <el-button type="danger" @click="remove(pool.id)" class="!w-full">删除</el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -120,6 +125,16 @@ const openSetWebhook = async (pool: any) => {
     location.href = cmd
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.error || `打开失败: ${e?.response?.status || 'unknown'}`)
+  }
+}
+
+const togglePoolEnabled = async (pool: any, enabled: boolean) => {
+  try {
+    await api.put(`/tg-pools/${pool.id}`, { name: pool.name, bot_token: '', chat_id: pool.chat_id, enabled })
+    await load()
+  } catch (e: any) {
+    message.value = e?.response?.data?.error || '切换启用状态失败'
+    messageType.value = 'error'
   }
 }
 
