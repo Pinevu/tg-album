@@ -80,15 +80,31 @@
       </div>
     </div>
 
-    <div class="panel-card bg-white/96 flex flex-wrap gap-3 items-center">
-      <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="search">
-        <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-      </el-select>
-      <el-select v-model="tag" placeholder="标签" filterable class="w-32" size="small">
-        <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
-      </el-select>
-      <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
-      <el-button @click="page = 1; search()" size="small" type="primary">搜索</el-button>
+    <div class="panel-card bg-white/96 space-y-3">
+      <div class="flex flex-wrap gap-2 items-center">
+        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">今天</button>
+        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">本周</button>
+        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">本月</button>
+        <el-select v-model="pageSize" class="w-28" size="small" @change="changePageSize">
+          <el-option :value="10" label="10 / 页" />
+          <el-option :value="20" label="20 / 页" />
+          <el-option :value="50" label="50 / 页" />
+        </el-select>
+      </div>
+      <div class="flex flex-wrap gap-3 items-center">
+        <el-select v-model="currentAlbumId" placeholder="相册" class="w-36" size="small" clearable @change="page = 1; search()">
+          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+        </el-select>
+        <el-select v-model="tag" placeholder="标签" filterable class="w-32" size="small">
+          <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
+        </el-select>
+        <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
+        <el-button @click="page = 1; search()" size="small" type="primary">搜索</el-button>
+      </div>
+      <div class="flex items-center justify-between text-sm text-slate-500">
+        <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
+        <div>第 {{ page }} / {{ totalPages }} 页</div>
+      </div>
     </div>
 
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
