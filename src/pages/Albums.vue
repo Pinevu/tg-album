@@ -14,14 +14,22 @@
         <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
         <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
 
-        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
-          <input type="file" accept="image/*" @change="onIconFileChange" class="block w-full text-sm text-slate-500" />
-          <el-button @click="clearPwaIcon" class="!w-[112px] !min-w-[112px] !px-0">清空图标</el-button>
+        <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+          <label class="upload-like-btn">
+            <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" />
+            <span>选择文件</span>
+          </label>
+          <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
+          <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
         </div>
 
-        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
-          <input type="file" accept="image/*" @change="onSplashFileChange" class="block w-full text-sm text-slate-500" />
-          <el-button @click="clearSplashImage" class="!w-[112px] !min-w-[112px] !px-0">清空背景</el-button>
+        <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+          <label class="upload-like-btn">
+            <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" />
+            <span>选择文件</span>
+          </label>
+          <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
+          <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
         </div>
 
         <div>
@@ -103,6 +111,8 @@ const accessPassword = ref('')
 const pwaIconUrl = ref('')
 const pwaSplashImageUrl = ref('')
 const pwaSplashPosition = ref('center')
+const iconFileName = ref('未选择文件')
+const splashFileName = ref('未选择文件')
 const editingId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => (nodes || []).flatMap((n) => [n, ...((n.children && Array.isArray(n.children)) ? flatten(n.children) : [])])
@@ -133,6 +143,7 @@ const onIconFileChange = async (event: Event) => {
   const file = input.files?.[0]
   if (!file) return
   const reader = new FileReader()
+  iconFileName.value = file.name
   reader.onload = () => { pwaIconUrl.value = String(reader.result || '') }
   reader.readAsDataURL(file)
 }
@@ -142,12 +153,13 @@ const onSplashFileChange = async (event: Event) => {
   const file = input.files?.[0]
   if (!file) return
   const reader = new FileReader()
+  splashFileName.value = file.name
   reader.onload = () => { pwaSplashImageUrl.value = String(reader.result || '') }
   reader.readAsDataURL(file)
 }
 
-const clearPwaIcon = () => { pwaIconUrl.value = '' }
-const clearSplashImage = () => { pwaSplashImageUrl.value = '' }
+const clearPwaIcon = () => { pwaIconUrl.value = ''; iconFileName.value = '未选择文件' }
+const clearSplashImage = () => { pwaSplashImageUrl.value = ''; splashFileName.value = '未选择文件' }
 
 const resetForm = () => {
   newName.value = ''
@@ -157,6 +169,8 @@ const resetForm = () => {
   pwaIconUrl.value = ''
   pwaSplashImageUrl.value = ''
   pwaSplashPosition.value = 'center'
+  iconFileName.value = '未选择文件'
+  splashFileName.value = '未选择文件'
   editingId.value = null
 }
 
@@ -183,6 +197,8 @@ const editAlbum = (album: any) => {
   pwaIconUrl.value = album.pwa_icon_url || ''
   pwaSplashImageUrl.value = album.pwa_splash_image_url || ''
   pwaSplashPosition.value = album.pwa_splash_position || 'center'
+  iconFileName.value = album.pwa_icon_url ? '已选择图标' : '未选择文件'
+  splashFileName.value = album.pwa_splash_image_url ? '已选择背景' : '未选择文件'
 }
 
 const removeAlbum = async (album: any) => {
@@ -209,4 +225,7 @@ onMounted(load)
 .panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
 .tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
 .tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
+
+.upload-like-btn{height:40px;padding:0 18px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#2563eb;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;}
+.upload-like-btn.secondary{color:#0f172a;}
 </style>
