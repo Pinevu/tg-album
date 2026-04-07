@@ -463,7 +463,7 @@ const servePhotoFile = async (c: any, id: string) => {
   if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
   const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
   const fileJson = await fileRes.json<any>()
-  if (!fileJson.ok) return c.json({ error: 'Telegram getFile failed', detail: fileJson }, 500)
+  if (!fileJson.ok) return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
 
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
   return new Response(imgRes.body, {
@@ -486,7 +486,7 @@ app.get('/api/photos/file/:id/:filename', async (c) => {
   if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
   const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
   const fileJson = await fileRes.json<any>()
-  if (!fileJson.ok) return c.json({ error: 'Telegram getFile failed', detail: fileJson }, 500)
+  if (!fileJson.ok) return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
   return new Response(imgRes.body, { headers: { 'content-type': imgRes.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } })
 })
