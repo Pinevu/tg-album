@@ -531,18 +531,22 @@ app.post('/api/upload', auth, async (c) => {
 })
 
 app.get('/api/photos/search', auth, async (c) => {
-  const { album_id, tag, date_start, date_end, keyword, page='1', page_size='30' } = c.req.query()
-  const p: any[] = []
-  let sql = `SELECT p.*, a.name AS album_name, GROUP_CONCAT(DISTINCT t.name) AS tags, m.camera_model, m.aperture, m.shutter_speed, m.iso, m.focal_length FROM photos p LEFT JOIN albums a ON p.album_id = a.id LEFT JOIN photo_metadata m ON p.id = m.photo_id LEFT JOIN photo_tags pt ON p.id = pt.photo_id LEFT JOIN tags t ON pt.tag_id = t.id WHERE p.deleted_at IS NULL`
-  if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
-  if (tag) { sql += ' AND t.name = ?'; p.push(tag) }
-  if (keyword) { sql += ' AND (p.original_filename LIKE ? OR p.remark LIKE ?)'; p.push(`%${keyword}%`, `%${keyword}%`) }
-  if (date_start) { sql += ' AND p.uploaded_at >= ?'; p.push(date_start) }
-  if (date_end) { sql += ' AND p.uploaded_at <= ?'; p.push(date_end) }
-  sql += ' GROUP BY p.id ORDER BY p.uploaded_at DESC LIMIT ? OFFSET ?'
-  p.push(Number(page_size), (Number(page) - 1) * Number(page_size))
-  const res = await c.env.DB.prepare(sql).bind(...p).all<any>()
-  return c.json({ results: res.results || [] })
+  const { album_id, tag, date_start, date_end, keyword, page='1', page_size='10' } = c.req.query()
+  const where: string[] = ['p.deleted_at IS NULL']
+  const baseParams: any[] = []
+  let joins = ` LEFT JOIN albums a ON p.album_id = a.id LEFT JOIN photo_metadata m ON p.id = m.photo_id LEFT JOIN photo_tags pt ON p.id = pt.photo_id LEFT JOIN tags t ON pt.tag_id = t.id `
+  if (album_id) { where.push('p.album_id = ?'); baseParams.push(album_id) }
+  if (tag) { where.push('t.name = ?'); baseParams.push(tag) }
+  if (keyword) { where.push('(p.original_filename LIKE ? OR p.remark LIKE ?)'); baseParams.push(`%${keyword}%`, `%${keyword}%`) }
+  if (date_start) { where.push('p.uploaded_at >= ?'); baseParams.push(date_start) }
+  if (date_end) { where.push('p.uploaded_at <= ?'); baseParams.push(date_end) }
+  const whereSql = where.length ? ` WHERE ${where.join(' AND ')}` : ''
+  const countSql = `SELECT COUNT(DISTINCT p.id) as total FROM photos p ${joins} ${whereSql}`
+  const countRes = await c.env.DB.prepare(countSql).bind(...baseParams).first<any>()
+  const sql = `SELECT p.*, a.name AS album_name, GROUP_CONCAT(DISTINCT t.name) AS tags, m.camera_model, m.aperture, m.shutter_speed, m.iso, m.focal_length FROM photos p ${joins} ${whereSql} GROUP BY p.id ORDER BY p.uploaded_at DESC LIMIT ? OFFSET ?`
+  const params = [...baseParams, Number(page_size), (Number(page) - 1) * Number(page_size)]
+  const res = await c.env.DB.prepare(sql).bind(...params).all<any>()
+  return c.json({ results: res.results || [], total: Number(countRes?.total || 0), page: Number(page), page_size: Number(page_size) })
 })
 
 app.get('/api/photos/:id', auth, async (c) => {

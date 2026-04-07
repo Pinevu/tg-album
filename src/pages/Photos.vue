@@ -7,7 +7,7 @@
       <div class="flex items-center gap-2">
         <button type="button" @click="selectionMode = !selectionMode; if (!selectionMode) clearSelection()" class="rounded-2xl border px-4 py-2 text-sm font-medium" :class="selectionMode ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-600'">{{ selectionMode ? '退出选择' : '选择模式' }}</button>
         <div class="text-sm text-slate-500 rounded-2xl bg-white border border-slate-200 px-4 py-2 shadow-sm">
-          当前图片 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
+          当前页 <span class="font-semibold text-blue-600">{{ photos.length }}</span> 张 / 共 <span class="font-semibold text-blue-600">{{ totalPhotos }}</span> 张 · 已选 <span class="font-semibold text-blue-600">{{ selectedIds.length }}</span> 张
         </div>
       </div>
     </div>
@@ -88,14 +88,17 @@
         <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
       </el-select>
       <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full md:w-64" size="small" />
-      <el-button @click="search" size="small" type="primary">搜索</el-button>
+      <el-button @click="page = 1; search()" size="small" type="primary">搜索</el-button>
     </div>
 
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
-    <div v-else class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div v-else class="space-y-5">
+      <section v-for="group in groupedPhotos" :key="group.date" class="space-y-3">
+        <div class="text-sm font-semibold text-slate-500 px-1">{{ group.label }}</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
       <article
-        v-for="photo in photos"
+        v-for="photo in group.items"
         :key="photo.id"
         class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
         :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
@@ -125,6 +128,14 @@
           <button type="button" @click.stop="toggleSelect(photo.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
         </div>
       </article>
+        </div>
+      </section>
+
+      <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
+        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">上一页</button>
+        <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
+        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">下一页</button>
+      </div>
     </div>
 
     <Teleport to="body">
@@ -203,6 +214,9 @@ import { extractExif, dominantColorHex } from '@/utils/exif'
 const pageRef = ref<HTMLElement | null>(null)
 const albums = ref<any[]>([])
 const photos = ref<any[]>([])
+const totalPhotos = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 const selectionMode = ref(false)
@@ -230,6 +244,17 @@ const messageType = ref<'success' | 'error'>('success')
 
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
+const totalPages = computed(() => Math.max(1, Math.ceil(totalPhotos.value / pageSize.value)))
+const groupedPhotos = computed(() => {
+  const groups: Record<string, any[]> = {}
+  for (const p of photos.value) {
+    const d = new Date((p.uploaded_at || 0) * 1000)
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    if (!groups[key]) groups[key] = []
+    groups[key].push(p)
+  }
+  return Object.entries(groups).map(([date, items]) => ({ date, label: date, items }))
+})
 
 const closeActionPanel = () => {
   activeCardId.value = null
@@ -265,12 +290,19 @@ const loadTags = async () => {
 }
 
 const search = async () => {
-  const params: any = {}
+  const params: any = { page: page.value, page_size: pageSize.value }
   if (currentAlbumId.value) params.album_id = currentAlbumId.value
   if (tag.value) params.tag = tag.value
   if (keyword.value) params.keyword = keyword.value
   const { data } = await searchPhotos(params)
+  totalPhotos.value = Number(data.total || 0)
   photos.value = (data.results || []).map((p: any) => ({ ...p, previewUrl: `/api/photos/file/${p.id}` }))
+}
+
+const changePage = async (next: number) => {
+  if (next < 1 || next > totalPages.value) return
+  page.value = next
+  await search()
 }
 
 const sanitizeFilename = (name?: string) => {
