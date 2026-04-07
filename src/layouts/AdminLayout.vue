@@ -5,11 +5,11 @@
       <div class="absolute inset-x-0 top-0 h-[460px] pointer-events-none" :style="fadeStyle"></div>
 
       <div class="relative z-10">
-        <header class="sticky top-0 z-20 bg-white/92 backdrop-blur-2xl border-b border-slate-200/70 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-          <div class="max-w-7xl mx-auto px-5 md:px-6 py-2.5 grid grid-cols-[1fr_auto] items-center gap-4">
+        <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-2xl border-b border-slate-200/60 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+          <div class="max-w-7xl mx-auto px-5 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-4">
             <div class="min-w-0">
-              <div class="text-[22px] font-bold tracking-tight leading-none">{{ siteTitle }}</div>
-              <div class="text-xs text-slate-500 mt-1">Telegram 图片存储</div>
+              <div class="text-[20px] font-semibold tracking-tight leading-none">{{ siteTitle }}</div>
+              <div class="text-[11px] text-slate-500 mt-1">Telegram 图片存储</div>
             </div>
             <div class="flex items-center gap-3 justify-end">
               <a href="/" class="nav-btn">前台</a>
@@ -76,7 +76,7 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 0 18px; height: 46px; display:inline-flex; align-items:center; justify-content:center;
+  padding: 0 18px; height: 44px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.94);

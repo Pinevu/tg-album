@@ -67,10 +67,10 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center">
-          <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
-          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[84px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
-          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm whitespace-nowrap flex items-center justify-center">检测失效</button>
+        <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-full !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
+          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm w-full whitespace-nowrap flex items-center justify-center">检测失效</button>
         </div>
       </div>
       <div class="flex items-center justify-between text-sm text-slate-500 gap-3 px-1">
@@ -82,10 +82,12 @@
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
     <div v-else class="space-y-5">
-      <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
-        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
-        <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
-        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
+      <div class="panel-card bg-white/98 border-slate-200 !p-4">
+        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <div class="rounded-2xl border border-slate-200 bg-white h-9 text-sm text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+        </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
         <article
@@ -130,10 +132,12 @@
         </article>
       </div>
 
-      <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
-        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
-        <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
-        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
+      <div class="panel-card bg-white/98 border-slate-200 !p-4">
+        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <div class="rounded-2xl border border-slate-200 bg-white h-9 text-sm text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+        </div>
       </div>
     </div>
 
