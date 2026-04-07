@@ -337,7 +337,7 @@ app.get('/api/stats', auth, async (c) => {
 })
 
 app.get('/api/tg-pools', auth, async (c) => {
-  const res = await c.env.DB.prepare(`SELECT id, name, chat_id, enabled, created_at FROM tg_pools ORDER BY id DESC`).all()
+  const res = await c.env.DB.prepare(`SELECT id, name, bot_token, chat_id, enabled, created_at FROM tg_pools ORDER BY id DESC`).all()
   return c.json({ results: res.results || [] })
 })
 

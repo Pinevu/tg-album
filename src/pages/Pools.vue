@@ -122,7 +122,7 @@ const openSetWebhook = async (pool: any) => {
 
 const togglePoolEnabled = async (pool: any, enabled: boolean) => {
   try {
-    await api.put(`/tg-pools/${pool.id}`, { name: pool.name, bot_token: '', chat_id: pool.chat_id, enabled })
+    await api.put(`/tg-pools/${pool.id}`, { name: pool.name, bot_token: pool.bot_token || pool._bot_token || '', chat_id: pool.chat_id, enabled })
     await load()
   } catch (e: any) {
     message.value = e?.response?.data?.error || '切换启用状态失败'
