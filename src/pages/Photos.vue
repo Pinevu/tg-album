@@ -8,10 +8,10 @@
           <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
         </el-select>
         <el-input v-model="uploadRemark" placeholder="备注" size="small" />
-        <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
-          <div class="px-3 py-2.5 text-center text-slate-700 text-sm">点击或拖拽上传</div>
-        </el-upload>
       </div>
+      <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
+        <div class="px-3 py-2 text-center text-slate-700 text-sm">点击或拖拽上传</div>
+      </el-upload>
       <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2">
         <div v-for="item in uploadQueue" :key="item.id" class="rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <img :src="item.url" class="w-full h-16 object-cover rounded-xl" />
@@ -95,7 +95,6 @@
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
           <div class="relative">
-            <div v-if="item.showDateHeader" class="absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-white/82 border border-slate-200/70 text-slate-400 backdrop-blur shadow-sm">{{ item.dateLabel }}</div>
             <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
@@ -114,10 +113,13 @@
             </div>
           </div>
 
-          <div class="mt-2 min-h-[34px] flex items-center justify-between gap-2">
+          <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
+            <div v-if="item.showDateHeader" class="self-center inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-slate-50 border border-slate-200 text-slate-400">{{ item.dateLabel }}</div>
+            <div class="flex items-center justify-between gap-2">
               <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
               <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
             </div>
+          </div>
           </div>
         </article>
       </div>

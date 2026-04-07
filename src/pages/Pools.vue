@@ -113,11 +113,6 @@ const getSetWebhookCommand = async (pool: any) => {
   return data.set_webhook_command
 }
 
-const copyWebhook = async (pool: any) => {
-  const url = `${origin}/api/tg/webhook/${pool.id}`
-  await navigator.clipboard.writeText(url)
-  ElMessage.success('Webhook 地址已复制')
-}
 
 const openSetWebhook = async (pool: any) => {
   try {
