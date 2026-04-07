@@ -56,16 +56,16 @@
         <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
         <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
       </div>
-      <div class="space-y-1.5">
+      <div class="space-y-2">
         <div class="grid grid-cols-2 gap-2 items-center">
-          <el-select v-model="currentAlbumId" placeholder="相册" class="flex-1" size="small" clearable @change="page = 1; search()">
+          <el-select v-model="currentAlbumId" placeholder="相册" class="w-full" size="small" clearable @change="page = 1; search()">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
-          <el-select v-model="tag" placeholder="标签" filterable class="flex-1" size="small">
+          <el-select v-model="tag" placeholder="标签" filterable class="w-full" size="small">
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center">
+        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center rounded-[20px] border border-slate-200 bg-slate-50/70 p-2">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
           <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[84px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
           <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm whitespace-nowrap flex items-center justify-center">检测失效</button>
