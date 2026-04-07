@@ -95,13 +95,12 @@
 
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
-    <div v-else class="panel-card bg-white/96 flex items-center justify-between gap-3">
-      <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
-      <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
-      <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
-    </div>
-
     <div v-else class="space-y-5">
+      <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
+        <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">上一页</button>
+        <div class="text-sm text-slate-500">第 {{ page }} / {{ totalPages }} 页</div>
+        <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white px-4 h-9 text-sm font-medium shadow-sm disabled:opacity-40">下一页</button>
+      </div>
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
         <article
           v-for="item in photosWithDateMarkers"
