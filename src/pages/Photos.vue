@@ -214,7 +214,6 @@ const detailVisible = ref(false)
 const detail = ref<any>(null)
 const moveDialogVisible = ref(false)
 const moveToAlbumId = ref<number | undefined>()
-const bulkMoveDialogVisible = ref(false)
 const bulkMoveToAlbumId = ref<number | undefined>()
 const bulkMovePickerOpen = ref(false)
 const movePickerOpen = ref(false)
@@ -238,7 +237,7 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id) ? selectedIds.value.filter(i => i !== id) : [...selectedIds.value, id]
 }
 
-const clearSelection = () => { selectedIds.value = [] }
+const clearSelection = () => { selectedIds.value = []; bulkMovePickerOpen.value = false }
 
 const toggleCardActions = (id: number) => {
   activeCardId.value = activeCardId.value === id ? null : id
@@ -332,10 +331,6 @@ const closeMoveDialog = () => {
   moveDialogVisible.value = false
   movePickerOpen.value = false
 }
-const closeBulkMoveDialog = () => {
-  bulkMoveDialogVisible.value = false
-  bulkMovePickerOpen.value = false
-}
 
 const selectMoveAlbum = (album: any) => {
   moveToAlbumId.value = album.id
@@ -367,7 +362,6 @@ const confirmBulkMove = async () => {
   try {
     await batchMove(selectedIds.value, bulkMoveToAlbumId.value)
     clearSelection()
-    closeBulkMoveDialog()
     await search()
     ElMessage.success('批量移动成功')
   } finally {
