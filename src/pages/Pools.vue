@@ -30,19 +30,17 @@
       <div v-for="pool in pools" :key="pool.id" class="panel-card space-y-3">
         <div class="flex items-center justify-between gap-2">
           <div class="font-semibold text-slate-900">{{ pool.name }}</div>
-        </div>
-        <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
-        <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
-        <div class="flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-2">
             <span class="text-sm text-slate-500">启用</span>
             <el-switch :model-value="!!pool.enabled" @change="togglePoolEnabled(pool, $event)" />
           </div>
-          <div class="grid grid-cols-3 gap-2 flex-1 max-w-[320px]">
-            <el-button @click="openSetWebhook(pool)" class="!w-full">setWebhook</el-button>
-            <el-button @click="edit(pool)" class="!w-full">编辑</el-button>
-            <el-button type="danger" @click="remove(pool.id)" class="!w-full">删除</el-button>
-          </div>
+        </div>
+        <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
+        <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
+        <div class="grid grid-cols-3 gap-2">
+          <el-button @click="openSetWebhook(pool)" class="!w-full">测试setWebhook</el-button>
+          <el-button @click="edit(pool)" class="!w-full">编辑</el-button>
+          <el-button type="danger" @click="remove(pool.id)" class="!w-full">删除</el-button>
         </div>
       </div>
     </div>

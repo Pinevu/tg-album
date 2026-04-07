@@ -252,6 +252,19 @@ const photosWithDateMarkers = computed(() => {
     return { ...p, dateLabel, showDateHeader }
   })
 })
+const quickRangeCounts = computed(() => {
+  const rows = photos.value || []
+  const now = new Date()
+  const startToday = new Date(now); startToday.setHours(0,0,0,0)
+  const startWeek = new Date(now); const day = startWeek.getDay() || 7; startWeek.setDate(startWeek.getDate() - day + 1); startWeek.setHours(0,0,0,0)
+  const startMonth = new Date(now); startMonth.setDate(1); startMonth.setHours(0,0,0,0)
+  const countSince = (t:number) => rows.filter((x:any) => Number(x.uploaded_at || 0) >= t).length
+  return {
+    today: countSince(Math.floor(startToday.getTime()/1000)),
+    week: countSince(Math.floor(startWeek.getTime()/1000)),
+    month: countSince(Math.floor(startMonth.getTime()/1000)),
+  }
+})
 
 const closeActionPanel = () => {
   activeCardId.value = null
