@@ -481,6 +481,9 @@ const servePhotoFile = async (c: any, id: string) => {
   }
 
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
+  if (imgRes.ok) {
+    await c.env.DB.prepare(`UPDATE photos SET is_broken = 0, broken_reason = NULL WHERE id = ?`).bind(id).run().catch(() => null)
+  }
   return new Response(imgRes.body, {
     headers: {
       'content-type': imgRes.headers.get('content-type') || 'image/jpeg',
