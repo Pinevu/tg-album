@@ -2,7 +2,7 @@
   <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/98 space-y-3 border-blue-100/80 !p-4">
+    <div class="panel-card bg-white/98 space-y-2.5 border-blue-100/80 !p-4">
       <div class="grid grid-cols-2 gap-2 items-center">
         <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
           <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
@@ -10,9 +10,9 @@
         <el-input v-model="uploadRemark" placeholder="备注" size="small" />
       </div>
       <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
-        <div class="px-3 py-2 text-center text-slate-700 text-sm">点击或拖拽上传</div>
+        <div class="px-3 py-1.5 text-center text-slate-700 text-sm">点击或拖拽上传</div>
       </el-upload>
-      <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2">
+      <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-1.5">
         <div v-for="item in uploadQueue" :key="item.id" class="rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <img :src="item.url" class="w-full h-16 object-cover rounded-xl" />
           <el-progress :percentage="item.progress" :stroke-width="5" :show-text="false" class="mt-2" />
@@ -51,10 +51,10 @@
 
     <div class="panel-card bg-white/98 space-y-2.5 border-slate-200 !p-4">
       <div class="grid grid-cols-4 gap-2 items-center">
-        <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
-        <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
-        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
-        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center">跳转</button>
+        <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
+        <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
+        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white flex items-center justify-center" />
+        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
       </div>
       <div class="space-y-1.5">
         <div class="grid grid-cols-2 gap-2 items-center">
@@ -67,7 +67,7 @@
         </div>
         <div class="grid grid-cols-[1fr_76px] gap-2 items-center">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
-          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px]">搜索</el-button>
+          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
         </div>
       </div>
       <div class="flex items-center justify-between text-sm text-slate-500">
