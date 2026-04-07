@@ -50,15 +50,9 @@
     </div>
 
     <div class="panel-card bg-white/98 space-y-3 border-slate-200">
-      <div class="grid grid-cols-3 gap-2">
-        <button type="button" @click="applyQuickRange('today')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天 {{ quickRangeCounts.today }}</button>
-        <button type="button" @click="applyQuickRange('week')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周 {{ quickRangeCounts.week }}</button>
-        <button type="button" @click="applyQuickRange('month')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月 {{ quickRangeCounts.month }}</button>
-      </div>
-      <div class="grid grid-cols-[repeat(3,auto)_1fr_auto] gap-2 items-center">
+      <div class="grid grid-cols-[repeat(2,auto)_1fr_auto] gap-2 items-center">
         <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
         <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
-        <button type="button" @click="changePageSize(50)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 50 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">50/页</button>
         <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm min-w-0" />
         <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm whitespace-nowrap">跳转</button>
       </div>
@@ -88,7 +82,7 @@
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
         <article
-          v-for="item in photosWithDateMarkers"
+          v-for="item in photos"
           :key="item.id"
           class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
           :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : (latestUploadedPhotoId === item.id ? 'ring-2 ring-emerald-300 border-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.12)]' : '')"
@@ -114,7 +108,6 @@
           </div>
 
           <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
-            <div v-if="item.showDateHeader" class="self-center inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-slate-50 border border-slate-200 text-slate-400">{{ item.dateLabel }}</div>
             <div class="flex items-center justify-between gap-2">
               <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
               <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
@@ -210,9 +203,6 @@ const totalPhotos = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
 const pageJump = ref('')
-const quickRange = ref('')
-const dateStart = ref<number | undefined>()
-const dateEnd = ref<number | undefined>()
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 const selectionMode = ref(false)
@@ -242,29 +232,6 @@ const latestUploadedPhotoId = ref<number | null>(null)
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 const totalPages = computed(() => Math.max(1, Math.ceil(totalPhotos.value / pageSize.value)))
-const photosWithDateMarkers = computed(() => {
-  let lastDate = ""
-  return photos.value.map((p:any) => {
-    const d = new Date((p.uploaded_at || 0) * 1000)
-    const dateLabel = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-    const showDateHeader = dateLabel !== lastDate
-    lastDate = dateLabel
-    return { ...p, dateLabel, showDateHeader }
-  })
-})
-const quickRangeCounts = computed(() => {
-  const rows = photos.value || []
-  const now = new Date()
-  const startToday = new Date(now); startToday.setHours(0,0,0,0)
-  const startWeek = new Date(now); const day = startWeek.getDay() || 7; startWeek.setDate(startWeek.getDate() - day + 1); startWeek.setHours(0,0,0,0)
-  const startMonth = new Date(now); startMonth.setDate(1); startMonth.setHours(0,0,0,0)
-  const countSince = (t:number) => rows.filter((x:any) => Number(x.uploaded_at || 0) >= t).length
-  return {
-    today: countSince(Math.floor(startToday.getTime()/1000)),
-    week: countSince(Math.floor(startWeek.getTime()/1000)),
-    month: countSince(Math.floor(startMonth.getTime()/1000)),
-  }
-})
 
 const closeActionPanel = () => {
   activeCardId.value = null
@@ -304,8 +271,6 @@ const search = async () => {
   if (currentAlbumId.value) params.album_id = currentAlbumId.value
   if (tag.value) params.tag = tag.value
   if (keyword.value) params.keyword = keyword.value
-  if (dateStart.value) params.date_start = dateStart.value
-  if (dateEnd.value) params.date_end = dateEnd.value
   const { data } = await searchPhotos(params)
   totalPhotos.value = Number(data.total || 0)
   photos.value = (data.results || []).map((p: any) => ({ ...p, previewUrl: `/api/photos/file/${p.id}` }))
@@ -329,18 +294,6 @@ const jumpToPage = async () => {
   await changePage(n)
 }
 
-const applyQuickRange = async (mode: 'today' | 'week' | 'month') => {
-  quickRange.value = mode
-  const now = new Date()
-  const start = new Date(now)
-  if (mode === 'today') start.setHours(0,0,0,0)
-  if (mode === 'week') { const day = start.getDay() || 7; start.setDate(start.getDate() - day + 1); start.setHours(0,0,0,0) }
-  if (mode === 'month') { start.setDate(1); start.setHours(0,0,0,0) }
-  dateStart.value = Math.floor(start.getTime()/1000)
-  dateEnd.value = Math.floor(Date.now()/1000)
-  page.value = 1
-  await search()
-}
 
 const sanitizeFilename = (name?: string) => {
   const raw = (name || 'image.jpg').split('/').pop() || 'image.jpg'
