@@ -30,11 +30,10 @@
       <div v-for="pool in pools" :key="pool.id" class="panel-card space-y-3">
         <div class="flex items-center justify-between gap-2">
           <div class="font-semibold text-slate-900">{{ pool.name }}</div>
-          <el-tag v-if="pool.enabled" type="success">已启用</el-tag>
         </div>
         <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
         <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-2">
             <span class="text-sm text-slate-500">启用</span>
             <el-switch :model-value="!!pool.enabled" @change="togglePoolEnabled(pool, $event)" />
