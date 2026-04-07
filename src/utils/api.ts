@@ -43,3 +43,5 @@ export const editPhoto = async (file: File, remark: string, originalFilename: st
   formData.append('original_filename', originalFilename)
   return api.post('/upload', formData)
 }
+
+export const recheckBrokenPhotos = (ids?: number[]) => api.post('/photos/recheck-broken', { ids: ids || [] })

@@ -625,6 +625,43 @@ app.post('/api/photos/batch-delete', auth, async (c) => {
   return c.json({ success: true })
 })
 
+
+app.post('/api/photos/recheck-broken', auth, async (c) => {
+  const { ids } = await c.req.json<any>().catch(() => ({ ids: [] }))
+  let rows: any[] = []
+  if (ids?.length) {
+    const res = await c.env.DB.prepare(`SELECT id, tg_file_id, tg_pool_id FROM photos WHERE id IN (${ids.map(() => '?').join(',')})`).bind(...ids).all<any>()
+    rows = res.results || []
+  } else {
+    const res = await c.env.DB.prepare(`SELECT id, tg_file_id, tg_pool_id FROM photos WHERE is_broken = 1 ORDER BY uploaded_at DESC LIMIT 200`).all<any>()
+    rows = res.results || []
+  }
+  let recovered = 0
+  let stillBroken = 0
+  for (const row of rows) {
+    let botToken = c.env.TG_BOT_TOKEN
+    if (row.tg_pool_id) {
+      const pool = await c.env.DB.prepare(`SELECT bot_token FROM tg_pools WHERE id = ?`).bind(row.tg_pool_id).first<any>()
+      if (pool?.bot_token) botToken = pool.bot_token
+    }
+    if (!botToken) { stillBroken += 1; continue }
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
+      const j = await r.json<any>()
+      if (j?.ok) {
+        await c.env.DB.prepare(`UPDATE photos SET is_broken = 0, broken_reason = NULL WHERE id = ?`).bind(row.id).run()
+        recovered += 1
+      } else {
+        await c.env.DB.prepare(`UPDATE photos SET is_broken = 1, broken_reason = ? WHERE id = ?`).bind(j?.description || 'Telegram 404', row.id).run()
+        stillBroken += 1
+      }
+    } catch {
+      stillBroken += 1
+    }
+  }
+  return c.json({ success: true, checked: rows.length, recovered, stillBroken })
+})
+
 app.post('/api/photos/batch-tag', auth, async (c) => {
   const { ids, tags } = await c.req.json()
   if (!ids?.length || !tags?.length) return c.json({ success: true })

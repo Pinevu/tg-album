@@ -70,9 +70,12 @@
           <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
         </div>
       </div>
-      <div class="flex items-center justify-between text-sm text-slate-500">
+      <div class="flex items-center justify-between text-sm text-slate-500 gap-3">
         <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
-        <div>第 {{ page }} / {{ totalPages }} 页</div>
+        <div class="flex items-center gap-2">
+          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 px-3 h-8 text-sm whitespace-nowrap">重新检测失效图片</button>
+          <div>第 {{ page }} / {{ totalPages }} 页</div>
+        </div>
       </div>
     </div>
 
@@ -204,7 +207,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { searchPhotos, getAlbums, uploadPhoto, listTags, getPhotoDetail, batchMove, batchDelete } from '@/utils/api'
+import { searchPhotos, getAlbums, uploadPhoto, listTags, getPhotoDetail, batchMove, batchDelete, recheckBrokenPhotos } from '@/utils/api'
 import { extractExif, dominantColorHex } from '@/utils/exif'
 
 const pageRef = ref<HTMLElement | null>(null)
@@ -304,6 +307,19 @@ const jumpToPage = async () => {
   const n = Number(pageJump.value)
   if (!Number.isFinite(n)) return
   await changePage(n)
+}
+
+const recheckBroken = async () => {
+  try {
+    const ids = photos.value.filter((p:any) => p.is_broken).map((p:any) => p.id)
+    const { data } = await recheckBrokenPhotos(ids)
+    message.value = `检测 ${data.checked} 张，恢复 ${data.recovered} 张，仍失效 ${data.stillBroken} 张`
+    messageType.value = data.recovered > 0 ? 'success' : 'error'
+    await search()
+  } catch (e:any) {
+    message.value = e?.response?.data?.error || '重新检测失败'
+    messageType.value = 'error'
+  }
 }
 
 
