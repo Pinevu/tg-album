@@ -94,11 +94,20 @@ const save = async () => {
 }
 
 const testPool = async () => {
-  if (!form.value.bot_token) return
+  if (!form.value.bot_token) {
+    message.value = '请先填写 Bot Token'
+    messageType.value = 'error'
+    return
+  }
   try {
     const { data } = await api.post('/tg-pools/test', { bot_token: form.value.bot_token, chat_id: form.value.chat_id })
-    message.value = data.ok ? '测试连接成功' : '测试连接失败'
-    messageType.value = data.ok ? 'success' : 'error'
+    if (data.ok) {
+      message.value = '测试连接成功'
+      messageType.value = 'success'
+    } else {
+      message.value = data?.data?.description || data?.error || '测试连接失败'
+      messageType.value = 'error'
+    }
   } catch (e: any) {
     message.value = e?.response?.data?.error || '测试连接失败'
     messageType.value = 'error'
@@ -132,7 +141,7 @@ const togglePoolEnabled = async (pool: any, enabled: boolean) => {
 
 const edit = (pool: any) => {
   editingId.value = pool.id
-  form.value = { name: pool.name, bot_token: '', chat_id: pool.chat_id, enabled: !!pool.enabled }
+  form.value = { name: pool.name, bot_token: pool.bot_token || '', chat_id: pool.chat_id, enabled: !!pool.enabled }
 }
 
 const remove = async (id: number) => {

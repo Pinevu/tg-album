@@ -341,8 +341,8 @@ const handleUpload = async (options: any) => {
     await search()
     setTimeout(() => { latestUploadedPhotoId.value = null }, 6000)
     ElMessage.success('上传成功，已跳到最新图片')
-  } catch {
-    message.value = '上传失败'
+  } catch (e: any) {
+    message.value = e?.response?.data?.error || e?.message || '上传失败'
     messageType.value = 'error'
   }
 }
