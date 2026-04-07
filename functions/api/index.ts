@@ -57,6 +57,12 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'photos', 'remark'))) {
     try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN remark TEXT`).run() } catch {}
   }
+  if (!(await tableHasColumn(c, 'photos', 'is_broken'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN is_broken INTEGER NOT NULL DEFAULT 0`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'broken_reason'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN broken_reason TEXT`).run() } catch {}
+  }
   if (!(await tableHasColumn(c, 'albums', 'slug'))) {
     try { await c.env.DB.prepare(`ALTER TABLE albums ADD COLUMN slug TEXT`).run() } catch {}
   }
@@ -77,6 +83,12 @@ const ensureBaseSchema = async (c: any) => {
   }
   if (!(await tableHasColumn(c, 'photos', 'remark'))) {
     try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN remark TEXT`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'is_broken'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN is_broken INTEGER NOT NULL DEFAULT 0`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'broken_reason'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN broken_reason TEXT`).run() } catch {}
   }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
@@ -463,7 +475,10 @@ const servePhotoFile = async (c: any, id: string) => {
   if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
   const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
   const fileJson = await fileRes.json<any>()
-  if (!fileJson.ok) return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
+  if (!fileJson.ok) {
+    await c.env.DB.prepare(`UPDATE photos SET is_broken = 1, broken_reason = ? WHERE id = ?`).bind(fileJson?.description || 'Telegram 404', id).run().catch(() => null)
+    return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
+  }
 
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
   return new Response(imgRes.body, {
@@ -486,7 +501,10 @@ app.get('/api/photos/file/:id/:filename', async (c) => {
   if (!botToken) return c.json({ error: 'TG token not configured' }, 500)
   const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${row.tg_file_id}`)
   const fileJson = await fileRes.json<any>()
-  if (!fileJson.ok) return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
+  if (!fileJson.ok) {
+    await c.env.DB.prepare(`UPDATE photos SET is_broken = 1, broken_reason = ? WHERE id = ?`).bind(fileJson?.description || 'Telegram 404', id).run().catch(() => null)
+    return c.json({ error: '图片文件已失效或 TG 返回 404', detail: fileJson }, 404)
+  }
   const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`)
   return new Response(imgRes.body, { headers: { 'content-type': imgRes.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } })
 })
@@ -530,6 +548,7 @@ app.post('/api/upload', auth, async (c) => {
     if (exifJson) {
       await c.env.DB.prepare(`INSERT OR REPLACE INTO photo_metadata (photo_id, raw_exif_json) VALUES (?, ?)`).bind(photoId, exifJson).run()
     }
+    await c.env.DB.prepare(`UPDATE photos SET is_broken = 0, broken_reason = NULL WHERE id = ?`).bind(photoId).run().catch(() => null)
     return c.json({ success: true, pooled: true, album_id: albumId, id: photoId, direct_url: `${getOrigin(c)}/api/photos/file/${photoId}` })
   } catch (e: any) {
     return c.json({ error: e?.message || 'Upload failed' }, 500)

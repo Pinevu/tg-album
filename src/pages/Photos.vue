@@ -89,7 +89,14 @@
           @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
         >
           <div class="relative">
-            <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+            <template v-if="item.is_broken">
+              <div class="w-full aspect-[4/5] rounded-xl border border-dashed border-rose-200 bg-rose-50/50 flex flex-col items-center justify-center text-center px-4">
+                <div class="text-2xl mb-2">⚠️</div>
+                <div class="text-xs font-medium text-rose-600">图片文件已失效</div>
+                <div class="text-[11px] text-rose-400 mt-1 line-clamp-2">{{ item.broken_reason || "Telegram 文件不可用" }}</div>
+              </div>
+            </template>
+            <img v-else :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
             <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
 
@@ -232,6 +239,7 @@ const latestUploadedPhotoId = ref<number | null>(null)
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 const totalPages = computed(() => Math.max(1, Math.ceil(totalPhotos.value / pageSize.value)))
+const brokenCount = computed(() => photos.value.filter((p:any) => !!p.is_broken).length)
 
 const closeActionPanel = () => {
   activeCardId.value = null
