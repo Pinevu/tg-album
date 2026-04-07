@@ -76,7 +76,7 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 0 18px; height: 44px; display:inline-flex; align-items:center; justify-content:center;
+  padding: 0 18px; height: 40px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.94);

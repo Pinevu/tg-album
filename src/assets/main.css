@@ -13,13 +13,13 @@ body {
 .el-menu { border-right: none !important; }
 
 .el-button {
-  height: 44px !important;
-  min-height: 44px !important;
-  padding: 0 18px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 16px !important;
   border-radius: 18px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
-  line-height: 42px !important;
+  line-height: 38px !important;
   box-shadow: none !important;
   border-width: 1px !important;
   border-color: #e2e8f0 !important;
@@ -27,13 +27,13 @@ body {
   color: #334155 !important;
 }
 .el-button--small {
-  height: 44px !important;
-  min-height: 44px !important;
-  padding: 0 18px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 16px !important;
   border-radius: 18px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
-  line-height: 42px !important;
+  line-height: 38px !important;
 }
 .el-button--primary {
   background: #ffffff !important;
