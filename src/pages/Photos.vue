@@ -62,24 +62,6 @@
       </div>
     </div>
 
-    <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] space-y-3">
-      <div class="flex items-center justify-between gap-2 text-sm">
-        <div class="font-medium text-slate-700">已选择 {{ selectedIds.length }} 张图片</div>
-        <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-3 h-8 text-sm font-medium">取消选择</button>
-      </div>
-      <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-11 rounded-[16px] border border-slate-300 bg-white px-4 text-left text-slate-500 flex items-center justify-between">
-        <span>{{ bulkSelectedMoveAlbumName || '选择要移动到的相册' }}</span>
-        <span class="text-slate-400">⌄</span>
-      </button>
-      <div v-if="bulkMovePickerOpen" class="rounded-[18px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden shadow-inner">
-        <button v-for="album in albums" :key="album.id" type="button" @click="selectBulkMoveAlbum(album)" class="w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0">{{ album.name }}</button>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button type="button" @click="confirmBulkMove" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">确认批量移动</button>
-        <button type="button" @click="toRecycleSelected" class="rounded-xl bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-sm font-medium">批量删除</button>
-      </div>
-    </div>
-
     <div class="panel-card bg-white/96 space-y-3">
       <div class="flex flex-wrap gap-2 items-center">
         <button type="button" @click="applyQuickRange('today')" class="rounded-xl border border-slate-200 px-3 h-8 text-sm">今天</button>
@@ -110,42 +92,40 @@
     <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
 
     <div v-else class="space-y-5">
-      <section v-for="group in groupedPhotos" :key="group.date" class="space-y-3">
-        <div class="text-sm font-semibold text-slate-500 px-1">{{ group.label }}</div>
-        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-      <article
-        v-for="photo in group.items"
-        :key="photo.id"
-        class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
-        :class="selectedIds.includes(photo.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
-        @click.stop="selectionMode ? toggleSelect(photo.id) : toggleCardActions(photo.id)"
-      >
-        <div class="relative">
-          <img :src="photo.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
+        <article
+          v-for="item in photosWithDateMarkers"
+          :key="item.id"
+          class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
+          :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : ''"
+          @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
+        >
+          <div v-if="item.showDateHeader" class="mb-2 text-[12px] font-semibold text-slate-500">{{ item.dateLabel }}</div>
+          <div class="relative">
+            <img :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
-          <div v-if="selectedIds.includes(photo.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(photo.id) + 1 }}</div>
+            <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
 
-          <div
-            v-if="!selectionMode && activeCardId === photo.id"
-            class="absolute inset-0 rounded-xl bg-black/18 flex items-center justify-center"
-            @click.stop
-          >
-            <div class="grid grid-cols-2 gap-2 w-[124px]">
-              <button type="button" @click.stop="openDetail(photo.id)" class="action-mini-btn">详情</button>
-              <button type="button" @click.stop="openMoveDialog(photo.id)" class="action-mini-btn text-blue-700">移动</button>
-              <button type="button" @click.stop="deletePhoto(photo.id)" class="action-mini-btn text-rose-600">删除</button>
-              <button type="button" @click.stop="copyDirectLink(photo)" class="action-mini-btn text-emerald-700">直链</button>
+            <div
+              v-if="!selectionMode && activeCardId === item.id"
+              class="absolute inset-0 rounded-xl bg-black/18 flex items-center justify-center"
+              @click.stop
+            >
+              <div class="grid grid-cols-2 gap-2 w-[124px]">
+                <button type="button" @click.stop="openDetail(item.id)" class="action-mini-btn">详情</button>
+                <button type="button" @click.stop="openMoveDialog(item.id)" class="action-mini-btn text-blue-700">移动</button>
+                <button type="button" @click.stop="deletePhoto(item.id)" class="action-mini-btn text-rose-600">删除</button>
+                <button type="button" @click.stop="copyDirectLink(item)" class="action-mini-btn text-emerald-700">直链</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="mt-2 flex items-center justify-between gap-2">
-          <div v-if="photo.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ photo.album_name }}</div>
-          <button type="button" @click.stop="toggleSelect(photo.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(photo.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(photo.id) ? '✓' : '' }}</button>
-        </div>
-      </article>
-        </div>
-      </section>
+          <div class="mt-2 flex items-center justify-between gap-2">
+            <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
+            <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
+          </div>
+        </article>
+      </div>
 
       <div class="panel-card bg-white/96 flex items-center justify-between gap-3">
         <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-xl border border-slate-200 px-4 h-9 text-sm font-medium disabled:opacity-40">上一页</button>
@@ -261,15 +241,15 @@ const messageType = ref<'success' | 'error'>('success')
 const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
 const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 const totalPages = computed(() => Math.max(1, Math.ceil(totalPhotos.value / pageSize.value)))
-const groupedPhotos = computed(() => {
-  const groups: Record<string, any[]> = {}
-  for (const p of photos.value) {
+const photosWithDateMarkers = computed(() => {
+  let lastDate = ""
+  return photos.value.map((p:any) => {
     const d = new Date((p.uploaded_at || 0) * 1000)
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-    if (!groups[key]) groups[key] = []
-    groups[key].push(p)
-  }
-  return Object.entries(groups).map(([date, items]) => ({ date, label: date, items }))
+    const dateLabel = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    const showDateHeader = dateLabel !== lastDate
+    lastDate = dateLabel
+    return { ...p, dateLabel, showDateHeader }
+  })
 })
 
 const closeActionPanel = () => {
