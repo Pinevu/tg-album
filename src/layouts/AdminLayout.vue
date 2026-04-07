@@ -6,12 +6,12 @@
 
       <div class="relative z-10">
         <header class="sticky top-0 z-20 bg-white/82 backdrop-blur-2xl border-b border-slate-200/80 shadow-sm">
-          <div class="max-w-7xl mx-auto px-5 md:px-6 py-3.5 flex items-center justify-between gap-4">
-            <div>
-              <div class="text-xl font-bold tracking-tight">{{ siteTitle }}</div>
-              <div class="text-xs text-slate-500">Telegram 图片存储</div>
+          <div class="max-w-7xl mx-auto px-5 md:px-6 py-3.5 grid grid-cols-[1fr_auto] items-center gap-4">
+            <div class="min-w-0">
+              <div class="text-[20px] font-bold tracking-tight leading-none">{{ siteTitle }}</div>
+              <div class="text-xs text-slate-500 mt-1.5">Telegram 图片存储</div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3 justify-end">
               <a href="/" class="nav-btn">前台</a>
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
             </div>
@@ -76,8 +76,8 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 8px 14px;
-  border-radius: 12px;
+  padding: 0 18px; height: 54px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius: 18px;
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.94);
   color: #475569;

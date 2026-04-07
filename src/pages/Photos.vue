@@ -50,10 +50,10 @@
     </div>
 
     <div class="panel-card bg-white/98 space-y-2.5 border-slate-200 !p-4">
-      <div class="grid grid-cols-4 gap-2 items-center">
+      <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
         <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
         <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
-        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white flex items-center justify-center" />
+        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
         <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
       </div>
       <div class="space-y-1.5">
@@ -65,9 +65,9 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_76px_96px] gap-2 items-center">
+        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
-          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
+          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[84px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
           <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm whitespace-nowrap flex items-center justify-center">检测失效</button>
         </div>
       </div>
@@ -484,4 +484,7 @@ onBeforeUnmount(() => {
   color: #334155;
   box-shadow: 0 4px 10px rgba(15,23,42,.06);
 }
+
+.photos-toolbar-grid > *{min-width:0;}
+.photos-toolbar-grid button,.photos-toolbar-grid input{box-sizing:border-box;}
 </style>
