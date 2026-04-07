@@ -49,14 +49,16 @@
       </div>
     </div>
 
-    <div class="panel-card bg-white/98 space-y-2.5 border-slate-200 !p-4">
-      <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
-        <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
-        <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
-        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
-        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
+    <div class="panel-card bg-white/98 space-y-3 border-slate-200 !p-4">
+      <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2">
+        <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
+          <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
+          <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
+          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
+          <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
+        </div>
       </div>
-      <div class="space-y-2">
+      <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
         <div class="grid grid-cols-2 gap-2 items-center">
           <el-select v-model="currentAlbumId" placeholder="相册" class="w-full" size="small" clearable @change="page = 1; search()">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
@@ -65,13 +67,13 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center rounded-[20px] border border-slate-200 bg-slate-50/70 p-2">
+        <div class="grid grid-cols-[1fr_84px_96px] gap-2 items-center">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
           <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[84px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
           <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm whitespace-nowrap flex items-center justify-center">检测失效</button>
         </div>
       </div>
-      <div class="flex items-center justify-between text-sm text-slate-500 gap-3">
+      <div class="flex items-center justify-between text-sm text-slate-500 gap-3 px-1">
         <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
         <div>第 {{ page }} / {{ totalPages }} 页</div>
       </div>
