@@ -1,8 +1,8 @@
 <template>
-  <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
+  <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/98 space-y-3 border-blue-100/80">
+    <div class="panel-card bg-white/98 space-y-3 border-blue-100/80 !p-4">
       <div class="grid grid-cols-2 gap-2 items-center">
         <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
           <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
@@ -49,15 +49,15 @@
       </div>
     </div>
 
-    <div class="panel-card bg-white/98 space-y-3 border-slate-200">
-      <div class="grid grid-cols-[repeat(2,auto)_1fr_auto] gap-2 items-center">
-        <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
-        <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium whitespace-nowrap" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
-        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm min-w-0 text-center bg-white" />
-        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm whitespace-nowrap px-3">跳转</button>
+    <div class="panel-card bg-white/98 space-y-2.5 border-slate-200 !p-4">
+      <div class="grid grid-cols-4 gap-2 items-center">
+        <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10/页</button>
+        <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20/页</button>
+        <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
+        <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center">跳转</button>
       </div>
-      <div class="space-y-2">
-        <div class="flex gap-2 items-center">
+      <div class="space-y-1.5">
+        <div class="grid grid-cols-2 gap-2 items-center">
           <el-select v-model="currentAlbumId" placeholder="相册" class="flex-1" size="small" clearable @change="page = 1; search()">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
@@ -65,7 +65,7 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+        <div class="grid grid-cols-[1fr_76px] gap-2 items-center">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
           <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px]">搜索</el-button>
         </div>
