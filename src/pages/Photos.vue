@@ -69,7 +69,7 @@
         </div>
         <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
         <div class="grid grid-cols-2 gap-2 items-center">
-          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-full !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
+          <el-button @click="page = 1; search()" size="small" type="primary" class="!w-full !h-9 !rounded-2xl !border !border-slate-200 !shadow-none !bg-white !text-slate-700 hover:!bg-slate-50">搜索</el-button>
           <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm w-full whitespace-nowrap flex items-center justify-center">检测失效</button>
         </div>
       </div>
