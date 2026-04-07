@@ -14,7 +14,7 @@
 
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/96 space-y-4">
+    <div class="panel-card bg-white/98 space-y-4 border-blue-100/80">
       <div class="text-sm font-semibold text-slate-700">上传</div>
       <div class="grid grid-cols-1 md:grid-cols-[180px_1fr_auto] gap-3 items-center">
         <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
@@ -62,21 +62,21 @@
       </div>
     </div>
 
-    <div class="panel-card bg-white/96 space-y-3">
+    <div class="panel-card bg-white/98 space-y-3 border-slate-200">
       <div class="grid grid-cols-3 gap-2">
-        <button type="button" @click="applyQuickRange('today')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
-        <button type="button" @click="applyQuickRange('week')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
-        <button type="button" @click="applyQuickRange('month')" class="rounded-xl border h-9 text-sm font-medium" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
+        <button type="button" @click="applyQuickRange('today')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'today' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">今天</button>
+        <button type="button" @click="applyQuickRange('week')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'week' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本周</button>
+        <button type="button" @click="applyQuickRange('month')" class="rounded-2xl border h-9 text-sm font-medium w-full" :class="quickRange === 'month' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'">本月</button>
       </div>
-      <div class="flex items-center justify-between gap-2 flex-nowrap">
-        <div class="inline-flex rounded-xl border border-slate-200 overflow-hidden bg-white shrink-0">
+      <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+        <div class="inline-flex rounded-2xl border border-slate-200 overflow-hidden bg-white min-w-0">
           <button type="button" @click="changePageSize(10)" class="px-3 h-9 text-sm" :class="pageSize === 10 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">10/页</button>
           <button type="button" @click="changePageSize(20)" class="px-3 h-9 text-sm border-l border-slate-200" :class="pageSize === 20 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">20/页</button>
           <button type="button" @click="changePageSize(50)" class="px-3 h-9 text-sm border-l border-slate-200" :class="pageSize === 50 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'">50/页</button>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-20 h-9 rounded-xl border border-slate-200 px-3 text-sm" />
-          <button type="button" @click="jumpToPage" class="rounded-xl border border-slate-200 bg-white text-slate-600 px-3 h-9 text-sm">跳转</button>
+        <div class="flex items-center gap-2 justify-end min-w-0">
+          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-16 h-9 rounded-2xl border border-slate-200 px-3 text-sm min-w-0" />
+          <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 px-3 h-9 text-sm whitespace-nowrap">跳转</button>
         </div>
       </div>
       <div class="flex flex-wrap gap-3 items-center">
@@ -130,8 +130,8 @@
             </div>
           </div>
 
-          <div class="mt-2 space-y-1.5">
-            <div v-if="item.showDateHeader" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-500">{{ item.dateLabel }}</div>
+          <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
+            <div v-if="item.showDateHeader" class="absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-white/88 border border-slate-200/80 text-slate-400 backdrop-blur shadow-sm">{{ item.dateLabel }}</div>
             <div class="flex items-center justify-between gap-2">
               <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
               <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
