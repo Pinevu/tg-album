@@ -65,17 +65,15 @@
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
           </el-select>
         </div>
-        <div class="grid grid-cols-[1fr_76px] gap-2 items-center">
+        <div class="grid grid-cols-[1fr_76px_96px] gap-2 items-center">
           <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
           <el-button @click="page = 1; search()" size="small" type="primary" class="!w-[76px] !h-9 !rounded-2xl !border !border-slate-200 !shadow-none">搜索</el-button>
+          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 h-9 text-sm whitespace-nowrap flex items-center justify-center">检测失效</button>
         </div>
       </div>
       <div class="flex items-center justify-between text-sm text-slate-500 gap-3">
         <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
-        <div class="flex items-center gap-2">
-          <button type="button" @click="recheckBroken" class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 px-3 h-8 text-sm whitespace-nowrap">重新检测失效图片</button>
-          <div>第 {{ page }} / {{ totalPages }} 页</div>
-        </div>
+        <div>第 {{ page }} / {{ totalPages }} 页</div>
       </div>
     </div>
 

@@ -6,7 +6,7 @@
 
       <div class="relative z-10">
         <header class="sticky top-0 z-20 bg-white/82 backdrop-blur-2xl border-b border-slate-200/80 shadow-sm">
-          <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div class="max-w-7xl mx-auto px-5 md:px-6 py-3.5 flex items-center justify-between gap-4">
             <div>
               <div class="text-xl font-bold tracking-tight">{{ siteTitle }}</div>
               <div class="text-xs text-slate-500">Telegram 图片存储</div>
@@ -16,7 +16,7 @@
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
             </div>
           </div>
-          <div class="max-w-7xl mx-auto px-4 pb-4 overflow-x-auto no-scrollbar">
+          <div class="max-w-7xl mx-auto px-5 md:px-6 pb-3.5 overflow-x-auto no-scrollbar">
             <div class="flex gap-2 min-w-max">
               <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">概述</a>
               <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
@@ -27,7 +27,7 @@
           </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 py-5 md:py-6">
+        <main class="max-w-7xl mx-auto px-5 md:px-6 py-5 md:py-6">
           <router-view />
         </main>
       </div>
