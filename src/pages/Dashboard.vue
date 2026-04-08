@@ -49,5 +49,5 @@ onMounted(load)
 <style scoped>
 .panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all; }
 .panel-label { @apply text-slate-500 text-sm; }
-.panel-value { @apply text-4xl font-bold mt-3 text-slate-900; }
+.panel-value { @apply text-4xl mt-3 text-slate-900; }
 </style>

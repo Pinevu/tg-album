@@ -1,9 +1,7 @@
 <template>
   <div class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4 md:p-5">
     <div class="flex items-end justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">回收站</h1>
-      </div>
+      <div></div>
       <div class="flex gap-2">
         <el-button @click="restore" :disabled="!selectedIds.length">还原</el-button>
         <el-button type="danger" @click="hardDelete" :disabled="!selectedIds.length">彻底删除</el-button>

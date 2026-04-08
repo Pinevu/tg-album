@@ -1,9 +1,5 @@
 <template>
   <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
-    <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">存储</h1>
-    </div>
-
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
     <div class="panel-card space-y-3">

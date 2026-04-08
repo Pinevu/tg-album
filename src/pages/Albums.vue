@@ -1,7 +1,6 @@
 <template>
   <div class="space-y-4 rounded-[28px] bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <div class="space-y-3">
-      <div><h1 class="text-[30px] font-bold text-slate-900 tracking-tight">相册管理</h1><div class="text-sm text-slate-500 mt-1">配置相册基础信息、图标与启动背景图</div></div>
       <div class="w-full max-w-[780px] space-y-3">
         <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
           <div class="grid grid-cols-2 gap-2">
@@ -232,6 +231,6 @@ onMounted(load)
 .tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
 .tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
 
-.upload-like-btn{height:40px;padding:0 18px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#2563eb;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;}
-.upload-like-btn.secondary{color:#0f172a;}
+.upload-like-btn{height:38px;padding:0 15px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:none;}
+.upload-like-btn.secondary{color:#475569;}
 </style>

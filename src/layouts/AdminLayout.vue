@@ -88,18 +88,18 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 0 16px; height: 38px; display:inline-flex; align-items:center; justify-content:center;
+  padding: 0 15px; height: 38px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.98);
   color: #475569;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   text-decoration: none;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  box-shadow: none;
 }
-.nav-btn-active { background: #ffffff; color: #0f172a; border-color: rgba(226,232,240,.95); box-shadow: 0 3px 10px rgba(15,23,42,0.08); }
+.nav-btn-active { background: #ffffff; color: #0f172a; border-color: rgba(226,232,240,.95); box-shadow: none; }
 .nav-btn-dark { background: #0f172a; color: white; border-color: #0f172a; }
 
 .nav-segmented .nav-btn{
@@ -108,7 +108,7 @@ onMounted(async () => {
   padding: 0 6px;
   height: 42px;
   border-radius: 16px;
-  font-size: 12px;
+  font-size: 13px;
   background: transparent;
   border-color: transparent;
   box-shadow: none;

@@ -23,7 +23,7 @@
     <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] space-y-3">
       <div class="flex items-center justify-between gap-2 text-sm">
         <div class="font-medium text-slate-700">已选择 {{ selectedIds.length }} 张图片</div>
-        <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-3 h-8 text-sm font-medium">取消选择</button>
+        <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-3 h-8 text-sm">取消选择</button>
       </div>
 
       <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-11 rounded-[16px] border border-slate-300 bg-white px-4 text-left text-slate-500 flex items-center justify-between">
@@ -44,16 +44,16 @@
       </div>
 
       <div class="grid grid-cols-2 gap-2">
-        <button type="button" @click="confirmBulkMove" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm font-medium">确认批量移动</button>
-        <button type="button" @click="toRecycleSelected" class="rounded-xl bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-sm font-medium">批量删除</button>
+        <button type="button" @click="confirmBulkMove" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-sm">确认批量移动</button>
+        <button type="button" @click="toRecycleSelected" class="rounded-xl bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-sm">批量删除</button>
       </div>
     </div>
 
     <div class="panel-card bg-white/98 space-y-3 border-slate-200 !p-4">
       <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2">
         <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
-          <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
-          <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm font-medium w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
+          <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
+          <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
           <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
           <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-sm w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
         </div>
@@ -84,9 +84,9 @@
     <div v-else class="space-y-5">
       <div class="panel-card bg-white/98 border-slate-200 !p-4">
         <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
           <div class="rounded-2xl border border-slate-200 bg-white h-9 text-sm text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
@@ -107,7 +107,7 @@
             </template>
             <img v-else :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
 
-            <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
+            <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
 
             <div
               v-if="!selectionMode && activeCardId === item.id"
@@ -126,7 +126,7 @@
           <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
             <div class="flex items-center justify-between gap-2">
               <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
-              <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] font-semibold flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
+              <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
             </div>
           </div>
         </article>
@@ -134,9 +134,9 @@
 
       <div class="panel-card bg-white/98 border-slate-200 !p-4">
         <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
           <div class="rounded-2xl border border-slate-200 bg-white h-9 text-sm text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm font-medium shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-sm shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
         </div>
       </div>
     </div>
@@ -478,22 +478,22 @@ onBeforeUnmount(() => {
 .panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
 .panel-mini { @apply rounded-2xl bg-slate-50 p-4; }
 .label { @apply text-xs text-slate-500 mb-1; }
-.value { @apply text-sm font-medium text-slate-800; }
+.value { @apply text-sm text-slate-800; }
 .action-mini-btn {
   height: 34px;
   border-radius: 999px;
   background: rgba(255,255,255,.94);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(226,232,240,.92);
-  font-size: 11px;
-  font-weight: 600;
-  color: #334155;
-  box-shadow: 0 4px 10px rgba(15,23,42,.06);
+  font-size: 10px;
+  font-weight: 400;
+  color: #475569;
+  box-shadow: none;
 }
 
 .photos-toolbar-grid > *{min-width:0;}
 .photos-toolbar-grid button,.photos-toolbar-grid input{box-sizing:border-box;}
 
-.action-ghost-btn{width:100%;height:36px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
+.action-ghost-btn{width:100%;height:36px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
 .action-ghost-btn-danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48;}
 </style>

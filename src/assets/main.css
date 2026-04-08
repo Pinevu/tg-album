@@ -13,37 +13,62 @@ body {
 .el-menu { border-right: none !important; }
 
 .el-button {
-  height: 40px !important;
-  min-height: 40px !important;
-  padding: 0 16px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 15px !important;
   border-radius: 14px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  line-height: 38px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 36px !important;
   box-shadow: none !important;
   border-width: 1px !important;
   border-color: #e2e8f0 !important;
   background: #ffffff !important;
-  color: #334155 !important;
+  color: #475569 !important;
 }
 .el-button--small {
-  height: 40px !important;
-  min-height: 40px !important;
-  padding: 0 16px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 15px !important;
   border-radius: 14px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  line-height: 38px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 36px !important;
 }
 .el-button--primary {
   background: #ffffff !important;
-  color: #334155 !important;
+  color: #475569 !important;
   border-color: #e2e8f0 !important;
 }
 .el-button--danger {
   background: #fff1f2 !important;
   color: #e11d48 !important;
   border-color: #fecdd3 !important;
+}
+
+button,
+.nav-btn,
+.upload-like-btn,
+.action-mini-btn,
+.action-ghost-btn {
+  font-weight: 400 !important;
+}
+
+.admin-btn,
+.action-ghost-btn,
+.action-mini-btn,
+.upload-like-btn {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  box-shadow: none;
+}
+
+.admin-btn-danger,
+.action-ghost-btn-danger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
 }
 
 .el-input__wrapper,
