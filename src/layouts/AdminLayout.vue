@@ -99,7 +99,12 @@ onMounted(async () => {
   white-space: nowrap;
   box-shadow: none;
 }
-.nav-btn-active { background: #ffffff; color: #0f172a; border-color: rgba(226,232,240,.95); box-shadow: none; }
+.nav-btn-active {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(203,213,225,.95);
+  box-shadow: 0 6px 16px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.98);
+}
 .nav-btn-dark { background: #0f172a; color: white; border-color: #0f172a; }
 
 .nav-segmented .nav-btn{
@@ -121,6 +126,9 @@ onMounted(async () => {
 .nav-segmented .nav-btn.nav-btn-active{
   font-weight: 900 !important;
   color:#0f172a;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 100%);
+  border: 1px solid rgba(226,232,240,.98);
+  box-shadow: 0 8px 18px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04), inset 0 1px 0 rgba(255,255,255,1);
 }
 @media (min-width: 768px){
   .nav-segmented{display:flex !important; gap:4px; overflow-x:auto;}
