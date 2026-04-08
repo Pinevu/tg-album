@@ -138,6 +138,8 @@ app.get('/api/version', (c) => {
     runtime: 'cloudflare-pages-functions',
     now: new Date().toISOString(),
     origin,
+    request_host: c.req.header('host') || '',
+    request_url: c.req.url,
   })
 })
 

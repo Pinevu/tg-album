@@ -20,9 +20,16 @@ const safeExec = (cmd, fallback = '') => {
 
 const version = String(pkg.version || '0.0.0')
 const appName = String(pkg.name || 'tg-album-admin')
-const gitCommit = safeExec('git rev-parse HEAD', 'unknown')
-const gitCommitShort = safeExec('git rev-parse --short HEAD', 'unknown')
-const gitBranch = safeExec('git branch --show-current', 'unknown')
+const cfPages = process.env.CF_PAGES || ''
+const cfPagesBranch = process.env.CF_PAGES_BRANCH || ''
+const cfPagesCommitSha = process.env.CF_PAGES_COMMIT_SHA || ''
+const cfPagesUrl = process.env.CF_PAGES_URL || ''
+
+const gitCommit = cfPagesCommitSha || safeExec('git rev-parse HEAD', 'unknown')
+const gitCommitShort = gitCommit && gitCommit !== 'unknown'
+  ? gitCommit.slice(0, 7)
+  : safeExec('git rev-parse --short HEAD', 'unknown')
+const gitBranch = cfPagesBranch || safeExec('git branch --show-current', 'unknown')
 const gitMessage = safeExec('git log -1 --pretty=%s', '')
 const gitCommitTime = safeExec('git log -1 --date=iso-strict --pretty=%ad', '')
 const buildTime = new Date().toISOString()
@@ -35,6 +42,8 @@ export const GIT_BRANCH = ${JSON.stringify(gitBranch)} as const
 export const GIT_MESSAGE = ${JSON.stringify(gitMessage)} as const
 export const GIT_COMMIT_TIME = ${JSON.stringify(gitCommitTime)} as const
 export const BUILD_TIME = ${JSON.stringify(buildTime)} as const
+export const CF_PAGES = ${JSON.stringify(cfPages)} as const
+export const CF_PAGES_URL = ${JSON.stringify(cfPagesUrl)} as const
 
 export const APP_VERSION_INFO = {
   app_name: APP_NAME,
@@ -45,6 +54,8 @@ export const APP_VERSION_INFO = {
   git_message: GIT_MESSAGE,
   git_commit_time: GIT_COMMIT_TIME,
   build_time: BUILD_TIME,
+  cf_pages: CF_PAGES,
+  cf_pages_url: CF_PAGES_URL,
 } as const
 `
 
