@@ -88,7 +88,7 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 0 15px; height: 38px; display:inline-flex; align-items:center; justify-content:center;
+  padding: 0 14px; height: 36px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.98);
@@ -106,9 +106,10 @@ onMounted(async () => {
   width: 100%;
   min-width: 0;
   padding: 0 6px;
-  height: 42px;
+  height: 40px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 700;
   background: transparent;
   border-color: transparent;
   box-shadow: none;
@@ -118,7 +119,7 @@ onMounted(async () => {
 }
 @media (min-width: 768px){
   .nav-segmented{display:flex !important; gap:4px; overflow-x:auto;}
-  .nav-segmented .nav-btn{width:auto; min-width:max-content; height:38px; border-radius:14px; padding:0 14px;}
+  .nav-segmented .nav-btn{width:auto; min-width:max-content; height:40px; border-radius:14px; padding:0 14px;}
 }
 
 .nav-segmented-wrap{overflow:hidden; border-radius:22px; background:rgba(248,250,252,.9); border:1px solid rgba(226,232,240,.95); padding:4px;}

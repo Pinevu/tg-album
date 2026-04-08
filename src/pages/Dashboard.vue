@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
-    <div class="flex items-end justify-between gap-4">
+    <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">概述</h1>
+        <h1 class="text-[12px] font-normal text-slate-500">概述</h1>
       </div>
       <el-button @click="load" type="primary">刷新</el-button>
     </div>
