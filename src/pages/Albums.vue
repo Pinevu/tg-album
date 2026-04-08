@@ -48,28 +48,39 @@
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" v-if="pwaIconUrl || slug || pwaSplashImageUrl">
-      <div class="panel-card bg-white/96 max-w-sm p-3">
+      <div class="panel-card bg-white/96 max-w-sm p-4">
         <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
-        <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[22px] object-cover border border-slate-200 bg-slate-50" />
-        <div class="mt-2.5 text-[11px] text-slate-500">当前来源：{{ iconSourceLabel }}</div>
+        <div class="flex items-center gap-3">
+          <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[20px] object-cover border border-slate-200 bg-slate-50 shadow-sm" />
+          <div class="min-w-0">
+            <div class="text-sm text-slate-900 font-medium truncate">{{ newName || slug || '相册系统' }}</div>
+            <div class="mt-1 text-[11px] text-slate-500 break-all">当前来源：{{ iconSourceLabel }}</div>
+          </div>
+        </div>
       </div>
-      <div class="panel-card bg-white/96 p-3">
-        <div class="text-sm text-slate-500 mb-2.5">当前启动背景图模拟预览</div>
-        <div class="mx-auto w-[250px] rounded-[36px] bg-slate-900 p-[8px] shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
-          <div class="rounded-[28px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
-            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-black/70 z-20 border border-white/10"></div>
-            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.04]" :style="{ objectPosition: splashObjectPosition }" />
+      <div class="panel-card bg-white/96 p-4">
+        <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
+        <div class="mx-auto w-[228px] rounded-[34px] bg-[#0f172a] p-[7px] shadow-[0_18px_40px_rgba(15,23,42,0.16)]">
+          <div class="rounded-[27px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-black/65 z-20 border border-white/10"></div>
+            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover" :style="{ objectPosition: splashObjectPosition }" />
             <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
-            <div class="absolute inset-0 bg-gradient-to-b from-black/8 via-black/10 to-black/46"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-5">
-              <img :src="iconPreviewUrl" class="w-16 h-16 rounded-[20px] border border-white/60 shadow-2xl object-cover" />
-              <div class="mt-4 text-white font-bold text-[22px] tracking-tight">{{ newName || slug || '相册系统' }}</div>
-              <div class="mt-1 text-white/85 text-xs">正在打开你的独立相册…</div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black/6 via-black/10 to-black/34"></div>
+            <div class="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+              <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">Preview</div>
+              <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">{{ splashPositionLabel }}</div>
+            </div>
+            <div class="absolute inset-x-0 bottom-0 p-4 z-10">
+              <div class="rounded-[22px] border border-white/12 bg-black/24 backdrop-blur-md px-4 py-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.12)]">
+                <img :src="iconPreviewUrl" class="mx-auto w-14 h-14 rounded-[18px] border border-white/45 shadow-lg object-cover" />
+                <div class="mt-3 text-white font-semibold text-[20px] tracking-tight leading-none">{{ newName || slug || '相册系统' }}</div>
+                <div class="mt-2 text-white/78 text-[11px] leading-relaxed">正在打开你的独立相册…</div>
+              </div>
             </div>
             <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 rounded-full bg-white/70"></div>
           </div>
         </div>
-        <div class="mt-2.5 text-[11px] text-slate-500">当前来源：{{ splashSourceLabel }}</div>
+        <div class="mt-3 text-[11px] text-slate-500 break-words leading-relaxed">当前来源：{{ splashSourceLabel }}</div>
       </div>
     </div>
 
