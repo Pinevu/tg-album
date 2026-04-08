@@ -60,21 +60,21 @@
       </div>
       <div class="panel-card bg-white/96 p-4">
         <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
-        <div class="mx-auto w-[204px] rounded-[30px] bg-[#0f172a] p-[5px] shadow-[0_12px_26px_rgba(15,23,42,0.12)]">
-          <div class="rounded-[25px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
-            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 rounded-full bg-black/72 z-20 border border-white/10"></div>
-            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[0.91]" :style="{ objectPosition: splashObjectPosition }" />
+        <div class="mx-auto w-[204px] rounded-[30px] bg-[#0f172a] p-[3px] shadow-[0_10px_22px_rgba(15,23,42,0.10)]">
+          <div class="rounded-[24px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-3.5 rounded-full bg-black/78 z-20 border border-white/10"></div>
+            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.03]" :style="{ objectPosition: splashObjectPosition }" />
             <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
             <div class="absolute inset-0 bg-gradient-to-b from-black/6 via-black/10 to-black/34"></div>
             <div class="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
               <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">Preview</div>
               <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">{{ splashPositionLabel }}</div>
             </div>
-            <div class="absolute inset-x-0 bottom-0 p-4 z-10">
-              <div class="rounded-[20px] border border-white/12 bg-black/24 backdrop-blur-md px-4 py-4 text-center shadow-[0_8px_20px_rgba(0,0,0,0.10)]">
-                <img :src="iconPreviewUrl" class="mx-auto w-14 h-14 rounded-[18px] border border-white/45 shadow-sm object-cover" />
-                <div class="mt-3 text-white font-semibold text-[20px] tracking-tight leading-none">{{ newName || slug || '相册系统' }}</div>
-                <div class="mt-2 text-white/78 text-[11px] leading-relaxed">正在打开你的独立相册…</div>
+            <div class="absolute inset-x-0 bottom-0 p-3 z-10">
+              <div class="rounded-[18px] border border-white/12 bg-black/22 backdrop-blur-md px-3 py-3 text-center shadow-[0_6px_16px_rgba(0,0,0,0.10)]">
+                <img :src="iconPreviewUrl" class="mx-auto w-11 h-11 rounded-[14px] border border-white/45 shadow-sm object-cover" />
+                <div class="mt-2.5 text-white font-semibold text-[17px] tracking-tight leading-none">{{ newName || slug || '相册系统' }}</div>
+                <div class="mt-1.5 text-white/76 text-[10px] leading-relaxed">正在打开你的独立相册…</div>
               </div>
             </div>
             <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 rounded-full bg-white/70"></div>
