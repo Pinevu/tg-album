@@ -89,11 +89,25 @@ button,
   padding-right: 11px !important;
 }
 
+.el-input,
+.el-select,
+.el-input *,
+.el-select *,
 .el-input__inner,
 .el-select__input,
+.el-select__selected-item,
+.el-select__placeholder,
+.el-select__selection,
 .el-textarea__inner {
   font-size: 12px !important;
   font-weight: 400 !important;
+}
+
+.el-input__inner,
+.el-select__input,
+.el-select__selected-item,
+.el-select__placeholder {
+  line-height: 20px !important;
 }
 
 .panel-card {
