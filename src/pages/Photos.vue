@@ -1,5 +1,5 @@
 <template>
-  <div ref="pageRef" class="space-y-5 rounded-[32px] bg-white/82 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
+  <div ref="pageRef" class="space-y-4 rounded-[28px] bg-white/86 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
     <div class="panel-card bg-white/98 space-y-2.5 border-blue-100/80 !p-4">

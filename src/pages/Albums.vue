@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-3.5 md:p-4.5">
+  <div class="space-y-4 rounded-[28px] bg-white/86 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <div class="space-y-3">
       <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
       <div class="w-full max-w-[780px] space-y-2.5">
