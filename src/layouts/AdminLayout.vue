@@ -109,13 +109,18 @@ onMounted(async () => {
   height: 40px;
   border-radius: 16px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   background: transparent;
   border-color: transparent;
   box-shadow: none;
 }
 .nav-segmented .nav-btn:not(.nav-btn-active){
   color:#64748b;
+}
+.nav-segmented .nav-btn.nav-btn-active{
+  font-weight: 900;
+  color:#0f172a;
 }
 @media (min-width: 768px){
   .nav-segmented{display:flex !important; gap:4px; overflow-x:auto;}
