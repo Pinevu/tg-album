@@ -10,10 +10,10 @@
         <el-input v-model="uploadRemark" placeholder="备注" size="small" />
       </div>
       <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
-        <div class="px-3 py-1.5 text-center text-slate-700 text-sm">点击或拖拽上传</div>
+        <div class="px-3 py-1.5 text-center text-slate-700 text-xs">点击或拖拽上传</div>
       </el-upload>
       <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-1.5">
-        <div v-for="item in uploadQueue" :key="item.id" class="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+        <div v-for="item in uploadQueue" :key="item.id" class="rounded-[14px] border border-slate-200 bg-slate-50 p-2">
           <img :src="item.url" class="w-full h-16 object-cover rounded-xl" />
           <el-progress :percentage="item.progress" :stroke-width="5" :show-text="false" class="mt-2" />
         </div>
@@ -23,15 +23,15 @@
     <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] space-y-3">
       <div class="flex items-center justify-between gap-2 text-sm">
         <div class="font-medium text-slate-700">已选择 {{ selectedIds.length }} 张图片</div>
-        <button type="button" @click="clearSelection" class="rounded-xl bg-white border border-slate-200 text-slate-600 px-3 h-9 text-xs">取消选择</button>
+        <button type="button" @click="clearSelection" class="rounded-[14px] bg-white border border-slate-200 text-slate-600 px-3 h-9 text-xs">取消选择</button>
       </div>
 
-      <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-9 rounded-[16px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
+      <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-9 rounded-[14px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
         <span>{{ bulkSelectedMoveAlbumName || '选择要移动到的相册' }}</span>
         <span class="text-slate-400">⌄</span>
       </button>
 
-      <div v-if="bulkMovePickerOpen" class="rounded-[18px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden shadow-inner">
+      <div v-if="bulkMovePickerOpen" class="rounded-[14px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden ">
         <button
           v-for="album in albums"
           :key="album.id"
@@ -44,18 +44,18 @@
       </div>
 
       <div class="grid grid-cols-2 gap-2">
-        <button type="button" @click="confirmBulkMove" class="rounded-xl bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-xs">确认批量移动</button>
-        <button type="button" @click="toRecycleSelected" class="rounded-xl bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-xs">批量删除</button>
+        <button type="button" @click="confirmBulkMove" class="rounded-[14px] bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-xs">确认批量移动</button>
+        <button type="button" @click="toRecycleSelected" class="rounded-[14px] bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-xs">批量删除</button>
       </div>
     </div>
 
     <div class="panel-card bg-white/98 space-y-3 border-slate-200 !p-4">
       <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2">
         <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
-          <button type="button" @click="changePageSize(10)" class="rounded-2xl border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
-          <button type="button" @click="changePageSize(20)" class="rounded-2xl border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
-          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-2xl border border-slate-200 px-3 text-sm text-center bg-white" />
-          <button type="button" @click="jumpToPage" class="rounded-2xl border border-slate-200 bg-white text-slate-600 h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
+          <button type="button" @click="changePageSize(10)" class="rounded-[14px] border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
+          <button type="button" @click="changePageSize(20)" class="rounded-[14px] border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
+          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-[14px] border border-slate-200 px-3 text-xs text-center bg-white" />
+          <button type="button" @click="jumpToPage" class="rounded-[14px] border border-slate-200 bg-white text-slate-600 h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
         </div>
       </div>
       <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
@@ -84,9 +84,9 @@
     <div v-else class="space-y-5">
       <div class="panel-card bg-white/98 border-slate-200 !p-4">
         <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-xs shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
-          <div class="rounded-2xl border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-xs shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <div class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">下一页</button>
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
@@ -134,9 +134,9 @@
 
       <div class="panel-card bg-white/98 border-slate-200 !p-4">
         <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-2xl border border-slate-200 bg-white h-9 text-xs shadow-sm disabled:opacity-40 flex items-center justify-center">上一页</button>
-          <div class="rounded-2xl border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-2xl border border-slate-200 bg-white h-9 text-xs shadow-sm disabled:opacity-40 flex items-center justify-center">下一页</button>
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">上一页</button>
+          <div class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">下一页</button>
         </div>
       </div>
     </div>
@@ -149,12 +149,12 @@
             <button type="button" class="w-8 h-9 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeMoveDialog">×</button>
           </div>
 
-          <button type="button" @click="movePickerOpen = !movePickerOpen" class="w-full h-9 rounded-[18px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
+          <button type="button" @click="movePickerOpen = !movePickerOpen" class="w-full h-9 rounded-[14px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
             <span>{{ selectedMoveAlbumName || '选择目标相册' }}</span>
             <span class="text-slate-400">⌄</span>
           </button>
 
-          <div v-if="movePickerOpen" class="mt-3 rounded-[18px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden shadow-inner">
+          <div v-if="movePickerOpen" class="mt-3 rounded-[14px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden ">
             <button
               v-for="album in albums"
               :key="album.id"
@@ -476,24 +476,24 @@ onBeforeUnmount(() => {
 <style scoped>
 .panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
 .panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
-.panel-mini { @apply rounded-2xl bg-slate-50 p-4; }
+.panel-mini { @apply rounded-[14px] bg-slate-50 p-4; }
 .label { @apply text-xs text-slate-500 mb-1; }
 .value { @apply text-sm text-slate-800; }
 .action-mini-btn {
-  height: 34px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.94);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(226,232,240,.92);
-  font-size: 10px;
+  height: 36px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
   font-weight: 400;
   color: #475569;
   box-shadow: none;
+  backdrop-filter: none;
 }
 
 .photos-toolbar-grid > *{min-width:0;}
 .photos-toolbar-grid button,.photos-toolbar-grid input{box-sizing:border-box;}
 
-.action-ghost-btn{width:100%;height:36px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
+.action-ghost-btn{width:100%;height:36px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
 .action-ghost-btn-danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48;}
 </style>

@@ -248,6 +248,6 @@ onMounted(async () => {
 .tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
 .tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
 
-.upload-like-btn{height:38px;padding:0 15px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:none;}
+.upload-like-btn{height:36px;padding:0 14px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:none;}
 .upload-like-btn.secondary{color:#475569;}
 </style>

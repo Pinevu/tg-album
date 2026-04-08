@@ -73,11 +73,27 @@ button,
 .el-input__wrapper,
 .el-textarea__inner,
 .el-select__wrapper {
+  height: 36px !important;
   min-height: 36px !important;
   border-radius: 14px !important;
   border: 1px solid #e5e7eb !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6) !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
 }
+
+.el-input__wrapper,
+.el-select__wrapper {
+  padding-left: 11px !important;
+  padding-right: 11px !important;
+}
+
+.el-input__inner,
+.el-select__input,
+.el-textarea__inner {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+
 .panel-card {
   border-radius: 26px;
   border: 1px solid rgba(226,232,240,.95);
