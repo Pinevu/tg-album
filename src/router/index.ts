@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { nextTick } from 'vue'
 import { useAuthStore } from '@/store/auth'
 
 const routes = [
@@ -29,6 +30,18 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.path.startsWith('/admin') && !auth.token) return '/login'
   if (to.path === '/login' && auth.token) return '/admin/dashboard'
+})
+
+router.afterEach(async (to) => {
+  if (!to.path.startsWith('/admin')) return
+  await nextTick()
+  const blurNow = () => {
+    const active = document.activeElement as HTMLElement | null
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) active.blur()
+  }
+  blurNow()
+  setTimeout(blurNow, 50)
+  setTimeout(blurNow, 250)
 })
 
 export default router

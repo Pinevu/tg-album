@@ -2,44 +2,46 @@
   <div class="space-y-4 rounded-[28px] bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <div class="space-y-3">
       <div class="w-full max-w-[780px] space-y-3">
-        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-          <div class="grid grid-cols-2 gap-2">
-            <el-input v-model="newName" placeholder="相册名" />
-            <el-select v-model="visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
-            <el-input v-model="slug" placeholder="slug" />
-            <el-input v-model="accessPassword" placeholder="密码" show-password />
-          </div>
-        </div>
-
-        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-          <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" />
-          <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
-          <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
-        </div>
-
-        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-          <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-            <label class="upload-like-btn">
-              <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" />
-              <span>选择文件</span>
-            </label>
-            <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
-            <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
+        <form class="contents" autocomplete="off" data-lpignore="true" @submit.prevent>
+          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <el-input v-model="newName" placeholder="相册名" name="album_name" autocomplete="off" />
+              <el-select v-model="visibility" name="album_visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
+              <el-input v-model="slug" placeholder="slug" name="album_slug" autocomplete="off" />
+              <el-input v-model="accessPassword" placeholder="密码" name="album_access_password" type="text" show-password autocomplete="new-password" />
+            </div>
           </div>
 
-          <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-            <label class="upload-like-btn">
-              <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" />
-              <span>选择文件</span>
-            </label>
-            <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
-            <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
+          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+            <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" name="pwa_icon_url" autocomplete="off" />
+            <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" name="pwa_splash_image_url" autocomplete="off" />
+            <el-select v-model="pwaSplashPosition" name="pwa_splash_position"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
           </div>
 
-          <div>
-            <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+            <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+              <label class="upload-like-btn">
+                <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" tabindex="-1" />
+                <span>选择文件</span>
+              </label>
+              <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
+              <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
+            </div>
+
+            <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+              <label class="upload-like-btn">
+                <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" tabindex="-1" />
+                <span>选择文件</span>
+              </label>
+              <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
+              <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
+            </div>
+
+            <div>
+              <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
 
@@ -101,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getAlbumTree, createAlbum, updateAlbum, deleteAlbum } from '@/utils/api'
 
@@ -128,6 +130,13 @@ const iconSourceLabel = computed(() => pwaIconUrl.value ? '自定义图标' : (s
 const splashPositionLabel = computed(() => pwaSplashPosition.value === 'top' ? '顶部偏上' : pwaSplashPosition.value === 'upper' ? '偏上' : pwaSplashPosition.value === 'lower' ? '偏下' : pwaSplashPosition.value === 'bottom' ? '底部偏下' : '居中')
 const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? `独立启动背景图（优先显示，位置：${splashPositionLabel.value}）` : '未设置，前台将回退到相册封面图')
 const splashObjectPosition = computed(() => pwaSplashPosition.value === 'top' ? 'center 10%' : pwaSplashPosition.value === 'upper' ? 'center 30%' : pwaSplashPosition.value === 'lower' ? 'center 70%' : pwaSplashPosition.value === 'bottom' ? 'center 90%' : 'center center')
+
+const blurActiveInput = async () => {
+  await nextTick()
+  const active = document.activeElement as HTMLElement | null
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) active.blur()
+  if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) document.activeElement.blur()
+}
 
 const load = async () => {
   loading.value = true
@@ -187,6 +196,7 @@ const saveAlbum = async () => {
     ElMessage.success('保存成功')
     resetForm()
     await load()
+    await blurActiveInput()
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.error || '保存失败')
   }
@@ -204,6 +214,7 @@ const editAlbum = (album: any) => {
   pwaSplashPosition.value = album.pwa_splash_position || 'center'
   iconFileName.value = album.pwa_icon_url ? '已选择图标' : '未选择文件'
   splashFileName.value = album.pwa_splash_image_url ? '已选择背景' : '未选择文件'
+  blurActiveInput()
 }
 
 const removeAlbum = async (album: any) => {
@@ -211,6 +222,7 @@ const removeAlbum = async (album: any) => {
     await deleteAlbum(album.id)
     ElMessage.success('删除成功')
     await load()
+    await blurActiveInput()
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.error || '删除失败')
   }
@@ -222,7 +234,12 @@ const copyShareLink = async (album: any) => {
   ElMessage.success('分享链接已复制')
 }
 
-onMounted(load)
+onMounted(async () => {
+  await blurActiveInput()
+  await load()
+  setTimeout(() => { blurActiveInput() }, 50)
+  setTimeout(() => { blurActiveInput() }, 250)
+})
 </script>
 
 <style scoped>
