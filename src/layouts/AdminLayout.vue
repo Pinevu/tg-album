@@ -5,18 +5,18 @@
       <div class="absolute inset-x-0 top-0 h-[460px] pointer-events-none" :style="fadeStyle"></div>
 
       <div class="relative z-10">
-        <header class="sticky top-0 z-20 bg-white/96 backdrop-blur-2xl border-b border-slate-200/50 shadow-[0_1px_0_rgba(15,23,42,0.02)]">
-          <div class="max-w-7xl mx-auto px-4 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-3">
+        <header class="sticky top-0 z-20 bg-white/97 backdrop-blur-2xl border-b border-slate-200/45 shadow-[0_1px_0_rgba(15,23,42,0.015)]">
+          <div class="max-w-7xl mx-auto px-4 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-2.5">
             <div class="min-w-0">
-              <div class="text-[19px] font-semibold tracking-tight leading-none">{{ siteTitle }}</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">Telegram 图片存储</div>
+              <div class="text-[18px] font-semibold tracking-tight leading-none">{{ siteTitle }}</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Telegram 图片存储</div>
             </div>
             <div class="flex items-center gap-3 justify-end">
               <a href="/" class="nav-btn">前台</a>
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
             </div>
           </div>
-          <div class="max-w-7xl mx-auto px-4 md:px-6 pb-3">
+          <div class="max-w-7xl mx-auto px-4 md:px-6 pb-2.5">
             <div class="w-full rounded-[24px] border border-slate-200/80 bg-slate-50/70 p-1.5 nav-segmented-wrap">
               <div class="grid grid-cols-5 gap-1.5 w-full nav-segmented">
               <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">概述</a>
@@ -78,32 +78,38 @@ onMounted(async () => {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .nav-btn {
-  padding: 0 18px; height: 40px; display:inline-flex; align-items:center; justify-content:center;
+  padding: 0 16px; height: 38px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
-  background: rgba(255,255,255,0.94);
+  background: rgba(255,255,255,0.98);
   color: #475569;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
-.nav-btn-active { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.14); }
+.nav-btn-active { background: #ffffff; color: #0f172a; border-color: rgba(226,232,240,.95); box-shadow: 0 3px 10px rgba(15,23,42,0.08); }
 .nav-btn-dark { background: #0f172a; color: white; border-color: #0f172a; }
 
 .nav-segmented .nav-btn{
   width: 100%;
   min-width: 0;
   padding: 0 6px;
-  height: 48px;
-  border-radius: 20px;
-  font-size: 13px;
+  height: 42px;
+  border-radius: 16px;
+  font-size: 12px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.nav-segmented .nav-btn:not(.nav-btn-active){
+  color:#64748b;
 }
 @media (min-width: 768px){
-  .nav-segmented{display:flex !important; gap:8px; overflow-x:auto;}
-  .nav-segmented .nav-btn{width:auto; min-width:max-content; height:44px; border-radius:14px; padding:0 16px;}
+  .nav-segmented{display:flex !important; gap:4px; overflow-x:auto;}
+  .nav-segmented .nav-btn{width:auto; min-width:max-content; height:38px; border-radius:14px; padding:0 14px;}
 }
 
-.nav-segmented-wrap{overflow:hidden;}
+.nav-segmented-wrap{overflow:hidden; border-radius:22px; background:rgba(248,250,252,.9); border:1px solid rgba(226,232,240,.95); padding:4px;}
 </style>

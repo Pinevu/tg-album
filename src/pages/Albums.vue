@@ -1,39 +1,45 @@
 <template>
-  <div class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
+  <div class="space-y-4 rounded-[28px] bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
     <div class="space-y-3">
-      <div><h1 class="text-3xl font-bold text-slate-900 tracking-tight">相册管理</h1></div>
-      <div class="w-full max-w-[780px] space-y-2.5">
-        <div class="grid grid-cols-2 gap-2">
-          <el-input v-model="newName" placeholder="相册名" />
-          <el-select v-model="visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
-          <el-input v-model="slug" placeholder="slug" />
-          <el-input v-model="accessPassword" placeholder="密码" show-password />
+      <div><h1 class="text-[30px] font-bold text-slate-900 tracking-tight">相册管理</h1><div class="text-sm text-slate-500 mt-1">配置相册基础信息、图标与启动背景图</div></div>
+      <div class="w-full max-w-[780px] space-y-3">
+        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <el-input v-model="newName" placeholder="相册名" />
+            <el-select v-model="visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
+            <el-input v-model="slug" placeholder="slug" />
+            <el-input v-model="accessPassword" placeholder="密码" show-password />
+          </div>
         </div>
 
-        <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" />
-        <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
-        <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
-
-        <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-          <label class="upload-like-btn">
-            <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" />
-            <span>选择文件</span>
-          </label>
-          <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
-          <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
+        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+          <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" />
+          <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" />
+          <el-select v-model="pwaSplashPosition"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
         </div>
 
-        <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-          <label class="upload-like-btn">
-            <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" />
-            <span>选择文件</span>
-          </label>
-          <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
-          <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
-        </div>
+        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
+          <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+            <label class="upload-like-btn">
+              <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" />
+              <span>选择文件</span>
+            </label>
+            <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
+            <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
+          </div>
 
-        <div>
-          <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+          <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+            <label class="upload-like-btn">
+              <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" />
+              <span>选择文件</span>
+            </label>
+            <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
+            <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
+          </div>
+
+          <div>
+            <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
+          </div>
         </div>
       </div>
     </div>
