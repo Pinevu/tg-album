@@ -60,9 +60,9 @@
       </div>
       <div class="panel-card bg-white/96 p-4">
         <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
-        <div class="mx-auto w-[224px] rounded-[34px] bg-[#0f172a] p-[7px] shadow-[0_16px_34px_rgba(15,23,42,0.14)]">
-          <div class="rounded-[27px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
-            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-black/65 z-20 border border-white/10"></div>
+        <div class="mx-auto w-[204px] rounded-[30px] bg-[#0f172a] p-[5px] shadow-[0_12px_26px_rgba(15,23,42,0.12)]">
+          <div class="rounded-[25px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 rounded-full bg-black/72 z-20 border border-white/10"></div>
             <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[0.91]" :style="{ objectPosition: splashObjectPosition }" />
             <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
             <div class="absolute inset-0 bg-gradient-to-b from-black/6 via-black/10 to-black/34"></div>
