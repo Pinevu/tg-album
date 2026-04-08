@@ -109,7 +109,7 @@ onMounted(async () => {
   height: 40px;
   border-radius: 16px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 800 !important;
   letter-spacing: 0.01em;
   background: transparent;
   border-color: transparent;
@@ -119,7 +119,7 @@ onMounted(async () => {
   color:#64748b;
 }
 .nav-segmented .nav-btn.nav-btn-active{
-  font-weight: 900;
+  font-weight: 900 !important;
   color:#0f172a;
 }
 @media (min-width: 768px){
