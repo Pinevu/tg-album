@@ -4,7 +4,10 @@
       <div class="mb-8 text-center">
         <div class="text-3xl font-bold tracking-wide">相册系统</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
-        <div class="text-xs text-slate-400 mt-2">版本 v1.3.43</div>
+        <div class="text-xs text-slate-400 mt-2">
+          版本 v{{ versionText }}
+          <span v-if="commitShort !== 'unknown'"> · {{ commitShort }}</span>
+        </div>
       </div>
 
       <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="mb-4" />
@@ -21,16 +24,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import api from '@/utils/axios'
 import { useAuthStore } from '@/store/auth'
 import { useRouter } from 'vue-router'
+import { useVersionMeta } from '@/composables/useVersionMeta'
 
 const username = ref('')
 const password = ref('')
 const error = ref('')
 const auth = useAuthStore()
 const router = useRouter()
+const { state: versionState, ensureLoaded } = useVersionMeta()
+
+const versionText = computed(() => versionState.data?.version || '0.0.0')
+const commitShort = computed(() => versionState.data?.git_commit_short || 'unknown')
+
+onMounted(() => {
+  ensureLoaded()
+})
 
 const login = async () => {
   error.value = ''

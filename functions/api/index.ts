@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { sign, verify } from 'hono/jwt'
+import { APP_VERSION_INFO } from '../_generated/version'
 
 type Bindings = {
   DB: D1Database
@@ -128,6 +129,17 @@ const ensureDefaultAlbum = async (c: any) => {
 }
 
 app.get('/api/health', (c) => c.json({ ok: true }))
+
+app.get('/api/version', (c) => {
+  const origin = new URL(c.req.url).origin
+  return c.json({
+    ...APP_VERSION_INFO,
+    service: 'tg-album-api',
+    runtime: 'cloudflare-pages-functions',
+    now: new Date().toISOString(),
+    origin,
+  })
+})
 
 app.post('/api/login', async (c) => {
   try {

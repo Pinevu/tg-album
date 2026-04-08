@@ -12,6 +12,10 @@
               <div class="text-[10px] text-slate-500 mt-0.5">Telegram 图片存储</div>
             </div>
             <div class="flex items-center gap-3 justify-end">
+              <div class="hidden md:block text-[10px] text-slate-400 text-right leading-tight">
+                <div>v{{ versionText }}</div>
+                <div v-if="commitShort !== 'unknown'">{{ commitShort }}</div>
+              </div>
               <a href="/" class="nav-btn">前台</a>
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
             </div>
@@ -42,6 +46,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useRouter, useRoute } from 'vue-router'
 import { getSettings } from '@/utils/api'
+import { useVersionMeta } from '@/composables/useVersionMeta'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -49,6 +54,10 @@ const route = useRoute()
 const siteTitle = ref('相册系统')
 const bgImage = ref('')
 const bgOpacity = ref(0.45)
+const { state: versionState, ensureLoaded } = useVersionMeta()
+
+const versionText = computed(() => versionState.data?.version || '0.0.0')
+const commitShort = computed(() => versionState.data?.git_commit_short || 'unknown')
 
 const logout = () => {
   auth.logout()
@@ -65,6 +74,7 @@ const heroStyle = computed(() => ({ backgroundImage: `url(${bgImage.value})` }))
 const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${bgOpacity.value}) 0%, rgba(255,255,255,0.92) 55%, rgba(248,250,252,1) 100%)` }))
 
 onMounted(async () => {
+  ensureLoaded()
   try {
     const { data } = await getSettings()
     siteTitle.value = data.site_title || '相册系统'

@@ -11,6 +11,18 @@ npm run dev
 npm run build
 ```
 
+## Versioning
+项目会在 `npm run dev` / `npm run build` 前自动执行：
+- `node ./scripts/generate-version.mjs`
+
+它会生成两份版本元数据：
+- `src/generated/version.ts`（前端使用）
+- `functions/_generated/version.ts`（Pages Functions / API 使用）
+
+因此：
+- 前端登录页/后台顶部版本号会自动显示当前 `package.json` 版本 + Git 短提交
+- 后端可直接通过 `/api/version` 查看线上实际版本、提交、构建时间
+
 ## Pages Deploy
 Cloudflare Pages 会自动使用：
 - Build command: `npm run build`
@@ -36,6 +48,7 @@ wrangler d1 execute tg_album_db --file=./schema.sql
 - 使用 Hash Router，避免 Pages SPA 刷新 404
 - 后端函数入口位于 `functions/api/index.ts`
 - 公开健康检查：`/api/health`
+- 公开版本接口：`/api/version`
 
 ## Project Structure
 - `src/` Vue 前端
