@@ -33,10 +33,10 @@
         </div>
         <div class="text-sm text-slate-500">Chat ID：{{ pool.chat_id }}</div>
         <div class="text-xs text-slate-500 break-all">Webhook：{{ origin }}/api/tg/webhook/{{ pool.id }}</div>
-        <div class="grid grid-cols-3 gap-2">
-          <el-button @click="openSetWebhook(pool)" class="!w-full">测试webhook</el-button>
-          <el-button @click="edit(pool)" class="!w-full">编辑</el-button>
-          <el-button type="danger" @click="remove(pool.id)" class="!w-full">删除</el-button>
+        <div class="grid grid-cols-3 gap-2 pool-actions-row">
+          <el-button @click="openSetWebhook(pool)" class="!w-full pool-action-btn">Webhook</el-button>
+          <el-button @click="edit(pool)" class="!w-full pool-action-btn">编辑</el-button>
+          <el-button type="danger" @click="remove(pool.id)" class="!w-full pool-action-btn">删除</el-button>
         </div>
       </div>
     </div>
@@ -115,7 +115,6 @@ const getSetWebhookCommand = async (pool: any) => {
   return data.set_webhook_command
 }
 
-
 const openSetWebhook = async (pool: any) => {
   try {
     const cmd = await getSetWebhookCommand(pool)
@@ -163,4 +162,5 @@ onMounted(load)
 <style scoped>
 .panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
 .panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
+.pool-action-btn { letter-spacing: 0; }
 </style>
