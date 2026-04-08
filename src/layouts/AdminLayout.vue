@@ -6,7 +6,7 @@
 
       <div class="relative z-10">
         <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-2xl border-b border-slate-200/60 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
-          <div class="max-w-7xl mx-auto px-5 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-4">
+          <div class="max-w-7xl mx-auto px-4 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-3">
             <div class="min-w-0">
               <div class="text-[20px] font-semibold tracking-tight leading-none">{{ siteTitle }}</div>
               <div class="text-[11px] text-slate-500 mt-1">Telegram 图片存储</div>
@@ -16,8 +16,8 @@
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
             </div>
           </div>
-          <div class="max-w-7xl mx-auto px-5 md:px-6 pb-3.5 overflow-x-auto no-scrollbar">
-            <div class="flex gap-2 min-w-max">
+          <div class="max-w-7xl mx-auto px-4 md:px-6 pb-3">
+            <div class="grid grid-cols-5 gap-2 w-full nav-segmented">
               <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">概述</a>
               <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
               <a :class="navClass('/admin/albums')" href="/admin/albums">相册</a>
@@ -81,7 +81,7 @@ onMounted(async () => {
   border: 1px solid #e2e8f0;
   background: rgba(255,255,255,0.94);
   color: #475569;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
@@ -89,4 +89,17 @@ onMounted(async () => {
 }
 .nav-btn-active { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 8px 20px rgba(37,99,235,0.18); }
 .nav-btn-dark { background: #0f172a; color: white; border-color: #0f172a; }
+
+.nav-segmented .nav-btn{
+  width: 100%;
+  min-width: 0;
+  padding: 0 6px;
+  height: 48px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+@media (min-width: 768px){
+  .nav-segmented{display:flex !important; gap:8px; overflow-x:auto;}
+  .nav-segmented .nav-btn{width:auto; min-width:max-content; height:44px; border-radius:14px; padding:0 16px;}
+}
 </style>
