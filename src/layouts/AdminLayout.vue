@@ -14,7 +14,6 @@
             <div class="flex items-center gap-3 justify-end">
               <a href="/" class="nav-btn">前台</a>
               <button class="nav-btn nav-btn-dark" @click="logout">退出</button>
-              </div>
             </div>
           </div>
           <div class="max-w-7xl mx-auto px-4 md:px-6 pb-3">
