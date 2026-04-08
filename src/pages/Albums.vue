@@ -62,7 +62,7 @@
         <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
         <div class="mx-auto w-full max-w-[320px] rounded-[28px] border border-slate-200 bg-slate-50 p-3 shadow-sm">
           <div class="rounded-[24px] overflow-hidden bg-white relative aspect-[9/16] border border-slate-200">
-            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover" :style="{ objectPosition: splashObjectPosition }" />
+            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[0.94]" :style="{ objectPosition: splashObjectPosition }" />
             <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
             <div class="absolute inset-0 bg-gradient-to-b from-white/6 via-black/6 to-black/20"></div>
             <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
