@@ -79,6 +79,8 @@ button,
   border: 1px solid #e5e7eb !important;
   box-shadow: none !important;
   background: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
 }
 
 .el-input__wrapper,
