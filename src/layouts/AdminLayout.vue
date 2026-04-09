@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
     <div class="min-h-screen relative overflow-hidden">
-      <div v-if="bgImage" class="absolute inset-x-0 top-0 h-[420px] bg-top bg-no-repeat bg-contain pointer-events-none" :style="heroStyle"></div>
-      <div class="absolute inset-x-0 top-0 h-[460px] pointer-events-none" :style="fadeStyle"></div>
+      <div v-if="bgImage" class="absolute inset-0 pointer-events-none admin-bg-layer" :style="heroStyle"></div>
+      <div class="absolute inset-x-0 top-0 h-[520px] pointer-events-none" :style="fadeStyle"></div>
 
       <div class="relative z-10">
         <header class="sticky top-0 z-20 bg-white/97 backdrop-blur-2xl border-b border-slate-200/45 shadow-[0_1px_0_rgba(15,23,42,0.015)]">
@@ -71,8 +71,13 @@ const navClass = (path: string) => {
   return ['nav-btn', route.path === path ? 'nav-btn-active' : '']
 }
 
-const heroStyle = computed(() => ({ backgroundImage: `url(${bgImage.value})` }))
-const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${bgOpacity.value}) 0%, rgba(255,255,255,0.92) 55%, rgba(248,250,252,1) 100%)` }))
+const heroStyle = computed(() => ({
+  backgroundImage: `url(${bgImage.value})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center top',
+  opacity: String(Math.max(0.08, Math.min(0.32, Number(bgOpacity.value) * 0.55)))
+}))
+const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${Math.max(0.18, Number(bgOpacity.value) * 0.45)}) 0%, rgba(255,255,255,0.92) 38%, rgba(248,250,252,1) 100%)` }))
 
 onMounted(async () => {
   ensureLoaded()
@@ -88,6 +93,11 @@ onMounted(async () => {
 <style scoped>
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.admin-bg-layer {
+  filter: saturate(0.92) blur(0px);
+  transform: scale(1.04);
+  transform-origin: top center;
+}
 .nav-btn {
   padding: 0 14px; height: 36px; display:inline-flex; align-items:center; justify-content:center;
   border-radius: 14px;
