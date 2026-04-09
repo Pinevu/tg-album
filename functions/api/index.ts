@@ -244,18 +244,22 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
   const slug = c.req.param('slug')
   const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
+  const origin = getOrigin(c)
+  // 用 icon_url 的内容 hash 作为版本号，稳定可缓存
+  const iconHash = String(album.pwa_icon_url || '').split('').reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0) | 0
+  const iconVersion = Math.abs(iconHash).toString(36)
   const manifest = {
-    id: `/app/${album.slug}`,
+    id: `${origin}/app/${album.slug}`,
     name: `${album.name}`,
     short_name: album.name,
     description: `私密相册：${album.name}`,
-    start_url: `/app/${album.slug}?source=pwa`,
-    scope: `/app/${album.slug}`,
+    start_url: `${origin}/app/${album.slug}?source=pwa`,
+    scope: `${origin}/app/${album.slug}`,
     display: 'standalone',
     background_color: '#f8fafc',
     theme_color: '#2563eb',
     icons: [
-      { src: `/api/private-albums/${slug}/icon.png`, sizes: '512x512', purpose: 'any' }
+      { src: `${origin}/api/private-albums/${slug}/icon.png?v=${iconVersion}`, sizes: '512x512', purpose: 'any' }
     ]
   }
   return new Response(JSON.stringify(manifest), {
