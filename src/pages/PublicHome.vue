@@ -72,7 +72,7 @@
           <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
             <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
               <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
-                <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
+                <div class="relative aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
                   <img :src="photoSrc(photo)" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
                   <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
                     <div class="flex items-center justify-between gap-3">
@@ -93,7 +93,7 @@
           <div class="overflow-x-auto no-scrollbar carousel-touch">
             <div class="flex gap-3 min-w-max snap-x snap-mandatory">
               <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
-                <img :src="photoSrc(photo)" class="w-28 h-36 object-cover" :loading="imageLoadingAttr" />
+                <img :src="photoSrc(photo)" class="w-24 h-32 sm:w-28 sm:h-36 object-cover" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
