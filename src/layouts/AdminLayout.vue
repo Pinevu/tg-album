@@ -81,12 +81,20 @@ const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba
 
 onMounted(async () => {
   ensureLoaded()
+  // 优先从 localStorage 读取（防止 D1 存储的 base64 被截断导致读出来为空）
+  const cachedBg = localStorage.getItem('admin_bg_image')
+  const cachedOpacity = localStorage.getItem('admin_bg_opacity')
+  bgImage.value = cachedBg || ''
+  bgOpacity.value = Number(cachedOpacity || 0.45)
   try {
     const { data } = await getSettings()
     siteTitle.value = data.site_title || '相册系统'
-    bgImage.value = data.admin_bg_image || ''
-    bgOpacity.value = Number(data.admin_bg_opacity || 0.45)
-  } catch {}
+    // 图片可能因 base64 过长而读取失败，失败时保留当前值
+    bgImage.value = data.admin_bg_image || bgImage.value
+    bgOpacity.value = Number(data.admin_bg_opacity || bgOpacity.value || 0.45)
+  } catch {
+    // 网络/API 错误时什么都不做，保留内存中的值
+  }
 })
 </script>
 
