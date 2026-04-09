@@ -2,10 +2,9 @@
   <div class="min-h-screen bg-slate-50 text-slate-900">
     <div class="min-h-screen relative overflow-hidden">
       <div v-if="bgImage" class="absolute inset-0 pointer-events-none admin-bg-layer" :style="heroStyle"></div>
-      <div class="absolute inset-x-0 top-0 h-[520px] pointer-events-none" :style="fadeStyle"></div>
 
       <div class="relative z-10">
-        <header class="sticky top-0 z-20 bg-white/97 backdrop-blur-2xl border-b border-slate-200/45 shadow-[0_1px_0_rgba(15,23,42,0.015)]">
+        <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-2xl border-b border-slate-200/45 shadow-[0_1px_0_rgba(15,23,42,0.015)]">
           <div class="max-w-7xl mx-auto px-4 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-2.5">
             <div class="min-w-0">
               <div class="text-[18px] font-semibold tracking-tight leading-none">{{ siteTitle }}</div>
@@ -77,7 +76,6 @@ const heroStyle = computed(() => ({
   backgroundPosition: 'center top',
   opacity: String(Math.max(0.05, Number(bgOpacity.value)))
 }))
-const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${Math.max(0.18, Number(bgOpacity.value) * 0.45)}) 0%, rgba(255,255,255,0.92) 38%, rgba(248,250,252,1) 100%)` }))
 
 onMounted(async () => {
   ensureLoaded()
