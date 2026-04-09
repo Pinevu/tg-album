@@ -13,7 +13,7 @@
     </transition>
 
     <header class="sticky top-0 z-50 shrink-0 bg-white/98 backdrop-blur-2xl border-b border-slate-200/50">
-      <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
+      <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2.5 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
           <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-200 shrink-0" />
           <div class="min-w-0">
@@ -28,7 +28,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-4 pb-[max(env(safe-area-inset-bottom),12px)] space-y-4' : 'py-5 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
+    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-3 pb-[max(env(safe-area-inset-bottom),10px)] space-y-3' : 'py-5 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
@@ -67,7 +67,7 @@
 
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
-      <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-4' : 'space-y-5'">
+      <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-3' : 'space-y-5'">
         <template v-if="publicLayoutMode === 'slideshow'">
           <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]" :class="isStandaloneSlideshow ? 'flex-1 min-h-0' : ''">
             <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" :class="isStandaloneSlideshow ? 'h-full' : ''" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
@@ -90,7 +90,7 @@
             </div>
           </div>
 
-          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+10px)]' : ''">
+          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+8px)]' : ''">
             <div class="flex min-w-max snap-x snap-mandatory" :class="isStandaloneSlideshow ? 'gap-2' : 'gap-3'">
               <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
                 <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-20 h-28 object-cover' : 'w-24 h-32 sm:w-28 sm:h-36 object-cover'" :loading="imageLoadingAttr" />
