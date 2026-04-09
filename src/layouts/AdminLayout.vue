@@ -75,7 +75,7 @@ const heroStyle = computed(() => ({
   backgroundImage: `url(${bgImage.value})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center top',
-  opacity: String(Math.max(0.08, Math.min(0.32, Number(bgOpacity.value) * 0.55)))
+  opacity: String(Math.max(0.05, Number(bgOpacity.value)))
 }))
 const fadeStyle = computed(() => ({ background: `linear-gradient(to bottom, rgba(255,255,255,${Math.max(0.18, Number(bgOpacity.value) * 0.45)}) 0%, rgba(255,255,255,0.92) 38%, rgba(248,250,252,1) 100%)` }))
 
