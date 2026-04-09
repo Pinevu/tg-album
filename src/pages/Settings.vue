@@ -26,7 +26,7 @@
           <el-input v-model="form.admin_username" placeholder="管理员用户名" autocomplete="off" />
           <el-input v-model="form.admin_password" placeholder="新密码（留空表示不修改）" show-password autocomplete="new-password" />
         </div>
-        <div class="text-xs text-slate-500">保存时会同步更新后台登录账号。密码留空则保持当前密码不变。</div>
+        <div class="text-xs text-slate-500">当前登录账号优先显示在这里。保存时会同步更新后台登录账号；密码留空则保持当前密码不变。</div>
       </section>
 
       <section class="space-y-3">
@@ -86,12 +86,14 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getSettings, saveSettings } from '@/utils/api'
+import { useAuthStore } from '@/store/auth'
 
+const auth = useAuthStore()
 const form = ref({
   site_title: '相册系统',
   admin_bg_image: '',
   admin_bg_opacity: 0.45,
-  admin_username: 'admin',
+  admin_username: auth.token ? '' : 'admin',
   admin_password: '',
   content_safety_enabled: false,
   content_safety_provider: 'custom',
@@ -101,6 +103,24 @@ const form = ref({
   public_layout_mode: 'grid',
   lazy_load_enabled: true,
 })
+
+const decodeJwtPayload = (token: string) => {
+  try {
+    const part = token.split('.')[1]
+    if (!part) return null
+    const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '==='.slice((base64.length + 3) % 4)
+    return JSON.parse(atob(padded))
+  } catch {
+    return null
+  }
+}
+
+const currentLoggedUsername = () => {
+  if (!auth.token) return ''
+  const payload = decodeJwtPayload(auth.token)
+  return payload?.username || ''
+}
 
 const toBool = (value: any, fallback = false) => {
   if (typeof value === 'boolean') return value
@@ -114,7 +134,7 @@ const load = async () => {
   form.value.site_title = data.site_title || '相册系统'
   form.value.admin_bg_image = data.admin_bg_image || ''
   form.value.admin_bg_opacity = Number(data.admin_bg_opacity || 0.45)
-  form.value.admin_username = data.admin_username || 'admin'
+  form.value.admin_username = currentLoggedUsername() || data.admin_username || 'admin'
   form.value.admin_password = ''
   form.value.content_safety_enabled = toBool(data.content_safety_enabled, false)
   form.value.content_safety_provider = data.content_safety_provider || 'custom'
