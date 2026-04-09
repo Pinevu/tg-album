@@ -74,7 +74,7 @@ const heroStyle = computed(() => ({
   backgroundImage: `url(${bgImage.value})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center top',
-  opacity: String(Math.max(0.05, Number(bgOpacity.value)))
+  opacity: String(Math.max(0.03, Number(bgOpacity.value)))
 }))
 
 onMounted(async () => {
@@ -83,7 +83,7 @@ onMounted(async () => {
   const cachedBg = localStorage.getItem('admin_bg_image')
   const cachedOpacity = localStorage.getItem('admin_bg_opacity')
   bgImage.value = cachedBg || ''
-  bgOpacity.value = Number(cachedOpacity || 0.45)
+  bgOpacity.value = Number(cachedOpacity || 0.8)
   try {
     const { data } = await getSettings()
     siteTitle.value = data.site_title || '相册系统'

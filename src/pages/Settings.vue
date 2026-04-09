@@ -15,7 +15,7 @@
           <img v-if="form.admin_bg_image" :src="form.admin_bg_image" class="w-full max-h-48 object-contain rounded-2xl border border-slate-200 bg-slate-50" />
         </div>
         <div>
-          <div class="text-sm text-slate-500 mb-2">背景遮罩透明度</div>
+          <div class="text-sm text-slate-500 mb-2">背景强度（越高越清晰）</div>
           <el-slider v-model="form.admin_bg_opacity" :min="0" :max="1" :step="0.05" />
         </div>
       </section>
@@ -93,7 +93,7 @@ const auth = useAuthStore()
 const form = ref({
   site_title: '相册系统',
   admin_bg_image: '',
-  admin_bg_opacity: 0.45,
+  admin_bg_opacity: 0.8,
   admin_username: auth.token ? '' : 'admin',
   admin_password: '',
   content_safety_enabled: false,
