@@ -285,6 +285,27 @@ const syncHead = () => {
   let apple = document.head.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null
   if (!apple) { apple = document.createElement('link'); apple.rel = 'apple-touch-icon'; document.head.appendChild(apple) }
   apple.href = iconUrl.value
+
+  // iOS 启动图：优先 splashImage > cover > icon
+  const splashSrc = splashImageUrl.value || coverUrl.value || iconUrl.value
+  // portrait 启动图
+  let portraitStartup = document.head.querySelector('link[rel="apple-touch-startup-image"][media*="portrait"]') as HTMLLinkElement | null
+  if (!portraitStartup) {
+    portraitStartup = document.createElement('link')
+    portraitStartup.rel = 'apple-touch-startup-image'
+    portraitStartup.media = 'screen and (orientation: portrait)'
+    document.head.appendChild(portraitStartup)
+  }
+  portraitStartup.href = splashSrc
+  // landscape 启动图
+  let landscapeStartup = document.head.querySelector('link[rel="apple-touch-startup-image"][media*="landscape"]') as HTMLLinkElement | null
+  if (!landscapeStartup) {
+    landscapeStartup = document.createElement('link')
+    landscapeStartup.rel = 'apple-touch-startup-image'
+    landscapeStartup.media = 'screen and (orientation: landscape)'
+    document.head.appendChild(landscapeStartup)
+  }
+  landscapeStartup.href = splashSrc
 }
 
 const applyFrontendSettings = (settings: any) => {

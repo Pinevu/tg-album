@@ -307,12 +307,12 @@ app.get('/api/private-albums/:slug/icon.png', async (c) => {
       if (m) {
         const mime = m[1]
         const body = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))
-        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'no-store' } })
+        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'public, max-age=31536000, immutable' } })
       }
     }
     const iconUrl = raw.startsWith('http') ? raw : `${getOrigin(c)}${raw.startsWith('/') ? raw : '/' + raw}`
     const res = await fetch(iconUrl)
-    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'no-store' } })
+    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'public, max-age=31536000, immutable' } })
   }
 
   if (album.cover_photo_id) {
@@ -336,12 +336,12 @@ app.get('/api/private-albums/:slug/icon.svg', async (c) => {
       if (m) {
         const mime = m[1]
         const body = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))
-        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'no-store' } })
+        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'public, max-age=31536000, immutable' } })
       }
     }
     const iconUrl = raw.startsWith('http') ? raw : `${getOrigin(c)}${raw.startsWith('/') ? raw : '/' + raw}`
     const res = await fetch(iconUrl)
-    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'no-store' } })
+    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'public, max-age=31536000, immutable' } })
   }
 
   if (album.cover_photo_id) {
