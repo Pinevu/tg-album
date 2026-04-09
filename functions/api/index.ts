@@ -224,10 +224,11 @@ app.get('/api/version', (c) => {
 app.post('/api/login', async (c) => {
   try {
     const { username, password } = await c.req.json()
-    const effectiveUsername = await getSetting(c, 'admin_username', 'admin')
-    const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(effectiveUsername).first<any>()
-    if (!user || username !== effectiveUsername || user.password_hash !== password) return c.json({ error: 'Invalid credentials' }, 401)
-    const token = await sign({ uid: user.id, username: effectiveUsername }, getJwtSecret(c), 'HS256')
+    const configuredUsername = await getSetting(c, 'admin_username', '')
+    const lookupUsername = (configuredUsername && username === configuredUsername) ? configuredUsername : username
+    const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(lookupUsername).first<any>()
+    if (!user || user.password_hash !== password) return c.json({ error: 'Invalid credentials' }, 401)
+    const token = await sign({ uid: user.id, username: user.username }, getJwtSecret(c), 'HS256')
     return c.json({ token })
   } catch {
     return c.json({ error: 'Login failed' }, 500)
