@@ -90,7 +90,7 @@
     <div v-else class="space-y-2.5">
       <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 p-3.5">
         <div class="flex items-center gap-3 min-w-0">
-          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.svg` : '/icon.svg'))" class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.png` : '/icon.svg'))" class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
           <div class="min-w-0">
             <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
               <span>{{ album.name }}</span>

@@ -255,7 +255,7 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
     background_color: '#f8fafc',
     theme_color: '#2563eb',
     icons: [
-      { src: `/api/private-albums/${album.slug}/icon-${hashString(`${album.pwa_icon_url || ''}|${album.cover_photo_id || ''}|${album.name || ''}`)}.png`, sizes: '512x512', purpose: 'any' }
+      { src: `/api/private-albums/${slug}/icon.png`, sizes: '512x512', purpose: 'any' }
     ]
   }
   return new Response(JSON.stringify(manifest), {
