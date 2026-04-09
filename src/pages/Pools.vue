@@ -162,5 +162,5 @@ onMounted(load)
 <style scoped>
 .panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
 .panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
-.pool-action-btn { letter-spacing: 0; }
+.pool-action-btn { letter-spacing: 0; margin-left: 0 !important; margin-right: 0 !important; }
 </style>
