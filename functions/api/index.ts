@@ -39,6 +39,55 @@ const tableHasColumn = async (c: any, table: string, col: string) => {
   return (res.results || []).some((r: any) => r.name === col)
 }
 
+const getAllSettings = async (c: any) => {
+  const res = await c.env.DB.prepare(`SELECT key, value FROM app_settings`).all<any>()
+  const obj: any = {}
+  for (const row of (res.results || [])) obj[row.key] = row.value
+  return obj
+}
+
+const getSetting = async (c: any, key: string, fallback = '') => {
+  const row = await c.env.DB.prepare(`SELECT value FROM app_settings WHERE key = ? LIMIT 1`).bind(key).first<any>()
+  return row?.value ?? fallback
+}
+
+const setSetting = async (c: any, key: string, value: any) => {
+  await c.env.DB.prepare(`INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)`).bind(key, String(value ?? '')).run()
+}
+
+const toBool = (value: any, fallback = false) => {
+  if (typeof value === 'boolean') return value
+  if (value === 'true' || value === '1' || value === 1) return true
+  if (value === 'false' || value === '0' || value === 0) return false
+  return fallback
+}
+
+const runContentSafetyCheck = async (c: any, file: File) => {
+  const enabled = toBool(await getSetting(c, 'content_safety_enabled', 'false'), false)
+  if (!enabled) return { checked: false, blocked: false }
+  const provider = await getSetting(c, 'content_safety_provider', 'custom')
+  const apiUrl = await getSetting(c, 'content_safety_api_url', '')
+  const apiKey = await getSetting(c, 'content_safety_api_key', '')
+  const action = await getSetting(c, 'content_safety_action', 'freeze')
+  if (!apiUrl) return { checked: false, blocked: false, skipped: 'api_not_configured', provider, action }
+  try {
+    const body = new FormData()
+    body.append('file', file)
+    body.append('provider', provider)
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: apiKey ? { 'x-api-key': apiKey } : undefined,
+      body,
+    })
+    const data = await res.json<any>().catch(() => ({}))
+    const blocked = !!(data?.blocked || data?.violation || data?.unsafe)
+    const reason = data?.reason || data?.label || data?.message || '内容安全检测命中风险'
+    return { checked: true, blocked, reason, action, provider, raw: data }
+  } catch (e: any) {
+    return { checked: false, blocked: false, error: e?.message || 'content safety request failed' }
+  }
+}
+
 const ensureBaseSchema = async (c: any) => {
   await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL)`).run()
   await c.env.DB.prepare(`CREATE TABLE IF NOT EXISTS albums (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, parent_id INTEGER)`).run()
@@ -91,10 +140,39 @@ const ensureBaseSchema = async (c: any) => {
   if (!(await tableHasColumn(c, 'photos', 'broken_reason'))) {
     try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN broken_reason TEXT`).run() } catch {}
   }
+  if (!(await tableHasColumn(c, 'photos', 'moderation_status'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN moderation_status TEXT NOT NULL DEFAULT 'passed'`).run() } catch {}
+  }
+  if (!(await tableHasColumn(c, 'photos', 'moderation_reason'))) {
+    try { await c.env.DB.prepare(`ALTER TABLE photos ADD COLUMN moderation_reason TEXT`).run() } catch {}
+  }
 
   const defaultAlbum = await c.env.DB.prepare(`SELECT id FROM albums WHERE name = '未分类' LIMIT 1`).first<any>()
   if (!defaultAlbum) {
     await c.env.DB.prepare(`INSERT INTO albums (name, parent_id, visibility, cover_photo_id) VALUES ('未分类', NULL, 'private', NULL)`).run()
+  }
+
+  const adminUser = await c.env.DB.prepare(`SELECT id FROM users WHERE username = 'admin' LIMIT 1`).first<any>()
+  if (!adminUser) {
+    await c.env.DB.prepare(`INSERT INTO users (username, password_hash) VALUES ('admin', 'admin123')`).run()
+  }
+
+  const defaults: Record<string, string> = {
+    site_title: '相册系统',
+    admin_bg_image: '',
+    admin_bg_opacity: '0.45',
+    admin_username: 'admin',
+    content_safety_enabled: 'false',
+    content_safety_provider: 'custom',
+    content_safety_api_url: '',
+    content_safety_api_key: '',
+    content_safety_action: 'freeze',
+    public_layout_mode: 'grid',
+    lazy_load_enabled: 'true'
+  }
+  for (const [key, value] of Object.entries(defaults)) {
+    const exists = await c.env.DB.prepare(`SELECT key FROM app_settings WHERE key = ? LIMIT 1`).bind(key).first<any>()
+    if (!exists) await setSetting(c, key, value)
   }
 }
 
@@ -146,9 +224,10 @@ app.get('/api/version', (c) => {
 app.post('/api/login', async (c) => {
   try {
     const { username, password } = await c.req.json()
-    const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first<any>()
-    if (!user || user.password_hash !== password) return c.json({ error: 'Invalid credentials' }, 401)
-    const token = await sign({ uid: user.id, username }, getJwtSecret(c), 'HS256')
+    const effectiveUsername = await getSetting(c, 'admin_username', 'admin')
+    const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(effectiveUsername).first<any>()
+    if (!user || username !== effectiveUsername || user.password_hash !== password) return c.json({ error: 'Invalid credentials' }, 401)
+    const token = await sign({ uid: user.id, username: effectiveUsername }, getJwtSecret(c), 'HS256')
     return c.json({ token })
   } catch {
     return c.json({ error: 'Login failed' }, 500)
@@ -281,8 +360,17 @@ app.post('/api/private-albums/:slug/auth', async (c) => {
   const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, access_password, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   if ((album.access_password || '') !== (password || '')) return c.json({ error: '密码错误' }, 401)
-  const photos = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND p.album_id = ? ORDER BY p.uploaded_at DESC LIMIT 400`).bind(album.id).all<any>()
-  return c.json({ album: { id: album.id, name: album.name, slug: album.slug, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null, pwa_splash_position: album.pwa_splash_position || 'center' }, results: photos.results || [] })
+  const settings = await getAllSettings(c)
+  const photos = await c.env.DB.prepare(`SELECT p.*, a.name AS album_name FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.deleted_at IS NULL AND (p.moderation_status IS NULL OR p.moderation_status != 'blocked') AND p.album_id = ? ORDER BY p.uploaded_at DESC LIMIT 400`).bind(album.id).all<any>()
+  return c.json({
+    album: { id: album.id, name: album.name, slug: album.slug, cover_photo_id: album.cover_photo_id || null, pwa_icon_url: album.pwa_icon_url || null, pwa_splash_image_url: album.pwa_splash_image_url || null, pwa_splash_position: album.pwa_splash_position || 'center' },
+    settings: {
+      site_title: settings.site_title || '相册系统',
+      public_layout_mode: settings.public_layout_mode || 'grid',
+      lazy_load_enabled: toBool(settings.lazy_load_enabled, true)
+    },
+    results: photos.results || []
+  })
 })
 
 app.get('/api/public/albums', async (c) => {
@@ -318,32 +406,57 @@ app.get('/api/public/photos', async (c) => {
     SELECT p.*, a.name AS album_name
     FROM photos p
     JOIN albums a ON p.album_id = a.id
-    WHERE p.deleted_at IS NULL AND a.visibility = 'public'
+    WHERE p.deleted_at IS NULL AND (p.moderation_status IS NULL OR p.moderation_status != 'blocked') AND a.visibility = 'public'
   `
   if (album_id) { sql += ' AND p.album_id = ?'; p.push(album_id) }
   sql += ' ORDER BY p.uploaded_at DESC LIMIT 400'
   const res = await c.env.DB.prepare(sql).bind(...p).all<any>()
-  return c.json({ results: res.results || [] })
+  const settings = await getAllSettings(c)
+  return c.json({
+    settings: {
+      site_title: settings.site_title || '相册系统',
+      public_layout_mode: settings.public_layout_mode || 'grid',
+      lazy_load_enabled: toBool(settings.lazy_load_enabled, true)
+    },
+    results: res.results || []
+  })
 })
 
 
 app.get('/api/settings', auth, async (c) => {
-  const res = await c.env.DB.prepare(`SELECT key, value FROM app_settings`).all<any>()
-  const obj:any = {}
-  for (const row of (res.results || [])) obj[row.key] = row.value
+  const obj:any = await getAllSettings(c)
   return c.json(obj)
 })
 
 app.post('/api/settings', auth, async (c) => {
   const payload = await c.req.json<any>()
+  const adminUsername = String(payload?.admin_username || '').trim()
+  const adminPassword = String(payload?.admin_password || '').trim()
+
   for (const [key, value] of Object.entries(payload || {})) {
-    await c.env.DB.prepare(`INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)`).bind(key, String(value ?? '')).run()
+    if (key === 'admin_password') continue
+    await setSetting(c, key, value)
   }
+
+  if (adminUsername) {
+    const currentUsername = await getSetting(c, 'admin_username', 'admin')
+    const currentUser = await c.env.DB.prepare(`SELECT * FROM users WHERE username = ? LIMIT 1`).bind(currentUsername).first<any>()
+    if (currentUser) {
+      await c.env.DB.prepare(`UPDATE users SET username = ? WHERE id = ?`).bind(adminUsername, currentUser.id).run()
+    } else {
+      await c.env.DB.prepare(`INSERT OR REPLACE INTO users (username, password_hash) VALUES (?, ?)`).bind(adminUsername, adminPassword || 'admin123').run()
+    }
+    await setSetting(c, 'admin_username', adminUsername)
+    if (adminPassword) {
+      await c.env.DB.prepare(`UPDATE users SET password_hash = ? WHERE username = ?`).bind(adminPassword, adminUsername).run()
+    }
+  }
+
   return c.json({ success: true })
 })
 
 app.get('/api/stats', auth, async (c) => {
-  const totalPhotos = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL`).first<any>()
+  const totalPhotos = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NULL AND (moderation_status IS NULL OR moderation_status != 'blocked')`).first<any>()
   const totalAlbums = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM albums`).first<any>()
   const totalDeleted = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM photos WHERE deleted_at IS NOT NULL`).first<any>()
   const totalPools = await c.env.DB.prepare(`SELECT COUNT(*) as c FROM tg_pools`).first<any>()
@@ -539,6 +652,10 @@ app.post('/api/upload', auth, async (c) => {
     const form = await c.req.formData()
     const file = form.get('file') as File | null
     if (!file) return c.json({ error: 'No file provided' }, 400)
+    const moderation = await runContentSafetyCheck(c, file)
+    if (moderation.blocked && moderation.action === 'freeze') {
+      return c.json({ error: '图片命中合规风险，已冻结上传', moderation }, 422)
+    }
     const pool = await getActivePool(c)
     if (!pool.bot_token || !pool.chat_id) return c.json({ error: '未配置 TG 存储池' }, 500)
     const defaultAlbumId = await ensureDefaultAlbum(c)
@@ -560,13 +677,17 @@ app.post('/api/upload', auth, async (c) => {
     if (!tg.ok) return c.json({ error: 'Telegram upload failed', detail: tg }, 500)
     const photo = tg.result.photo.at(-1)
     const now = Math.floor(Date.now() / 1000)
-    const ins = await c.env.DB.prepare(`INSERT INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, original_filename, remark, width, height, file_size, dominant_color_hex, uploaded_at, tg_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null).run()
+    const moderationStatus = moderation.blocked ? 'flagged' : 'passed'
+    const moderationReason = moderation.reason || null
+    const ins = await c.env.DB.prepare(`INSERT INTO photos (album_id, tg_pool_id, tg_file_id, tg_file_unique_id, original_filename, remark, width, height, file_size, dominant_color_hex, uploaded_at, tg_message_id, moderation_status, moderation_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(albumId, pool.tg_pool_id, photo.file_id, photo.file_unique_id, original, remark, photo.width, photo.height, photo.file_size, dominant, now, tg.result.message_id || null, moderationStatus, moderationReason)
+      .run()
     const photoId = ins.meta.last_row_id
     if (exifJson) {
       await c.env.DB.prepare(`INSERT OR REPLACE INTO photo_metadata (photo_id, raw_exif_json) VALUES (?, ?)`).bind(photoId, exifJson).run()
     }
     await c.env.DB.prepare(`UPDATE photos SET is_broken = 0, broken_reason = NULL WHERE id = ?`).bind(photoId).run().catch(() => null)
-    return c.json({ success: true, pooled: true, album_id: albumId, id: photoId, direct_url: `${getOrigin(c)}/api/photos/file/${photoId}` })
+    return c.json({ success: true, pooled: true, album_id: albumId, id: photoId, moderation: { ...moderation, status: moderationStatus }, direct_url: `${getOrigin(c)}/api/photos/file/${photoId}` })
   } catch (e: any) {
     return c.json({ error: e?.message || 'Upload failed' }, 500)
   }

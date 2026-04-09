@@ -2,7 +2,7 @@
   <div class="min-h-screen flex items-center justify-center bg-[#f8fafc] text-slate-900 px-4 py-10">
     <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-xl p-8">
       <div class="mb-8 text-center">
-        <div class="text-3xl font-bold tracking-wide">相册系统</div>
+        <div class="text-3xl font-bold tracking-wide">{{ siteTitle }}</div>
         <div class="text-slate-500 mt-2 text-sm">私有相册后台管理</div>
         <div class="text-xs text-slate-400 mt-2">
           版本 v{{ versionText }}
@@ -29,6 +29,7 @@ import api from '@/utils/axios'
 import { useAuthStore } from '@/store/auth'
 import { useRouter } from 'vue-router'
 import { useVersionMeta } from '@/composables/useVersionMeta'
+import { getSettings } from '@/utils/api'
 
 const username = ref('')
 const password = ref('')
@@ -36,12 +37,17 @@ const error = ref('')
 const auth = useAuthStore()
 const router = useRouter()
 const { state: versionState, ensureLoaded } = useVersionMeta()
+const siteTitle = ref('相册系统')
 
 const versionText = computed(() => versionState.data?.version || '0.0.0')
 const commitShort = computed(() => versionState.data?.git_commit_short || 'unknown')
 
-onMounted(() => {
+onMounted(async () => {
   ensureLoaded()
+  try {
+    const { data } = await getSettings()
+    siteTitle.value = data.site_title || '相册系统'
+  } catch {}
 })
 
 const login = async () => {

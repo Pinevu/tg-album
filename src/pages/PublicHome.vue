@@ -68,43 +68,56 @@
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
       <div v-else class="space-y-5">
-        <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-          <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
-            <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
-              <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
-                <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" />
-                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
-                  <div class="flex items-center justify-between gap-3">
-                    <div>
-                      <div class="text-lg font-semibold">{{ albumTitle }}</div>
-                      
+        <template v-if="publicLayoutMode === 'slideshow'">
+          <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
+              <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
+                <div class="relative aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
+                  <img :src="photoSrc(photo)" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
+                  <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <div class="text-lg font-semibold">{{ albumTitle }}</div>
+                      </div>
+                      <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
                     </div>
-                    <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
-                  </div>
-                  <div class="flex gap-1.5 mt-3">
-                    <span v-for="(dot, idx) in photos" :key="dot.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
+                    <div class="flex gap-1.5 mt-3">
+                      <span v-for="(dot, idx) in photos" :key="dot.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="overflow-x-auto no-scrollbar carousel-touch">
-          <div class="flex gap-3 min-w-max snap-x snap-mandatory">
-            <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
-              <img :src="`/api/photos/file/${photo.id}`" class="w-28 h-36 object-cover" />
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-          <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="openViewerByPhoto(photo)">
-            <div class="aspect-[3/4] overflow-hidden bg-slate-100">
-              <img :src="`/api/photos/file/${photo.id}`" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+          <div class="overflow-x-auto no-scrollbar carousel-touch">
+            <div class="flex gap-3 min-w-max snap-x snap-mandatory">
+              <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
+                <img :src="photoSrc(photo)" class="w-28 h-36 object-cover" :loading="imageLoadingAttr" />
+              </button>
             </div>
           </div>
-        </div>
+        </template>
+
+        <template v-else-if="publicLayoutMode === 'waterfall'">
+          <div class="columns-2 md:columns-3 xl:columns-4 gap-4 md:gap-5 [column-fill:_balance]">
+            <div v-for="photo in photos" :key="photo.id" class="mb-4 md:mb-5 break-inside-avoid cursor-pointer" @click="openViewerByPhoto(photo)">
+              <div class="group rounded-[26px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+                <img :src="photoSrc(photo)" class="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-500" :loading="imageLoadingAttr" />
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+            <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="openViewerByPhoto(photo)">
+              <div class="aspect-[3/4] overflow-hidden bg-slate-100">
+                <img :src="photoSrc(photo)" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" :loading="imageLoadingAttr" />
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </main>
 
@@ -121,10 +134,11 @@
           <div class="relative w-full h-full flex items-center justify-center">
             <img
               v-if="currentViewerPhoto"
-              :src="`/api/photos/file/${currentViewerPhoto.id}`"
+              :src="photoSrc(currentViewerPhoto)"
               class="max-w-full max-h-full object-contain select-none"
               :style="viewerImageStyle"
               draggable="false"
+              :loading="imageLoadingAttr"
             />
           </div>
         </div>
@@ -134,7 +148,7 @@
           <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar px-4">
             <div class="flex gap-2 min-w-max">
               <button v-for="(photo, idx) in photos" :key="`viewer-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="rounded-2xl overflow-hidden border-2 transition-all duration-200" :class="idx === viewerIndex ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]' : 'border-white/20'">
-                <img :src="`/api/photos/file/${photo.id}`" class="w-14 h-18 object-cover" />
+                <img :src="photoSrc(photo)" class="w-14 h-18 object-cover" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
@@ -171,6 +185,9 @@ const currentSlideIndex = ref(0)
 let slideTimer: any = null
 const slidePaused = ref(false)
 let manifestLinkEl: HTMLLinkElement | null = null
+const siteTitle = ref('相册系统')
+const publicLayoutMode = ref<'waterfall' | 'grid' | 'slideshow'>('grid')
+const lazyLoadEnabled = ref(true)
 
 const viewerVisible = ref(false)
 const viewerOpening = ref(false)
@@ -206,6 +223,9 @@ const splashBgUrl = computed(() => splashImageUrl.value || coverUrl.value)
 const splashBgPosition = computed(() => splashImagePosition.value === 'top' ? 'center 10%' : splashImagePosition.value === 'upper' ? 'center 30%' : splashImagePosition.value === 'lower' ? 'center 70%' : splashImagePosition.value === 'bottom' ? 'center 90%' : 'center center')
 const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.value)}` : '/')
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
+const imageLoadingAttr = computed(() => lazyLoadEnabled.value ? 'lazy' : 'eager')
+const photoSrc = (photo: any) => `/api/photos/file/${photo.id}`
+
 const viewerImageStyle = computed(() => ({
   transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value * (viewerOpening.value ? 0.96 : 1)})`,
   opacity: viewerOpening.value ? 0.92 : 1,
@@ -247,8 +267,8 @@ const setManifestForSlug = (slugValue?: string) => {
 }
 
 const syncHead = () => {
-  const title = slug.value ? `${albumTitle.value} · 私密相册` : '相册系统'
-  const desc = slug.value ? `打开私密相册 ${albumTitle.value}，可安装到主屏幕作为独立相册使用。` : '相册系统'
+  const title = slug.value ? `${albumTitle.value} · 私密相册` : siteTitle.value
+  const desc = slug.value ? `打开私密相册 ${albumTitle.value}，可安装到主屏幕作为独立相册使用。` : siteTitle.value
   document.title = title
   const setMeta = (name: string, content: string) => {
     let el = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
@@ -259,24 +279,31 @@ const syncHead = () => {
   setMeta('theme-color', '#ffffff')
   setMeta('apple-mobile-web-app-capable', 'yes')
   setMeta('apple-mobile-web-app-status-bar-style', 'default')
-  setMeta('apple-mobile-web-app-title', slug.value ? albumTitle.value : '相册系统')
+  setMeta('apple-mobile-web-app-title', slug.value ? albumTitle.value : siteTitle.value)
   setMeta('mobile-web-app-capable', 'yes')
   let apple = document.head.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null
   if (!apple) { apple = document.createElement('link'); apple.rel = 'apple-touch-icon'; document.head.appendChild(apple) }
   apple.href = iconUrl.value
 }
 
+const applyFrontendSettings = (settings: any) => {
+  siteTitle.value = settings?.site_title || '相册系统'
+  publicLayoutMode.value = (settings?.public_layout_mode || 'grid') as any
+  lazyLoadEnabled.value = settings?.lazy_load_enabled !== false && settings?.lazy_load_enabled !== 'false' && settings?.lazy_load_enabled !== '0'
+}
+
 const loadPublicPhotos = async () => {
   slug.value = ''
   iconVersion.value = ''
-  albumTitle.value = '相册系统'
+  setManifestForSlug()
+  const { data } = await axios.get('/api/public/photos')
+  applyFrontendSettings(data.settings || {})
+  albumTitle.value = siteTitle.value || '相册系统'
   albumVisibility.value = 'public'
   coverPhotoId.value = null
   splashImageUrl.value = ''
   splashImagePosition.value = 'center'
-  setManifestForSlug()
   syncHead()
-  const { data } = await axios.get('/api/public/photos')
   photos.value = data.results || []
   currentSlideIndex.value = 0
   startSlideShow()
@@ -324,6 +351,7 @@ const submitPassword = async () => {
     splashImagePosition.value = data.album?.pwa_splash_position || 'center'
     iconVersion.value = data.album?.pwa_icon_url || data.album?.cover_photo_id ? `${Date.now()}` : iconVersion.value
     needPassword.value = false
+    applyFrontendSettings(data.settings || {})
     syncHead()
     startSlideShow()
     localStorage.setItem(passwordCacheKey(slug.value), JSON.stringify({ password: password.value, expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000 }))
@@ -342,7 +370,16 @@ const onHeroScroll = () => {
   currentSlideIndex.value = Math.max(0, Math.min(index, photos.value.length - 1))
 }
 const goToSlide = (index: number) => { currentSlideIndex.value = index; slidePaused.value = true; scrollToIndex(index) }
-const startSlideShow = () => { if (slideTimer) clearInterval(slideTimer); if (photos.value.length <= 1 || slidePaused.value) return; slideTimer = setInterval(() => { const next = (currentSlideIndex.value + 1) % photos.value.length; currentSlideIndex.value = next; scrollToIndex(next) }, 4200) }
+const startSlideShow = () => {
+  if (slideTimer) clearInterval(slideTimer)
+  if (publicLayoutMode.value !== 'slideshow') return
+  if (photos.value.length <= 1 || slidePaused.value) return
+  slideTimer = setInterval(() => {
+    const next = (currentSlideIndex.value + 1) % photos.value.length
+    currentSlideIndex.value = next
+    scrollToIndex(next)
+  }, 4200)
+}
 const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
 const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
 
