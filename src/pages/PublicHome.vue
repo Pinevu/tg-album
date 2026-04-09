@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900 font-sans" :class="isStandalone ? 'standalone-safe' : ''">
+  <div class="min-h-screen bg-white text-slate-900 font-sans flex flex-col" :class="[isStandalone ? 'standalone-safe' : '', isStandaloneSlideshow ? 'h-[100svh] overflow-hidden' : '']">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
         <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
@@ -28,7 +28,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-5 space-y-5 bg-white select-none" style="overscroll-behavior-y:none; touch-action: pan-y;">
+    <main class="max-w-6xl mx-auto w-full px-4 py-5 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden space-y-4' : 'space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
@@ -67,12 +67,12 @@
 
       <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
 
-      <div v-else class="space-y-5">
+      <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-4' : 'space-y-5'">
         <template v-if="publicLayoutMode === 'slideshow'">
-          <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-            <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
+          <div class="relative rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]" :class="isStandaloneSlideshow ? 'flex-1 min-h-0' : ''">
+            <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" :class="isStandaloneSlideshow ? 'h-full' : ''" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
               <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
-                <div class="relative aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9] bg-slate-100 overflow-hidden">
+                <div class="relative bg-slate-100 overflow-hidden" :class="isStandaloneSlideshow ? 'h-full min-h-0' : 'aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9]'">
                   <img :src="photoSrc(photo)" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
                   <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
                     <div class="flex items-center justify-between gap-3">
@@ -90,7 +90,7 @@
             </div>
           </div>
 
-          <div class="overflow-x-auto no-scrollbar carousel-touch">
+          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0">
             <div class="flex gap-3 min-w-max snap-x snap-mandatory">
               <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
                 <img :src="photoSrc(photo)" class="w-24 h-32 sm:w-28 sm:h-36 object-cover" :loading="imageLoadingAttr" />
@@ -225,6 +225,7 @@ const normalAlbumUrl = computed(() => slug.value ? `/${encodeURIComponent(slug.v
 const currentViewerPhoto = computed(() => photos.value[viewerIndex.value] || null)
 const imageLoadingAttr = computed(() => lazyLoadEnabled.value ? 'lazy' : 'eager')
 const photoSrc = (photo: any) => `/api/photos/file/${photo.id}`
+const isStandaloneSlideshow = computed(() => isStandalone.value && publicLayoutMode.value === 'slideshow' && photos.value.length > 0)
 
 const viewerImageStyle = computed(() => ({
   transform: `translate3d(${viewerTranslateX.value}px, ${viewerTranslateY.value}px, 0) scale(${viewerScale.value * (viewerOpening.value ? 0.96 : 1)})`,
