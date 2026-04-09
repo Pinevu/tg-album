@@ -8,16 +8,6 @@
       <section class="space-y-3">
         <div class="section-title">基础信息</div>
         <el-input v-model="form.site_title" placeholder="网页名称 / 站点标题" />
-        <el-input v-model="form.admin_bg_image" placeholder="后台背景图 URL" />
-        <div class="space-y-2">
-          <div class="text-sm text-slate-500">或上传背景图</div>
-          <input type="file" accept="image/*" @change="onFileChange" class="block w-full text-sm text-slate-500" />
-          <img v-if="form.admin_bg_image" :src="form.admin_bg_image" class="w-full max-h-48 object-contain rounded-2xl border border-slate-200 bg-slate-50" />
-        </div>
-        <div>
-          <div class="text-sm text-slate-500 mb-2">背景强度（越高越清晰）</div>
-          <el-slider v-model="form.admin_bg_opacity" :min="0" :max="1" :step="0.05" />
-        </div>
       </section>
 
       <section class="space-y-3">
@@ -76,7 +66,6 @@
 
       <div class="flex gap-2 flex-wrap">
         <el-button type="primary" @click="save">保存设置</el-button>
-        <el-button @click="clearImage">清空背景图</el-button>
       </div>
     </div>
   </div>
@@ -86,14 +75,11 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getSettings, saveSettings } from '@/utils/api'
-import { compressImageDataUrl } from '@/utils/imageCompress'
 import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()
 const form = ref({
   site_title: '相册系统',
-  admin_bg_image: '',
-  admin_bg_opacity: 0.8,
   admin_username: auth.token ? '' : 'admin',
   admin_password: '',
   content_safety_enabled: false,
@@ -133,9 +119,6 @@ const toBool = (value: any, fallback = false) => {
 const load = async () => {
   const { data } = await getSettings()
   form.value.site_title = data.site_title || '相册系统'
-  // 优先读 API，若为空则读 localStorage 兜底（防止 base64 存储截断导致读出来为空）
-  form.value.admin_bg_image = data.admin_bg_image || localStorage.getItem('admin_bg_image') || ''
-  form.value.admin_bg_opacity = Number(data.admin_bg_opacity || localStorage.getItem('admin_bg_opacity') || 0.45)
   form.value.admin_username = currentLoggedUsername() || data.admin_username || 'admin'
   form.value.admin_password = ''
   form.value.content_safety_enabled = toBool(data.content_safety_enabled, false)
@@ -147,29 +130,8 @@ const load = async () => {
   form.value.lazy_load_enabled = toBool(data.lazy_load_enabled, true)
 }
 
-const onFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => { form.value.admin_bg_image = String(reader.result || '') }
-  reader.readAsDataURL(file)
-}
-
-const clearImage = () => {
-  form.value.admin_bg_image = ''
-}
-
 const save = async () => {
-  const payload = { ...form.value }
-  // 压缩背景图再保存，避免 base64 过长导致 D1 存储截断
-  if (payload.admin_bg_image && payload.admin_bg_image.startsWith('data:')) {
-    payload.admin_bg_image = await compressImageDataUrl(payload.admin_bg_image)
-  }
-  await saveSettings(payload)
-  // 同时存一份到 localStorage 作为持久兜底
-  if (payload.admin_bg_image) localStorage.setItem('admin_bg_image', payload.admin_bg_image)
-  if (payload.admin_bg_opacity !== undefined) localStorage.setItem('admin_bg_opacity', String(payload.admin_bg_opacity))
+  await saveSettings(form.value)
   form.value.admin_password = ''
   ElMessage.success('设置已保存')
 }

@@ -12,8 +12,6 @@ export type PhotoQuery = {
 
 export type AdminSettingsPayload = {
   site_title?: string
-  admin_bg_image?: string
-  admin_bg_opacity?: number | string
   admin_username?: string
   admin_password?: string
   content_safety_enabled?: boolean | string

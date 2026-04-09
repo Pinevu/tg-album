@@ -159,8 +159,6 @@ const ensureBaseSchema = async (c: any) => {
 
   const defaults: Record<string, string> = {
     site_title: '相册系统',
-    admin_bg_image: '',
-    admin_bg_opacity: '0.45',
     admin_username: 'admin',
     content_safety_enabled: 'false',
     content_safety_provider: 'custom',
