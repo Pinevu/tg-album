@@ -245,7 +245,7 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
   const album = await c.env.DB.prepare(`SELECT id, name, slug, visibility, cover_photo_id, pwa_icon_url, pwa_splash_image_url, pwa_splash_position FROM albums WHERE slug = ? AND visibility = 'private' LIMIT 1`).bind(slug).first<any>()
   if (!album) return c.json({ error: 'Album not found' }, 404)
   const origin = getOrigin(c)
-  // 用 icon_url 的内容 hash 作为版本号，稳定可缓存
+  // 绝对 URL + 版本号 bust 缓存，确保图标更新后立即生效
   const iconHash = String(album.pwa_icon_url || '').split('').reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0) | 0
   const iconVersion = Math.abs(iconHash).toString(36)
   const manifest = {
@@ -265,7 +265,8 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
   return new Response(JSON.stringify(manifest), {
     headers: {
       'content-type': 'application/manifest+json; charset=utf-8',
-      'cache-control': 'public, max-age=3600'
+      // 每次访问都 revalidate，图标更新后 manifest 里版本号随之更新，图标立即刷新
+      'cache-control': 'public, max-age=0, must-revalidate'
     }
   })
 })
@@ -311,12 +312,12 @@ app.get('/api/private-albums/:slug/icon.png', async (c) => {
       if (m) {
         const mime = m[1]
         const body = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))
-        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'public, max-age=31536000, immutable' } })
+        return new Response(body, { headers: { 'content-type': mime, 'cache-control': 'no-store' } })
       }
     }
     const iconUrl = raw.startsWith('http') ? raw : `${getOrigin(c)}${raw.startsWith('/') ? raw : '/' + raw}`
     const res = await fetch(iconUrl)
-    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'public, max-age=31536000, immutable' } })
+    return new Response(res.body, { headers: { 'content-type': res.headers.get('content-type') || 'image/png', 'cache-control': 'no-store' } })
   }
 
   if (album.cover_photo_id) {
