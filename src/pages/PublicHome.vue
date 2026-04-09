@@ -90,10 +90,10 @@
             </div>
           </div>
 
-          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0">
-            <div class="flex gap-3 min-w-max snap-x snap-mandatory">
+          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+10px)]' : ''">
+            <div class="flex min-w-max snap-x snap-mandatory" :class="isStandaloneSlideshow ? 'gap-2' : 'gap-3'">
               <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
-                <img :src="photoSrc(photo)" class="w-24 h-32 sm:w-28 sm:h-36 object-cover" :loading="imageLoadingAttr" />
+                <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-20 h-28 object-cover' : 'w-24 h-32 sm:w-28 sm:h-36 object-cover'" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
