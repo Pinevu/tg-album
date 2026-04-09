@@ -22,12 +22,13 @@
           </div>
           <div class="max-w-7xl mx-auto px-4 md:px-6 pb-2.5">
             <div class="w-full rounded-[24px] border border-slate-200/80 bg-slate-50/70 p-1.5 nav-segmented-wrap">
-              <div class="grid grid-cols-5 gap-1.5 w-full nav-segmented">
-              <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">概述</a>
-              <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
-              <a :class="navClass('/admin/albums')" href="/admin/albums">相册</a>
-              <a :class="navClass('/admin/pools')" href="/admin/pools">存储</a>
-              <a :class="navClass('/admin/recycle')" href="/admin/recycle">回收站</a>
+              <div class="grid grid-cols-6 gap-1.5 w-full nav-segmented">
+                <a :class="navClass('/admin/dashboard')" href="/admin/dashboard">概述</a>
+                <a :class="navClass('/admin/photos')" href="/admin/photos">图片</a>
+                <a :class="navClass('/admin/albums')" href="/admin/albums">相册</a>
+                <a :class="navClass('/admin/pools')" href="/admin/pools">存储</a>
+                <a :class="navClass('/admin/recycle')" href="/admin/recycle">回收站</a>
+                <a :class="navClass('/admin/settings')" href="/admin/settings">设置</a>
               </div>
             </div>
           </div>

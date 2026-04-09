@@ -10,6 +10,21 @@ export type PhotoQuery = {
   page_size?: number
 }
 
+export type AdminSettingsPayload = {
+  site_title?: string
+  admin_bg_image?: string
+  admin_bg_opacity?: number | string
+  admin_username?: string
+  admin_password?: string
+  content_safety_enabled?: boolean | string
+  content_safety_provider?: string
+  content_safety_api_url?: string
+  content_safety_api_key?: string
+  content_safety_action?: string
+  public_layout_mode?: 'waterfall' | 'grid' | 'slideshow'
+  lazy_load_enabled?: boolean | string
+}
+
 export const login = (username: string, password: string) => api.post('/login', { username, password })
 export const searchPhotos = (params: PhotoQuery) => api.get('/photos/search', { params })
 export const getPhotoFile = (id: number) => api.get(`/photos/file/${id}`, { responseType: 'blob' })
@@ -34,7 +49,7 @@ export const createPool = (payload: any) => api.post('/tg-pools', payload)
 export const updatePool = (id: number, payload: any) => api.put(`/tg-pools/${id}`, payload)
 export const deletePool = (id: number) => api.delete(`/tg-pools/${id}`)
 export const getSettings = () => api.get('/settings')
-export const saveSettings = (payload: any) => api.post('/settings', payload)
+export const saveSettings = (payload: AdminSettingsPayload) => api.post('/settings', payload)
 
 export const editPhoto = async (file: File, remark: string, originalFilename: string) => {
   const formData = new FormData()
