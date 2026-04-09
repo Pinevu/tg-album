@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900 font-sans flex flex-col" :class="[isStandalone ? 'standalone-safe' : '', isStandaloneSlideshow ? 'h-[100svh] overflow-hidden' : '']">
+  <div class="min-h-screen bg-white text-slate-900 font-sans flex flex-col" :class="[isStandalone ? 'standalone-safe' : '', isStandaloneSlideshow ? 'h-[100dvh] overflow-hidden' : '']">
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
         <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
@@ -12,7 +12,7 @@
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 bg-white/98 backdrop-blur-2xl border-b border-slate-200/50">
+    <header class="sticky top-0 z-50 shrink-0 bg-white/98 backdrop-blur-2xl border-b border-slate-200/50">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-3 flex-1">
           <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-200 shrink-0" />
@@ -28,7 +28,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto w-full px-4 py-5 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden space-y-4' : 'space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
+    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-4 pb-[max(env(safe-area-inset-bottom),12px)] space-y-4' : 'py-5 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
@@ -530,6 +530,12 @@ watch(() => route.fullPath, () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
 })
 
+watch(isStandaloneSlideshow, (active) => {
+  document.documentElement.style.overflow = active ? 'hidden' : ''
+  document.body.style.overflow = active ? 'hidden' : ''
+  document.body.style.height = active ? '100dvh' : ''
+}, { immediate: true })
+
 watch(viewerIndex, () => {
   if (viewerVisible.value) {
     setTimeout(centerViewerStrip, 10)
@@ -556,7 +562,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.standalone-safe { padding-top: env(safe-area-inset-top); background:#fff; }
+.standalone-safe { background:#fff; }
 .top-btn { height: 44px; padding: 0 16px; border-radius: 18px; font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,23,42,.05); }
 .top-btn-neutral { background:#f8fafc; border:1px solid #e2e8f0; color:#0f172a; }
 .top-btn-white { background:#fff; border:1px solid #e2e8f0; color:#475569; }
