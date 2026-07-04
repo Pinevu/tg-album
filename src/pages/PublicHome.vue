@@ -28,7 +28,7 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-3 pb-[max(env(safe-area-inset-bottom),10px)] space-y-3' : 'py-5 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
+    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-3 pb-[max(env(safe-area-inset-bottom),10px)] space-y-3' : 'pt-5 pb-6 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
       <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
         <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
           <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
@@ -79,10 +79,15 @@
                       <div>
                         <div class="text-lg font-semibold">{{ albumTitle }}</div>
                       </div>
-                      <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '继续' : '暂停' }}</button>
+                      <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}</button>
                     </div>
-                    <div class="flex gap-1.5 mt-3">
-                      <span v-for="(dot, idx) in photos" :key="dot.id" class="w-2 h-2 rounded-full transition-all" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50'"></span>
+                    <div class="flex items-center gap-2 mt-3">
+                      <template v-if="photos.length <= 20">
+                        <span v-for="(dot, idx) in photos" :key="dot.id" class="h-1.5 rounded-full transition-all duration-300" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50 w-1.5'"></span>
+                      </template>
+                      <template v-else>
+                        <span class="text-white/80 text-xs">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
+                      </template>
                     </div>
                   </div>
                 </div>
