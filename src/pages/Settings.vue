@@ -38,30 +38,28 @@
       </section>
 
       <section class="space-y-3">
-        <div class="section-title">鉴黄与合规审查</div>
-        <div class="rounded-[22px] border border-slate-200 bg-slate-50/70 p-3 space-y-3">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-sm text-slate-700">启用内容安全检测</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">上传时调用第三方内容安全 API，发现违规图片自动冻结</div>
-            </div>
+        <div class="flex items-center justify-between gap-3">
+          <div class="section-title">内容安全</div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-400">启用</span>
             <el-switch v-model="form.content_safety_enabled" />
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        </div>
+        <template v-if="form.content_safety_enabled">
+          <div class="grid grid-cols-2 gap-3">
             <el-select v-model="form.content_safety_provider">
-              <el-option label="关闭 / 自定义" value="custom" />
+              <el-option label="自定义" value="custom" />
               <el-option label="阿里云" value="aliyun" />
-              <el-option label="腾讯云天御" value="tencent" />
+              <el-option label="腾讯云" value="tencent" />
             </el-select>
             <el-select v-model="form.content_safety_action">
-              <el-option label="冻结违规图片" value="freeze" />
-              <el-option label="仅标记风险" value="flag" />
+              <el-option label="冻结" value="freeze" />
+              <el-option label="标记" value="flag" />
             </el-select>
           </div>
-          <el-input v-model="form.content_safety_api_url" placeholder="内容安全 API URL（可选，自定义模式必填）" />
-          <el-input v-model="form.content_safety_api_key" placeholder="内容安全 API Key（可选）" show-password autocomplete="off" />
-          <div class="text-xs text-slate-500">说明：当前版本已支持后台配置、上传时按开关触发，并在命中风险时执行冻结/标记策略。若第三方接口未配置，将自动跳过检测。</div>
-        </div>
+          <el-input v-model="form.content_safety_api_url" placeholder="API URL" />
+          <el-input v-model="form.content_safety_api_key" placeholder="API Key" show-password autocomplete="off" />
+        </template>
       </section>
 
       <div class="flex gap-2 flex-wrap">

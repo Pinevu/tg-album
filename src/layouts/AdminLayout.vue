@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900">
-    <div class="min-h-screen relative">
+  <div class="bg-slate-50 text-slate-900">
+    <div class="relative">
       <header class="sticky top-0 z-20 bg-white/97 backdrop-blur-2xl border-b border-slate-200/45 shadow-[0_1px_0_rgba(15,23,42,0.015)]">
         <div class="max-w-7xl mx-auto px-4 md:px-6 py-2 grid grid-cols-[1fr_auto] items-center gap-2.5">
           <div class="min-w-0">
