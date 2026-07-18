@@ -13,9 +13,12 @@
     </transition>
 
     <header v-if="isStandaloneSlideshow" class="sticky top-0 z-50 shrink-0 bg-white/80 backdrop-blur-2xl">
-      <div class="px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-center justify-center gap-3">
-        <span class="text-[13px] font-semibold text-slate-800 tracking-tight">{{ albumTitle }}</span>
-        <span class="text-[10px] text-slate-400 ml-1">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
+      <div class="px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-semibold text-slate-800 tracking-tight">{{ albumTitle }}</span>
+          <span class="text-[10px] text-slate-400">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
+        </div>
+        <button @click.stop="toggleSlideShow" class="text-[11px] text-blue-500 font-medium px-2 py-1 rounded-lg bg-blue-50 active:bg-blue-100 transition-colors">{{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}</button>
       </div>
     </header>
     <header v-else class="sticky top-0 z-50 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200/30">
