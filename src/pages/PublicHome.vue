@@ -12,18 +12,23 @@
       </div>
     </transition>
 
-    <header class="sticky top-0 z-50 shrink-0 bg-white/98 backdrop-blur-2xl border-b border-slate-200/50">
+    <header v-if="isStandaloneSlideshow" class="sticky top-0 z-50 shrink-0 bg-white/80 backdrop-blur-2xl">
+      <div class="px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-center justify-center gap-3">
+        <span class="text-[13px] font-semibold text-slate-800 tracking-tight">{{ albumTitle }}</span>
+        <span class="text-[10px] text-slate-400 ml-1">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
+      </div>
+    </header>
+    <header v-else class="sticky top-0 z-50 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200/30">
       <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2.5 flex items-center justify-between gap-3">
-        <div class="min-w-0 flex items-center gap-3 flex-1">
-          <img :src="iconUrl" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-200 shrink-0" />
+        <div class="min-w-0 flex items-center gap-2.5 flex-1">
+          <img :src="iconUrl" class="w-9 h-9 rounded-[10px] object-cover border border-slate-100 shrink-0" />
           <div class="min-w-0">
-            <div class="text-[18px] md:text-[22px] font-bold tracking-tight text-slate-900 truncate">{{ albumTitle }}</div>
-            <div class="text-xs md:text-sm text-slate-500 truncate">{{ isStandalone ? '独立相册' : (isPrivate ? '私密相册' : '摄影作品流') }}</div>
+            <div class="text-[16px] font-semibold tracking-tight leading-tight truncate">{{ albumTitle }}</div>
+            <div class="text-[10px] text-slate-400 truncate">{{ isStandalone ? '独立相册' : (isPrivate ? '私密相册' : '摄影作品流') }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button v-if="canInstallAlbum && !isStandalone && isPrivate" @click="installAlbumPwa" class="top-btn top-btn-neutral">安装相册</button>
-          <a v-if="!isStandalone" href="/login" class="top-btn top-btn-white">管理入口</a>
+          <a v-if="!isStandalone" href="/login" class="ios-btn">管理</a>
         </div>
       </div>
     </header>
@@ -69,12 +74,12 @@
 
       <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-3' : 'space-y-5'">
         <template v-if="publicLayoutMode === 'slideshow'">
-          <div class="relative rounded-[22px] overflow-hidden bg-white border border-slate-200 shadow-[0_8px_24px_rgba(15,23,42,0.05)]" :class="isStandaloneSlideshow ? 'flex-1 min-h-0' : ''">
+          <div class="relative overflow-hidden bg-black/3" :class="isStandaloneSlideshow ? 'flex-1 min-h-0' : 'rounded-2xl'">
             <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" :class="isStandaloneSlideshow ? 'h-full' : ''" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
               <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
                 <div class="relative bg-slate-100 overflow-hidden" :class="isStandaloneSlideshow ? 'h-full min-h-0' : 'aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9]'">
                   <img :src="photoSrc(photo)" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
-                  <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
+                  <div v-if="!isStandaloneSlideshow" class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
                     <div class="flex items-center justify-between gap-3">
                       <div>
                         <div class="text-lg font-semibold">{{ albumTitle }}</div>
@@ -95,10 +100,10 @@
             </div>
           </div>
 
-          <div ref="thumbStripRef" class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+8px)]' : ''">
-            <div class="flex min-w-max snap-x snap-mandatory" :class="isStandaloneSlideshow ? 'gap-2' : 'gap-3'">
-              <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
-                <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-20 h-28 object-cover' : 'w-24 h-32 sm:w-28 sm:h-36 object-cover'" :loading="imageLoadingAttr" />
+          <div ref="thumbStripRef" class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[max(env(safe-area-inset-bottom),10px)]' : ''">
+            <div class="flex min-w-max gap-1.5">
+              <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="overflow-hidden transition-all duration-200 rounded-[6px] snap-start opacity-60" :class="idx === currentSlideIndex ? 'opacity-100 ring-2 ring-slate-800/50' : 'opacity-60'">
+                <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-[52px] h-[70px] object-cover' : 'w-20 h-28 object-cover'" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
@@ -603,9 +608,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .standalone-safe { background:#fff; }
-.top-btn { height: 44px; padding: 0 16px; border-radius: 18px; font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,23,42,.05); }
-.top-btn-neutral { background:#f8fafc; border:1px solid #e2e8f0; color:#0f172a; }
-.top-btn-white { background:#fff; border:1px solid #e2e8f0; color:#475569; }
+.ios-btn { height: 32px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #fff; color: #007aff; transition: all .15s; }
+.ios-btn:active { background: #f1f5f9; }
 .poster-card { border-radius: 32px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(15,23,42,.05); }
 .poster-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .poster-overlay { position:absolute; inset:0; background: linear-gradient(to bottom, rgba(15,23,42,.18), rgba(15,23,42,.55)); }
