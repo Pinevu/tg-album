@@ -391,6 +391,11 @@ const submitPassword = async () => {
     applyFrontendSettings(data.settings || {})
     syncHead()
     startSlideShow()
+    // 密码验证通过后显示启动屏
+    if (isStandalone.value) {
+      showSplash.value = true
+      setTimeout(() => { showSplash.value = false }, 2200)
+    }
     localStorage.setItem(passwordCacheKey(slug.value), JSON.stringify({ password: password.value, expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000 }))
   } catch (e: any) {
     error.value = e?.response?.data?.error || '访问失败'
@@ -585,12 +590,15 @@ watch(viewerIndex, () => {
 
 onMounted(async () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
-  showSplash.value = isStandalone.value
-  if (showSplash.value) setTimeout(() => { showSplash.value = false }, 1850)
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
   if (slugParam) { canInstallAlbum.value = true; await initPrivateAlbum(slugParam) }
   else { canInstallAlbum.value = false; await loadPublicPhotos() }
+  // 数据加载完毕后显示 splash
+  if (isStandalone.value && !needPassword.value) {
+    showSplash.value = true
+    setTimeout(() => { showSplash.value = false }, 2200)
+  }
 })
 
 onBeforeUnmount(() => {
