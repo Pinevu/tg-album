@@ -110,20 +110,18 @@
         </template>
 
         <template v-else-if="publicLayoutMode === 'waterfall'">
-          <div class="columns-2 md:columns-3 xl:columns-4 gap-4 md:gap-5 [column-fill:_balance]">
-            <div v-for="photo in photos" :key="photo.id" class="mb-4 md:mb-5 break-inside-avoid cursor-pointer" @click="openViewerByPhoto(photo)">
-              <div class="group rounded-[26px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
-                <img :src="photoSrc(photo)" class="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-500" :loading="imageLoadingAttr" />
-              </div>
+          <div class="columns-2 md:columns-3 xl:columns-4 gap-2 [column-fill:_balance]">
+            <div v-for="photo in photos" :key="photo.id" class="mb-2 break-inside-avoid overflow-hidden cursor-pointer" @click="openViewerByPhoto(photo)">
+              <img :src="photoSrc(photo)" class="w-full h-auto object-cover" :loading="imageLoadingAttr" />
             </div>
           </div>
         </template>
 
         <template v-else>
-          <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-            <div v-for="photo in photos" :key="photo.id" class="group rounded-[30px] overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer" @click="openViewerByPhoto(photo)">
-              <div class="aspect-[3/4] overflow-hidden bg-slate-100">
-                <img :src="photoSrc(photo)" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" :loading="imageLoadingAttr" />
+          <div class="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-[2px]">
+            <div v-for="photo in photos" :key="photo.id" class="overflow-hidden cursor-pointer bg-slate-50" @click="openViewerByPhoto(photo)">
+              <div class="aspect-square overflow-hidden bg-slate-100">
+                <img :src="photoSrc(photo)" class="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.03]" :loading="imageLoadingAttr" />
               </div>
             </div>
           </div>
@@ -131,40 +129,34 @@
       </div>
     </main>
 
-    <div v-if="viewerVisible" class="fixed inset-0 z-[110] bg-black" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
+    <transition name="viewer-fade">
+    <div v-if="viewerVisible" class="fixed inset-0 z-[110]" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
       <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
-        <div class="absolute inset-x-0 top-[max(env(safe-area-inset-top),10px)] z-20 flex items-center justify-between px-4 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-black/28 text-white/95 text-[10px] px-3 py-1.5 backdrop-blur-md border border-white/10 tracking-wide max-w-[72vw] truncate">{{ viewerIndex + 1 }} / {{ photos.length }} · {{ currentViewerPhoto?.original_filename || '照片' }}</div>
-          <button @click="closeViewer" class="w-11 h-11 rounded-full bg-black/28 backdrop-blur-md border border-white/10 text-white flex items-center justify-center">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+          <div class="text-white/80 text-xs font-medium">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
+          <button @click="closeViewer" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm text-white/80 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
 
         <div class="h-full flex items-center justify-center overflow-hidden" :style="viewerContainerStyle">
           <div class="relative w-full h-full flex items-center justify-center">
-            <img
-              v-if="currentViewerPhoto"
-              :src="photoSrc(currentViewerPhoto)"
-              class="max-w-full max-h-full object-contain select-none"
-              :style="viewerImageStyle"
-              draggable="false"
-              :loading="imageLoadingAttr"
-            />
+            <img v-if="currentViewerPhoto" :src="photoSrc(currentViewerPhoto)" class="max-w-full max-h-full object-contain select-none" :style="viewerImageStyle" draggable="false" :loading="imageLoadingAttr" />
           </div>
         </div>
 
-        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-20 flex flex-col items-center gap-3 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="rounded-full bg-black/28 text-white/90 text-xs px-3 py-1.5 backdrop-blur-md border border-white/10">双击放大 · 左右切图 · 下滑关闭</div>
-          <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar px-4">
-            <div class="flex gap-2 min-w-max">
-              <button v-for="(photo, idx) in photos" :key="`viewer-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="rounded-2xl overflow-hidden border-2 transition-all duration-200" :class="idx === viewerIndex ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]' : 'border-white/20'">
-                <img :src="photoSrc(photo)" class="w-14 h-18 object-cover" :loading="imageLoadingAttr" />
+        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),24px)] z-20 flex justify-center transition-opacity duration-300 px-4" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
+          <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar">
+            <div class="flex gap-1.5 min-w-max">
+              <button v-for="(photo, idx) in photos" :key="`v-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="overflow-hidden rounded-[6px] transition-all duration-200" :class="idx === viewerIndex ? 'ring-2 ring-white/80' : 'opacity-50'">
+                <img :src="photoSrc(photo)" class="w-9 h-12 object-cover" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+    </transition>
   </div>
 </template>
 
@@ -619,6 +611,9 @@ onBeforeUnmount(() => {
 .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
 .fade-scale-enter-active, .fade-scale-leave-active { transition: opacity .35s ease, transform .35s ease; }
 .fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(1.02); }
+.viewer-fade-enter-active { transition: opacity .25s ease; }
+.viewer-fade-leave-active { transition: opacity .15s ease; }
+.viewer-fade-enter-from, .viewer-fade-leave-to { opacity: 0; }
 @keyframes splash-rise { 0% { opacity: 0; transform: translateY(14px) scale(.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes splash-zoom { 0% { transform: scale(1.16); opacity: .82; } 100% { transform: scale(1.08); opacity: 1; } }
 .animate-splash-rise-soft { animation: splash-rise .52s cubic-bezier(.22,1,.36,1) both; }
