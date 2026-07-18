@@ -78,7 +78,7 @@
             <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" :class="isStandaloneSlideshow ? 'h-full' : ''" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
               <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
                 <div class="relative bg-slate-100 overflow-hidden" :class="isStandaloneSlideshow ? 'h-full min-h-0' : 'aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9]'">
-                  <img :src="photoSrc(photo)" class="w-full h-full object-cover" @click="openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
+                  <img :src="photoSrc(photo)" class="w-full h-full object-cover" :class="isStandaloneSlideshow ? '' : 'cursor-pointer'" @click="isStandaloneSlideshow ? toggleSlideShow() : openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
                   <div v-if="!isStandaloneSlideshow" class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
                     <div class="flex items-center justify-between gap-3">
                       <div>
