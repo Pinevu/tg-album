@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <div class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+8px)]' : ''">
+          <div ref="thumbStripRef" class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[calc(env(safe-area-inset-bottom)+8px)]' : ''">
             <div class="flex min-w-max snap-x snap-mandatory" :class="isStandaloneSlideshow ? 'gap-2' : 'gap-3'">
               <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="rounded-[22px] overflow-hidden border transition-all duration-200 snap-start" :class="idx === currentSlideIndex ? 'border-slate-900 ring-2 ring-slate-200' : 'border-slate-200'">
                 <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-20 h-28 object-cover' : 'w-24 h-32 sm:w-28 sm:h-36 object-cover'" :loading="imageLoadingAttr" />
@@ -171,6 +171,7 @@ import axios from 'axios'
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }> }
 const route = useRoute()
 const heroRef = ref<HTMLDivElement | null>(null)
+const thumbStripRef = ref<HTMLDivElement | null>(null)
 const viewerStripRef = ref<HTMLDivElement | null>(null)
 const photos = ref<any[]>([])
 const password = ref('')
@@ -256,6 +257,15 @@ const centerViewerStrip = () => {
   const el = viewerStripRef.value.querySelectorAll('button')[viewerIndex.value] as HTMLElement | undefined
   if (!el) return
   const container = viewerStripRef.value
+  const left = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2
+  container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+}
+
+const centerThumbStrip = () => {
+  if (!thumbStripRef.value) return
+  const el = thumbStripRef.value.querySelectorAll('button')[currentSlideIndex.value] as HTMLElement | undefined
+  if (!el) return
+  const container = thumbStripRef.value
   const left = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2
   container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
 }
@@ -551,6 +561,10 @@ const installAlbumPwa = async () => {
   if (installPrompt.value) { await installPrompt.value.prompt(); await installPrompt.value.userChoice.catch(() => null); return }
   installTip.value = `如果没有出现安装弹窗，请直接打开：${appUrl}`
 }
+
+watch(currentSlideIndex, () => {
+  setTimeout(centerThumbStrip, 50)
+}, { immediate: true })
 
 watch(() => route.fullPath, () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
