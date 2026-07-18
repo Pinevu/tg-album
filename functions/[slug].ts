@@ -15,12 +15,13 @@ export const onRequest = async (context: any) => {
   let html = await response.text()
   const safeSlug = encodeURIComponent(album.slug)
   const safeTitle = `${album.name} · 私密相册`
+  const splashSrc = album.pwa_splash_image_url || `/api/private-albums/${safeSlug}/icon.png`
 
   html = html.replace('<title>相册系统</title>', `<title>${safeTitle}</title>`)
 
   html = html.replace(
     '<link rel="manifest" href="/manifest.webmanifest" />',
-    `<link rel="manifest" href="/api/private-albums/${safeSlug}/manifest.webmanifest" />\n    <link rel="apple-touch-icon" href="/api/private-albums/${safeSlug}/icon.png" />`
+    `<link rel="manifest" href="/api/private-albums/${safeSlug}/manifest.webmanifest" />\n    <link rel="apple-touch-icon" href="/api/private-albums/${safeSlug}/icon.png" />\n    <link rel="apple-touch-startup-image" href="${splashSrc}" media="screen and (orientation: portrait)" />\n    <link rel="apple-touch-startup-image" href="${splashSrc}" media="screen and (orientation: landscape)" />`
   )
 
   if (!html.includes('apple-mobile-web-app-capable')) {
