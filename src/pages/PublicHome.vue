@@ -1,164 +1,258 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900 font-sans flex flex-col" :class="[isStandalone ? 'standalone-safe' : '', isStandaloneSlideshow ? 'h-[100dvh] overflow-hidden' : '']">
+    <!-- PWA 启动屏动画 -->
     <transition name="fade-scale">
       <div v-if="showSplash" class="fixed inset-0 z-[120] overflow-hidden bg-white flex items-center justify-center px-6">
-        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.08] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
-        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,.08),rgba(15,23,42,.52))]"></div>
+        <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover scale-[1.06] animate-splash-zoom" :style="{ objectPosition: splashBgPosition }" />
+        <div class="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,0.12),rgba(15,23,42,0.6))]"></div>
         <div class="relative text-center animate-splash-rise-soft px-8">
-          <img :src="iconUrl" class="w-24 h-24 rounded-[28px] shadow-[0_20px_40px_rgba(15,23,42,0.22)] border border-white/65 mx-auto object-cover" />
-          <div class="mt-5 text-[29px] font-bold tracking-tight text-white">{{ albumTitle }}</div>
-          <div class="mt-1 text-sm text-white/85">正在打开你的独立相册…</div>
+          <img :src="iconUrl" class="w-20 h-20 rounded-[24px] shadow-[0_16px_36px_rgba(15,23,42,0.25)] border border-white/70 mx-auto object-cover" />
+          <div class="mt-4 text-2xl font-bold tracking-tight text-white">{{ albumTitle }}</div>
+          <div class="mt-1 text-xs text-white/80">正在载入相册…</div>
         </div>
       </div>
     </transition>
 
-    <header v-if="isStandaloneSlideshow" class="sticky top-0 z-50 shrink-0 bg-white/80 backdrop-blur-2xl">
-      <div class="px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <span class="text-[13px] font-semibold text-slate-800 tracking-tight">{{ albumTitle }}</span>
-          <span class="text-[10px] text-slate-400">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
+    <!-- 顶栏导航 -->
+    <header v-if="isStandaloneSlideshow" class="sticky top-0 z-40 shrink-0 bg-white/85 backdrop-blur-xl border-b border-slate-100">
+      <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-sm font-bold text-slate-900 tracking-tight truncate">{{ albumTitle }}</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-500 shrink-0">
+            {{ currentSlideIndex + 1 }} / {{ photos.length }}
+          </span>
         </div>
-        <button @click.stop="toggleSlideShow" class="text-[11px] text-blue-500 font-medium px-2 py-1 rounded-lg bg-blue-50 active:bg-blue-100 transition-colors">{{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}</button>
+        <button
+          type="button"
+          @click.stop="toggleSlideShow"
+          class="h-7 px-3 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors flex items-center gap-1 shrink-0"
+        >
+          <span>{{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}</span>
+        </button>
       </div>
     </header>
-    <header v-else class="sticky top-0 z-50 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200/30">
-      <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),8px)] pb-2.5 flex items-center justify-between gap-3">
+
+    <header v-else class="sticky top-0 z-40 shrink-0 bg-white/90 backdrop-blur-xl border-b border-slate-200/60 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
+      <div class="max-w-6xl mx-auto px-4 pt-[max(env(safe-area-inset-top),8px)] pb-3 flex items-center justify-between gap-3">
         <div class="min-w-0 flex items-center gap-2.5 flex-1">
-          <img :src="iconUrl" class="w-9 h-9 rounded-[10px] object-cover border border-slate-100 shrink-0" />
+          <img :src="iconUrl" class="w-9 h-9 rounded-xl object-cover border border-slate-200/80 shadow-2xs shrink-0" />
           <div class="min-w-0">
-            <div class="text-[16px] font-semibold tracking-tight leading-tight truncate">{{ albumTitle }}</div>
-            <div class="text-[10px] text-slate-400 truncate">{{ isStandalone ? '独立相册' : (isPrivate ? '私密相册' : '摄影作品流') }}</div>
+            <div class="text-[15px] md:text-[17px] font-bold tracking-tight text-slate-900 truncate">{{ albumTitle }}</div>
+            <div class="text-[11px] text-slate-400 font-medium truncate">{{ isStandalone ? '独立应用' : (isPrivate ? '私密相册' : '作品流') }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <a v-if="!isStandalone" href="/login" class="ios-btn">管理</a>
+          <button v-if="canInstallAlbum && !isStandalone && isPrivate" @click="installAlbumPwa" class="ios-btn !bg-slate-900 !text-white !border-slate-900">安装相册</button>
+          <a v-if="!isStandalone" href="/login" class="ios-btn">管理后台</a>
         </div>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto w-full px-4 bg-white select-none" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-3 pb-[max(env(safe-area-inset-bottom),10px)] space-y-3' : 'pt-5 pb-6 space-y-5'" style="overscroll-behavior-y:none; touch-action: pan-y;">
-      <div v-if="showInstallGuide" class="max-w-3xl mx-auto rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)] overflow-hidden">
-        <div class="relative min-h-[240px] md:min-h-[280px] overflow-hidden bg-slate-900">
-          <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-90" :style="{ objectPosition: splashBgPosition }" />
-          <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/55"></div>
-          <div class="relative p-7 md:p-8 text-white flex flex-col justify-end min-h-[240px] md:min-h-[280px]">
-            <img :src="iconUrl" class="w-20 h-20 rounded-[24px] border border-white/70 shadow-2xl object-cover" />
-            <div class="mt-4 text-3xl font-bold tracking-tight">{{ albumTitle }}</div>
-            <div class="mt-2 text-sm text-white/85">把这个私密相册安装到主屏幕，像独立 App 一样直接打开。</div>
+    <!-- 主体区域 -->
+    <main
+      class="max-w-6xl mx-auto w-full px-3 md:px-4 select-none"
+      :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col overflow-hidden pt-2 pb-[max(env(safe-area-inset-bottom),8px)] space-y-2.5' : 'py-5 space-y-5'"
+      style="overscroll-behavior-y:none; touch-action: pan-y;"
+    >
+      <!-- 安装提示横幅 -->
+      <div v-if="showInstallGuide" class="max-w-xl mx-auto rounded-[28px] border border-slate-200 bg-white shadow-md overflow-hidden">
+        <div class="relative min-h-[200px] overflow-hidden bg-slate-950">
+          <img v-if="splashBgUrl" :src="splashBgUrl" class="absolute inset-0 w-full h-full object-cover opacity-85" :style="{ objectPosition: splashBgPosition }" />
+          <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/60"></div>
+          <div class="relative p-6 text-white flex flex-col justify-end min-h-[200px]">
+            <img :src="iconUrl" class="w-16 h-16 rounded-2xl border border-white/60 shadow-lg object-cover" />
+            <div class="mt-3 text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
+            <div class="mt-1 text-xs text-white/80">添加到手机主屏幕，获得原生 App 般的全屏浏览体验。</div>
           </div>
         </div>
-        <div class="p-5 bg-white">
-          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-sm text-slate-600">
-            <div>1. 先确认你现在打开的是专属安装页</div>
-            <div>2. 点击 Safari 的分享按钮</div>
-            <div>3. 选择“添加到主屏幕”</div>
-            <div>4. 保持名称为「{{ albumTitle }}」，确认添加</div>
+        <div class="p-4 space-y-3 bg-white text-xs text-slate-600">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 leading-relaxed">
+            <div>1. 点击 Safari 底部中间的 <strong>分享按钮 (↑)</strong></div>
+            <div>2. 下滑选择 <strong>“添加到主屏幕”</strong></div>
+            <div>3. 确认名称并点击右上角 <strong>“添加”</strong></div>
           </div>
-          <div class="mt-4 flex flex-wrap gap-2">
-            <button @click="installAlbumPwa" class="rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium shadow-sm">立即安装</button>
-            <a :href="normalAlbumUrl" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">普通浏览打开</a>
+          <div class="flex gap-2">
+            <button @click="installAlbumPwa" class="flex-1 h-9 rounded-xl bg-slate-900 text-white font-semibold flex items-center justify-center">立即安装</button>
+            <a :href="normalAlbumUrl" class="flex-1 h-9 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold flex items-center justify-center">普通浏览</a>
           </div>
         </div>
       </div>
 
-      <div v-if="installTip" class="max-w-lg mx-auto rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 px-4 py-3 text-sm">{{ installTip }}</div>
+      <div v-if="installTip" class="max-w-md mx-auto rounded-xl border border-slate-200 bg-slate-50 text-slate-700 px-3.5 py-2.5 text-xs text-center">{{ installTip }}</div>
 
-      <div v-if="needPassword" class="max-w-md mx-auto rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <!-- 密码解锁卡片 -->
+      <div v-if="needPassword" class="max-w-sm mx-auto my-12 rounded-[28px] border border-slate-200 bg-white p-7 shadow-xl space-y-4 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-xl">
+          🔒
+        </div>
         <div>
-          <div class="text-2xl font-bold tracking-tight">{{ albumTitle }}</div>
-          <div class="text-sm text-slate-500 mt-1">输入访问密码</div>
+          <div class="text-xl font-bold text-slate-900">{{ albumTitle }}</div>
+          <div class="text-xs text-slate-400 mt-1">此相册受密码保护，请输入访问凭据</div>
         </div>
         <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-        <el-input v-model="password" placeholder="访问密码" show-password @keyup.enter="submitPassword" />
-        <el-button type="primary" class="w-full !rounded-2xl !h-11" @click="submitPassword">进入相册</el-button>
+        <el-input v-model="password" placeholder="请输入相册密码" show-password @keyup.enter="submitPassword" />
+        <el-button type="primary" class="w-full !h-10 !rounded-xl !font-semibold" @click="submitPassword">进入相册</el-button>
       </div>
 
-      <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400"><div class="text-7xl mb-4">📷</div><div>暂无图片</div></div>
+      <div v-else-if="photos.length === 0" class="py-24 text-center text-slate-400">
+        <div class="text-5xl mb-3">📷</div>
+        <div class="text-sm font-medium">暂无照片内容</div>
+      </div>
 
-      <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-3' : 'space-y-5'">
+      <!-- 图片主展示区 -->
+      <div v-else :class="isStandaloneSlideshow ? 'flex-1 min-h-0 flex flex-col space-y-2.5' : 'space-y-4'">
+        <!-- 模式 1: 沉浸幻灯片 -->
         <template v-if="publicLayoutMode === 'slideshow'">
-          <div class="relative overflow-hidden bg-black/3" :class="isStandaloneSlideshow ? 'flex-1 min-h-0' : 'rounded-2xl'">
-            <div ref="heroRef" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch" :class="isStandaloneSlideshow ? 'h-full' : ''" @scroll.passive="onHeroScroll" @touchstart="pauseForInteraction">
-              <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center">
-                <div class="relative bg-slate-100 overflow-hidden" :class="isStandaloneSlideshow ? 'h-full min-h-0' : 'aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9]'">
-                  <img :src="photoSrc(photo)" class="w-full h-full object-cover" :class="isStandaloneSlideshow ? '' : 'cursor-pointer'" @click="isStandaloneSlideshow ? toggleSlideShow() : openViewerByPhoto(photo)" :loading="imageLoadingAttr" />
-                  <div v-if="!isStandaloneSlideshow" class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
-                    <div class="flex items-center justify-between gap-3">
-                      <div>
-                        <div class="text-lg font-semibold">{{ albumTitle }}</div>
-                      </div>
-                      <button @click.stop="toggleSlideShow" class="rounded-full px-3 py-1.5 text-xs bg-white/20 backdrop-blur text-white">{{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}</button>
-                    </div>
-                    <div class="flex items-center gap-2 mt-3">
-                      <template v-if="photos.length <= 20">
-                        <span v-for="(dot, idx) in photos" :key="dot.id" class="h-1.5 rounded-full transition-all duration-300" :class="idx === currentSlideIndex ? 'bg-white w-5' : 'bg-white/50 w-1.5'"></span>
-                      </template>
-                      <template v-else>
-                        <span class="text-white/80 text-xs">{{ currentSlideIndex + 1 }} / {{ photos.length }}</span>
-                      </template>
-                    </div>
+          <!-- 主图轮播视口 -->
+          <div class="relative overflow-hidden bg-slate-900" :class="isStandaloneSlideshow ? 'flex-1 min-h-0 rounded-2xl' : 'rounded-[22px] shadow-sm border border-slate-200'">
+            <div
+              ref="heroRef"
+              class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth carousel-touch h-full"
+              @scroll.passive="onHeroScroll"
+              @touchstart="pauseForInteraction"
+            >
+              <div v-for="photo in photos" :key="photo.id" class="w-full shrink-0 snap-center h-full">
+                <div class="relative bg-slate-950 overflow-hidden h-full flex items-center justify-center" :class="isStandaloneSlideshow ? '' : 'aspect-[4/5] sm:aspect-[16/11] md:aspect-[21/9]'">
+                  <img
+                    :src="photoSrc(photo)"
+                    class="w-full h-full object-contain"
+                    :class="isStandaloneSlideshow ? '' : 'cursor-pointer'"
+                    @click="isStandaloneSlideshow ? toggleSlideShow() : openViewerByPhoto(photo)"
+                    :loading="imageLoadingAttr"
+                  />
+
+                  <!-- 非全屏模式下的底部浮层 -->
+                  <div v-if="!isStandaloneSlideshow" class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent text-white flex items-center justify-between gap-3">
+                    <div class="text-sm font-bold truncate">{{ albumTitle }}</div>
+                    <button
+                      type="button"
+                      @click.stop="toggleSlideShow"
+                      class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-md text-white border border-white/20"
+                    >
+                      {{ slidePaused ? '▶ 继续' : '⏸ 暂停' }}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div ref="thumbStripRef" class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[max(env(safe-area-inset-bottom),10px)]' : ''">
-            <div class="flex min-w-max gap-1.5">
-              <button v-for="(photo, idx) in photos" :key="photo.id" @click="goToSlide(idx)" class="overflow-hidden transition-all duration-200 rounded-[6px] snap-start opacity-60" :class="idx === currentSlideIndex ? 'opacity-100 ring-2 ring-slate-800/50' : 'opacity-60'">
-                <img :src="photoSrc(photo)" :class="isStandaloneSlideshow ? 'w-[52px] h-[70px] object-cover' : 'w-20 h-28 object-cover'" :loading="imageLoadingAttr" />
+          <!-- 底部微型胶卷缩略图条 -->
+          <div ref="thumbStripRef" class="overflow-x-auto no-scrollbar carousel-touch shrink-0" :class="isStandaloneSlideshow ? 'pb-[max(env(safe-area-inset-bottom),6px)]' : ''">
+            <div class="flex min-w-max gap-1.5 px-0.5">
+              <button
+                v-for="(photo, idx) in photos"
+                :key="photo.id"
+                type="button"
+                @click="goToSlide(idx)"
+                class="overflow-hidden transition-all duration-200 rounded-[8px] snap-start shrink-0"
+                :class="idx === currentSlideIndex ? 'ring-2 ring-blue-600 opacity-100 shadow-sm' : 'opacity-45 hover:opacity-75'"
+              >
+                <img :src="photoSrc(photo)" class="w-12 h-16 sm:w-14 sm:h-18 object-cover" :loading="imageLoadingAttr" />
               </button>
             </div>
           </div>
         </template>
 
+        <!-- 模式 2: 瀑布流 -->
         <template v-else-if="publicLayoutMode === 'waterfall'">
-          <div class="columns-2 md:columns-3 xl:columns-4 gap-2 [column-fill:_balance]">
-            <div v-for="photo in photos" :key="photo.id" class="mb-2 break-inside-avoid overflow-hidden cursor-pointer" @click="openViewerByPhoto(photo)">
-              <img :src="photoSrc(photo)" class="w-full h-auto object-cover" :loading="imageLoadingAttr" />
+          <div class="columns-2 sm:columns-3 lg:columns-4 gap-2.5 [column-fill:_balance]">
+            <div
+              v-for="photo in photos"
+              :key="photo.id"
+              class="mb-2.5 break-inside-avoid rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all duration-200 cursor-pointer group"
+              @click="openViewerByPhoto(photo)"
+            >
+              <img :src="photoSrc(photo)" class="w-full h-auto object-cover group-hover:scale-[1.015] transition-transform duration-300" :loading="imageLoadingAttr" />
             </div>
           </div>
         </template>
 
+        <!-- 模式 3: 等高栅格 (Grid) -->
         <template v-else>
-          <div class="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-[2px]">
-            <div v-for="photo in photos" :key="photo.id" class="overflow-hidden cursor-pointer bg-slate-50" @click="openViewerByPhoto(photo)">
-              <div class="aspect-square overflow-hidden bg-slate-100">
-                <img :src="photoSrc(photo)" class="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.03]" :loading="imageLoadingAttr" />
-              </div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 sm:gap-1.5">
+            <div
+              v-for="photo in photos"
+              :key="photo.id"
+              class="aspect-square rounded-xl overflow-hidden bg-slate-100 cursor-pointer group relative shadow-2xs hover:shadow-sm transition-all"
+              @click="openViewerByPhoto(photo)"
+            >
+              <img :src="photoSrc(photo)" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300" :loading="imageLoadingAttr" />
             </div>
           </div>
         </template>
       </div>
     </main>
 
+    <!-- 原生级全屏大图 Lightbox 弹出层 -->
     <transition name="viewer-fade">
-    <div v-if="viewerVisible" class="fixed inset-0 z-[110]" :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }" @click.self="closeViewer">
-      <div class="absolute inset-0 overflow-hidden touch-none" @touchstart="onViewerTouchStart" @touchmove="onViewerTouchMove" @touchend="onViewerTouchEnd">
-        <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2 transition-opacity duration-300" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div class="text-white/80 text-xs font-medium">{{ viewerIndex + 1 }} / {{ photos.length }}</div>
-          <button @click="closeViewer" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm text-white/80 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-
-        <div class="h-full flex items-center justify-center overflow-hidden" :style="viewerContainerStyle">
-          <div class="relative w-full h-full flex items-center justify-center">
-            <img v-if="currentViewerPhoto" :src="photoSrc(currentViewerPhoto)" class="max-w-full max-h-full object-contain select-none" :style="viewerImageStyle" draggable="false" :loading="imageLoadingAttr" />
+      <div
+        v-if="viewerVisible"
+        class="fixed inset-0 z-[110]"
+        :style="{ backgroundColor: `rgba(0,0,0,${viewerBgOpacity})` }"
+        @click.self="closeViewer"
+      >
+        <div
+          class="absolute inset-0 overflow-hidden touch-none"
+          @touchstart="onViewerTouchStart"
+          @touchmove="onViewerTouchMove"
+          @touchend="onViewerTouchEnd"
+        >
+          <!-- 顶栏 HUD -->
+          <div
+            class="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-3 transition-opacity duration-200"
+            :class="hudVisible ? 'opacity-100' : 'opacity-0'"
+          >
+            <div class="text-white/90 text-xs font-semibold tracking-wide">
+              {{ viewerIndex + 1 }} / {{ photos.length }}
+            </div>
+            <button
+              type="button"
+              @click="closeViewer"
+              class="w-8 h-8 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        </div>
 
-        <div class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),24px)] z-20 flex justify-center transition-opacity duration-300 px-4" :class="hudVisible ? 'opacity-100' : 'opacity-0'">
-          <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar">
-            <div class="flex gap-1.5 min-w-max">
-              <button v-for="(photo, idx) in photos" :key="`v-${photo.id}`" @click.stop="jumpViewerTo(idx)" class="overflow-hidden rounded-[6px] transition-all duration-200" :class="idx === viewerIndex ? 'ring-2 ring-white/80' : 'opacity-50'">
-                <img :src="photoSrc(photo)" class="w-9 h-12 object-cover" :loading="imageLoadingAttr" />
-              </button>
+          <!-- 图片展示容器 -->
+          <div class="h-full flex items-center justify-center overflow-hidden" :style="viewerContainerStyle">
+            <div class="relative w-full h-full flex items-center justify-center">
+              <img
+                v-if="currentViewerPhoto"
+                :src="photoSrc(currentViewerPhoto)"
+                class="max-w-full max-h-full object-contain select-none"
+                :style="viewerImageStyle"
+                draggable="false"
+                :loading="imageLoadingAttr"
+              />
+            </div>
+          </div>
+
+          <!-- 底栏胶卷 HUD -->
+          <div
+            class="absolute inset-x-0 bottom-[max(env(safe-area-inset-bottom),20px)] z-20 flex justify-center transition-opacity duration-200 px-4"
+            :class="hudVisible ? 'opacity-100' : 'opacity-0'"
+          >
+            <div ref="viewerStripRef" class="max-w-full overflow-x-auto no-scrollbar">
+              <div class="flex gap-1.5 min-w-max p-1 rounded-xl bg-black/40 backdrop-blur-md border border-white/10">
+                <button
+                  v-for="(photo, idx) in photos"
+                  :key="`v-${photo.id}`"
+                  type="button"
+                  @click.stop="jumpViewerTo(idx)"
+                  class="overflow-hidden rounded-[6px] transition-all duration-150 shrink-0"
+                  :class="idx === viewerIndex ? 'ring-2 ring-white opacity-100' : 'opacity-40 hover:opacity-75'"
+                >
+                  <img :src="photoSrc(photo)" class="w-8 h-11 object-cover" :loading="imageLoadingAttr" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </transition>
   </div>
 </template>
@@ -223,7 +317,7 @@ const isPrivate = computed(() => albumVisibility.value === 'private')
 const showInstallGuide = computed(() => !!slug.value && isInstallRoute.value && !isStandalone.value)
 const iconUrl = computed(() => slug.value ? `/api/private-albums/${encodeURIComponent(slug.value)}/icon.png` : '/icon.svg')
 const splashImageUrl = ref('')
-const splashImagePosition = ref('center')
+const splashImagePosition = ref<'top' | 'upper' | 'center' | 'lower' | 'bottom'>('center')
 const coverUrl = computed(() => coverPhotoId.value ? `/api/photos/file/${coverPhotoId.value}` : '')
 const splashBgUrl = computed(() => splashImageUrl.value || coverUrl.value)
 const splashBgPosition = computed(() => splashImagePosition.value === 'top' ? 'center 10%' : splashImagePosition.value === 'upper' ? 'center 30%' : splashImagePosition.value === 'lower' ? 'center 70%' : splashImagePosition.value === 'bottom' ? 'center 90%' : 'center center')
@@ -301,9 +395,8 @@ const syncHead = () => {
   if (!apple) { apple = document.createElement('link'); apple.rel = 'apple-touch-icon'; document.head.appendChild(apple) }
   apple.href = iconUrl.value
 
-  // iOS 启动图：优先 splashImage > cover > icon
+  // iOS 启动图
   const splashSrc = splashImageUrl.value || coverUrl.value || iconUrl.value
-  // portrait 启动图
   let portraitStartup = document.head.querySelector('link[rel="apple-touch-startup-image"][media*="portrait"]') as HTMLLinkElement | null
   if (!portraitStartup) {
     portraitStartup = document.createElement('link')
@@ -312,7 +405,7 @@ const syncHead = () => {
     document.head.appendChild(portraitStartup)
   }
   portraitStartup.href = splashSrc
-  // landscape 启动图
+
   let landscapeStartup = document.head.querySelector('link[rel="apple-touch-startup-image"][media*="landscape"]') as HTMLLinkElement | null
   if (!landscapeStartup) {
     landscapeStartup = document.createElement('link')
@@ -391,7 +484,6 @@ const submitPassword = async () => {
     applyFrontendSettings(data.settings || {})
     syncHead()
     startSlideShow()
-    // 密码验证通过后显示启动屏
     if (isStandalone.value) {
       showSplash.value = true
       setTimeout(() => { showSplash.value = false }, 2200)
@@ -406,12 +498,19 @@ const scrollToIndex = (index: number, behavior: ScrollBehavior = 'smooth') => {
   if (!heroRef.value) return
   heroRef.value.scrollTo({ left: heroRef.value.clientWidth * index, behavior })
 }
+
 const onHeroScroll = () => {
   if (!heroRef.value) return
   const index = Math.round(heroRef.value.scrollLeft / heroRef.value.clientWidth)
   currentSlideIndex.value = Math.max(0, Math.min(index, photos.value.length - 1))
 }
-const goToSlide = (index: number) => { currentSlideIndex.value = index; slidePaused.value = true; scrollToIndex(index) }
+
+const goToSlide = (index: number) => {
+  currentSlideIndex.value = index
+  slidePaused.value = true
+  scrollToIndex(index)
+}
+
 const startSlideShow = () => {
   if (slideTimer) clearInterval(slideTimer)
   if (publicLayoutMode.value !== 'slideshow') return
@@ -422,10 +521,23 @@ const startSlideShow = () => {
     scrollToIndex(next)
   }, 4200)
 }
-const toggleSlideShow = () => { slidePaused.value = !slidePaused.value; startSlideShow() }
-const pauseForInteraction = () => { slidePaused.value = true; startSlideShow() }
 
-const jumpViewerTo = (index: number) => { viewerIndex.value = index; resetViewerTransform(); showHudTemporarily(); setTimeout(centerViewerStrip, 10) }
+const toggleSlideShow = () => {
+  slidePaused.value = !slidePaused.value
+  startSlideShow()
+}
+
+const pauseForInteraction = () => {
+  slidePaused.value = true
+  startSlideShow()
+}
+
+const jumpViewerTo = (index: number) => {
+  viewerIndex.value = index
+  resetViewerTransform()
+  showHudTemporarily()
+  setTimeout(centerViewerStrip, 10)
+}
 
 const openViewerByPhoto = (photo: any) => {
   const idx = photos.value.findIndex((p: any) => p.id === photo.id)
@@ -437,6 +549,7 @@ const openViewerByPhoto = (photo: any) => {
   setTimeout(() => { viewerOpening.value = false }, 40)
   setTimeout(centerViewerStrip, 10)
 }
+
 const closeViewer = () => {
   viewerOpening.value = true
   viewerScale.value = Math.max(0.92, viewerScale.value * 0.96)
@@ -448,6 +561,7 @@ const closeViewer = () => {
     viewerBgOpacity.value = 0.96
   }, 160)
 }
+
 const resetViewerTransform = () => {
   viewerScale.value = 1
   viewerTranslateX.value = 0
@@ -455,6 +569,7 @@ const resetViewerTransform = () => {
   isPinching.value = false
   isDraggingZoomed.value = false
 }
+
 const zoomAtPoint = (clientX: number, clientY: number) => {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -472,6 +587,7 @@ const zoomAtPoint = (clientX: number, clientY: number) => {
     resetViewerTransform()
   }
 }
+
 const onViewerTouchStart = (e: TouchEvent) => {
   showHudTemporarily()
   if (e.touches.length === 2) {
@@ -496,6 +612,7 @@ const onViewerTouchStart = (e: TouchEvent) => {
   }
   viewerLastTapAt.value = now
 }
+
 const onViewerTouchMove = (e: TouchEvent) => {
   if (e.touches.length === 2) {
     const dist = Math.hypot(
@@ -516,6 +633,7 @@ const onViewerTouchMove = (e: TouchEvent) => {
     viewerBgOpacity.value = Math.max(0.12, 0.96 - Math.abs(dy) / 180)
   }
 }
+
 const onViewerTouchEnd = (e: TouchEvent) => {
   if (isPinching.value) {
     isPinching.value = false
@@ -554,17 +672,26 @@ const onViewerTouchEnd = (e: TouchEvent) => {
   viewerBgOpacity.value = 0.96
 }
 
-const handleBeforeInstallPrompt = (event: Event) => { event.preventDefault(); installPrompt.value = event as InstallPromptEvent; canInstallAlbum.value = !!slug.value }
+const handleBeforeInstallPrompt = (event: Event) => {
+  event.preventDefault()
+  installPrompt.value = event as InstallPromptEvent
+  canInstallAlbum.value = !!slug.value
+}
+
 const installAlbumPwa = async () => {
   if (!slug.value) return
   const appUrl = `${location.origin}/app/${encodeURIComponent(slug.value)}?install=1`
   if (isIOS()) {
     if (!isInstallRoute.value) { location.href = appUrl; return }
-    installTip.value = '请点 Safari 分享按钮，选择“添加到主屏幕”。如果名称需要修改，也可以在弹窗里手动改成你想要的名字。'
+    installTip.value = '请点 Safari 底部中间的分享按钮，选择“添加到主屏幕”。'
     return
   }
-  if (installPrompt.value) { await installPrompt.value.prompt(); await installPrompt.value.userChoice.catch(() => null); return }
-  installTip.value = `如果没有出现安装弹窗，请直接打开：${appUrl}`
+  if (installPrompt.value) {
+    await installPrompt.value.prompt()
+    await installPrompt.value.userChoice.catch(() => null)
+    return
+  }
+  installTip.value = `请直接访问并添加: ${appUrl}`
 }
 
 watch(currentSlideIndex, () => {
@@ -592,9 +719,13 @@ onMounted(async () => {
   isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
   const slugParam = route.params.slug as string | undefined
-  if (slugParam) { canInstallAlbum.value = true; await initPrivateAlbum(slugParam) }
-  else { canInstallAlbum.value = false; await loadPublicPhotos() }
-  // 数据加载完毕后显示 splash
+  if (slugParam) {
+    canInstallAlbum.value = true
+    await initPrivateAlbum(slugParam)
+  } else {
+    canInstallAlbum.value = false
+    await loadPublicPhotos()
+  }
   if (isStandalone.value && !needPassword.value) {
     showSplash.value = true
     setTimeout(() => { showSplash.value = false }, 2200)
@@ -610,23 +741,87 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.standalone-safe { background:#fff; }
-.ios-btn { height: 32px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #fff; color: #007aff; transition: all .15s; }
-.ios-btn:active { background: #f1f5f9; }
-.poster-card { border-radius: 32px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(15,23,42,.05); }
-.poster-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.poster-overlay { position:absolute; inset:0; background: linear-gradient(to bottom, rgba(15,23,42,.18), rgba(15,23,42,.55)); }
-.poster-content { position:relative; z-index:1; padding:28px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; min-height:260px; }
-.carousel-touch { -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
-.no-scrollbar::-webkit-scrollbar { display:none; }
-.no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-.fade-scale-enter-active, .fade-scale-leave-active { transition: opacity .35s ease, transform .35s ease; }
-.fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(1.02); }
-.viewer-fade-enter-active { transition: opacity .25s ease; }
-.viewer-fade-leave-active { transition: opacity .15s ease; }
-.viewer-fade-enter-from, .viewer-fade-leave-to { opacity: 0; }
-@keyframes splash-rise { 0% { opacity: 0; transform: translateY(14px) scale(.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes splash-zoom { 0% { transform: scale(1.16); opacity: .82; } 100% { transform: scale(1.08); opacity: 1; } }
-.animate-splash-rise-soft { animation: splash-rise .52s cubic-bezier(.22,1,.36,1) both; }
-.animate-splash-zoom { animation: splash-zoom 1.15s ease-out both; }
+.standalone-safe {
+  background: #ffffff;
+}
+
+.ios-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #007aff;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.ios-btn:active {
+  transform: scale(0.97);
+}
+
+.carousel-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+.viewer-fade-enter-active {
+  transition: opacity 0.22s ease;
+}
+
+.viewer-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.viewer-fade-enter-from,
+.viewer-fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes splash-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes splash-zoom {
+  0% {
+    transform: scale(1.14);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+.animate-splash-rise-soft {
+  animation: splash-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-splash-zoom {
+  animation: splash-zoom 1.1s ease-out both;
+}
 </style>

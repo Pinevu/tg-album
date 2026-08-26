@@ -2,72 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; }
-html, body, #app { min-height: 100%; background: #ffffff !important; }
-html, body { overscroll-behavior: none; }
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+/* ── 全局重置与排版优化 ── */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html, body, #app {
+  min-height: 100%;
+  background: #f8fafc !important;
   color: #0f172a;
 }
-.el-menu { border-right: none !important; }
 
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Element Plus 统一控件样式 ── */
 .el-button {
   height: 36px !important;
   min-height: 36px !important;
   padding: 0 14px !important;
-  border-radius: 14px !important;
-  font-size: 12px !important;
-  font-weight: 400 !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
   line-height: 34px !important;
   box-shadow: none !important;
   border-width: 1px !important;
   border-color: #e2e8f0 !important;
   background: #ffffff !important;
-  color: #475569 !important;
+  color: #334155 !important;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
+.el-button:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.el-button:active {
+  transform: scale(0.98);
+}
+
 .el-button--small {
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 0 14px !important;
-  border-radius: 14px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
   font-size: 12px !important;
-  font-weight: 400 !important;
-  line-height: 34px !important;
+  line-height: 30px !important;
 }
+
 .el-button--primary {
-  background: #ffffff !important;
-  color: #475569 !important;
-  border-color: #e2e8f0 !important;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
 }
+
+.el-button--primary:hover {
+  background: #1e293b !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
 .el-button--danger {
   background: #fff1f2 !important;
   color: #e11d48 !important;
   border-color: #fecdd3 !important;
 }
 
-button,
-.upload-like-btn,
-.action-mini-btn,
-.action-ghost-btn {
-  font-weight: 400 !important;
-}
-
-.admin-btn,
-.action-ghost-btn,
-.action-mini-btn,
-.upload-like-btn {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
-  box-shadow: none;
-}
-
-.admin-btn-danger,
-.action-ghost-btn-danger {
-  border-color: #fecdd3;
-  background: #fff1f2;
-  color: #e11d48;
+.el-button--danger:hover {
+  background: #ffe4e6 !important;
+  border-color: #fda4af !important;
+  color: #be123c !important;
 }
 
 .el-input__wrapper,
@@ -75,18 +88,22 @@ button,
 .el-select__wrapper {
   height: 36px !important;
   min-height: 36px !important;
-  border-radius: 14px !important;
-  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
   box-shadow: none !important;
   background: #ffffff !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 400 !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.el-input__wrapper,
-.el-select__wrapper {
-  padding-left: 11px !important;
-  padding-right: 11px !important;
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-textarea__inner:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
 }
 
 .el-input,
@@ -99,7 +116,7 @@ button,
 .el-select__placeholder,
 .el-select__selection,
 .el-textarea__inner {
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 400 !important;
 }
 
@@ -107,22 +124,142 @@ button,
 .el-select__input,
 .el-select__selected-item,
 .el-select__placeholder {
-  line-height: 20px !important;
+  line-height: 22px !important;
 }
 
+/* ── 全局卡片与面板 ── */
 .panel-card {
-  border-radius: 26px;
-  border: 1px solid rgba(226,232,240,.95);
-  background: rgba(255,255,255,.92);
-  padding: 14px;
-  box-shadow: 0 8px 24px rgba(15,23,42,.045), 0 1px 2px rgba(15,23,42,.04);
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff;
+  padding: 16px;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 4px 14px 0 rgba(15, 23, 42, 0.02);
 }
+
 .panel-empty {
-  border-radius: 26px;
-  border: 1px solid rgba(226,232,240,.95);
-  background: rgba(255,255,255,.92);
-  padding: 32px;
-  box-shadow: 0 8px 24px rgba(15,23,42,.045), 0 1px 2px rgba(15,23,42,.04);
-  text-align:center;
-  color:#94a3b8;
+  border-radius: 20px;
+  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  padding: 40px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ── 自定义按钮与微交互 ── */
+.action-ghost-btn {
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-ghost-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.action-ghost-btn:active {
+  transform: scale(0.97);
+}
+
+.action-ghost-btn-danger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.action-ghost-btn-danger:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
+
+.action-mini-btn {
+  height: 32px;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-mini-btn:hover {
+  background: #ffffff;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.action-mini-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── 照片卡片与悬停遮罩 ── */
+.photo-card-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 弹窗与选择框圆角 ── */
+.el-dialog {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+}
+
+.el-alert {
+  border: none !important;
+  border-radius: 14px !important;
+}
+
+/* ── 自定义极简滚动条 ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

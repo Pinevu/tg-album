@@ -256,8 +256,8 @@ app.get('/api/private-albums/:slug/manifest.webmanifest', async (c) => {
     start_url: `${origin}/app/${album.slug}?source=pwa`,
     scope: `${origin}/app/${album.slug}`,
     display: 'standalone',
-    background_color: '#f8fafc',
-    theme_color: '#2563eb',
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
     icons: [
       { src: `${origin}/api/private-albums/${slug}/icon.png?v=${iconVersion}`, sizes: '512x512', purpose: 'any' }
     ]

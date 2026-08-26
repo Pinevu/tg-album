@@ -1,112 +1,147 @@
 <template>
-  <div class="space-y-4 rounded-[28px] bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
-    <div class="space-y-3">
-      <div class="w-full max-w-[780px] space-y-3">
-        <form class="contents" autocomplete="off" data-lpignore="true" @submit.prevent>
-          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-            <div class="grid grid-cols-2 gap-2">
-              <el-input v-model="newName" placeholder="相册名" name="album_name" autocomplete="off" />
-              <el-select v-model="visibility" name="album_visibility"><el-option label="公开" value="public" /><el-option label="私密" value="private" /></el-select>
-              <el-input v-model="slug" placeholder="slug" name="album_slug" autocomplete="off" />
-              <el-input v-model="accessPassword" placeholder="密码" name="album_access_password" type="text" show-password autocomplete="new-password" />
-            </div>
-          </div>
-
-          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-            <el-input v-model="pwaIconUrl" placeholder="PWA 图标 URL" name="pwa_icon_url" autocomplete="off" />
-            <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" name="pwa_splash_image_url" autocomplete="off" />
-            <el-select v-model="pwaSplashPosition" name="pwa_splash_position"><el-option label="顶部偏上" value="top" /><el-option label="偏上" value="upper" /><el-option label="居中" value="center" /><el-option label="偏下" value="lower" /><el-option label="底部偏下" value="bottom" /></el-select>
-          </div>
-
-          <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-            <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-              <label class="upload-like-btn">
-                <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" tabindex="-1" />
-                <span>选择文件</span>
-              </label>
-              <div class="text-sm text-slate-400 truncate px-2">{{ iconFileName }}</div>
-              <button type="button" @click="clearPwaIcon" class="upload-like-btn secondary">清空图标</button>
-            </div>
-
-            <div class="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
-              <label class="upload-like-btn">
-                <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" tabindex="-1" />
-                <span>选择文件</span>
-              </label>
-              <div class="text-sm text-slate-400 truncate px-2">{{ splashFileName }}</div>
-              <button type="button" @click="clearSplashImage" class="upload-like-btn secondary">清空背景</button>
-            </div>
-
-            <div>
-              <el-button @click="saveAlbum" type="primary" class="!w-full">{{ editingId ? '保存' : '创建' }}</el-button>
-            </div>
-          </div>
-        </form>
+  <div class="space-y-5 font-sans">
+    <!-- 相册配置表单 -->
+    <div class="panel-card space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-bold text-slate-900">{{ editingId ? '编辑相册' : '新建相册' }}</div>
+        <button v-if="editingId" @click="resetForm" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">取消编辑</button>
       </div>
+
+      <form autocomplete="off" data-lpignore="true" @submit.prevent="saveAlbum" class="space-y-3.5">
+        <!-- 基础属性 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">相册名称</label>
+            <el-input v-model="newName" placeholder="例如: 旅行记录" name="album_name" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">相册属性</label>
+            <el-select v-model="visibility" name="album_visibility" class="w-full">
+              <el-option label="私密相册（密码保护）" value="private" />
+              <el-option label="公开相册（所有人可见）" value="public" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">专属 Slug (路径)</label>
+            <el-input v-model="slug" placeholder="例如: travel" name="album_slug" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">访问密码</label>
+            <el-input v-model="accessPassword" placeholder="留空无密码" name="album_access_password" show-password autocomplete="new-password" />
+          </div>
+        </div>
+
+        <!-- PWA 定制 -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-3">
+          <div class="text-xs font-semibold text-slate-700">PWA 独立相册定制</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <el-input v-model="pwaIconUrl" placeholder="图标 URL" name="pwa_icon_url" />
+            <el-input v-model="pwaSplashImageUrl" placeholder="启动背景图 URL" name="pwa_splash_image_url" />
+            <el-select v-model="pwaSplashPosition" name="pwa_splash_position" class="w-full">
+              <el-option label="背景对齐: 顶部偏上" value="top" />
+              <el-option label="背景对齐: 偏上" value="upper" />
+              <el-option label="背景对齐: 居中" value="center" />
+              <el-option label="背景对齐: 偏下" value="lower" />
+              <el-option label="背景对齐: 底部偏下" value="bottom" />
+            </el-select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <label class="action-ghost-btn !h-8 !px-3 !bg-white">
+                <input type="file" accept="image/*" @change="onIconFileChange" class="hidden" tabindex="-1" />
+                <span>选择本地图标</span>
+              </label>
+              <span class="text-slate-400 truncate flex-1">{{ iconFileName }}</span>
+              <button v-if="pwaIconUrl" type="button" @click="clearPwaIcon" class="text-slate-400 hover:text-slate-600">清除</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="action-ghost-btn !h-8 !px-3 !bg-white">
+                <input type="file" accept="image/*" @change="onSplashFileChange" class="hidden" tabindex="-1" />
+                <span>选择本地启动图</span>
+              </label>
+              <span class="text-slate-400 truncate flex-1">{{ splashFileName }}</span>
+              <button v-if="pwaSplashImageUrl" type="button" @click="clearSplashImage" class="text-slate-400 hover:text-slate-600">清除</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <el-button type="primary" @click="saveAlbum" class="!px-6">
+            {{ editingId ? '保存相册修改' : '创建新相册' }}
+          </el-button>
+        </div>
+      </form>
     </div>
 
-    <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-
+    <!-- 实时预览区 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" v-if="pwaIconUrl || slug || pwaSplashImageUrl">
-      <div class="panel-card bg-white/96 max-w-sm p-4">
-        <div class="text-sm text-slate-500 mb-3">当前 PWA 图标预览</div>
-        <div class="flex items-center gap-3">
-          <img :src="iconPreviewUrl" class="w-20 h-20 rounded-[20px] object-cover border border-slate-200 bg-slate-50 shadow-sm" />
+      <div class="panel-card space-y-2.5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">PWA 图标实时预览</div>
+        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+          <img :src="iconPreviewUrl" class="w-16 h-16 rounded-2xl object-cover border border-slate-200 bg-white shadow-sm shrink-0" />
           <div class="min-w-0">
-            <div class="text-sm text-slate-900 font-medium truncate">{{ newName || slug || '相册系统' }}</div>
-            <div class="mt-1 text-[11px] text-slate-500 break-all">当前来源：{{ iconSourceLabel }}</div>
+            <div class="text-sm font-bold text-slate-900 truncate">{{ newName || slug || '相册系统' }}</div>
+            <div class="text-xs text-slate-400 mt-1">来源: {{ iconSourceLabel }}</div>
           </div>
         </div>
       </div>
-      <div class="panel-card bg-white/96 p-4">
-        <div class="text-sm text-slate-500 mb-3">当前启动背景图模拟预览</div>
-        <div class="mx-auto w-[204px] rounded-[30px] bg-[#0f172a] p-[3px] shadow-[0_10px_22px_rgba(15,23,42,0.10)]">
+
+      <div class="panel-card space-y-2.5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">PWA 启动画面模拟</div>
+        <div class="mx-auto w-[190px] rounded-[28px] bg-slate-950 p-1 shadow-lg">
           <div class="rounded-[24px] overflow-hidden bg-black relative aspect-[9/19.5] border border-white/10">
-            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-3.5 rounded-full bg-black/78 z-20 border border-white/10"></div>
-            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.03]" :style="{ objectPosition: splashObjectPosition }" />
-            <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm bg-slate-100">暂无启动背景图</div>
-            <div class="absolute inset-0 bg-gradient-to-b from-black/6 via-black/10 to-black/34"></div>
-            <div class="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
-              <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">Preview</div>
-              <div class="px-2.5 py-1 rounded-full bg-black/22 backdrop-blur text-[10px] text-white/90 border border-white/10">{{ splashPositionLabel }}</div>
-            </div>
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-14 h-3.5 rounded-full bg-black z-20 border border-white/10"></div>
+            <img v-if="splashPreviewUrl" :src="splashPreviewUrl" class="w-full h-full object-cover scale-[1.02]" :style="{ objectPosition: splashObjectPosition }" />
+            <div v-else class="w-full h-full flex items-center justify-center text-slate-500 text-xs bg-slate-900">暂无启动图</div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/40"></div>
             <div class="absolute inset-x-0 bottom-0 p-3 z-10">
-              <div class="rounded-[18px] border border-white/12 bg-black/22 backdrop-blur-md px-3 py-3 text-center shadow-[0_6px_16px_rgba(0,0,0,0.10)]">
-                <img :src="iconPreviewUrl" class="mx-auto w-11 h-11 rounded-[14px] border border-white/45 shadow-sm object-cover" />
-                <div class="mt-2.5 text-white font-semibold text-[17px] tracking-tight leading-none">{{ newName || slug || '相册系统' }}</div>
-                <div class="mt-1.5 text-white/76 text-[10px] leading-relaxed">正在打开你的独立相册…</div>
+              <div class="rounded-xl border border-white/15 bg-black/30 backdrop-blur-md p-2.5 text-center shadow-lg">
+                <img :src="iconPreviewUrl" class="mx-auto w-10 h-10 rounded-xl border border-white/40 shadow-sm object-cover" />
+                <div class="mt-2 text-white font-bold text-sm tracking-tight truncate">{{ newName || slug || '相册系统' }}</div>
+                <div class="mt-0.5 text-white/70 text-[9px]">正在载入相册…</div>
               </div>
             </div>
-            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 rounded-full bg-white/70"></div>
+            <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-20 h-1 rounded-full bg-white/60"></div>
           </div>
         </div>
-        <div class="mt-3 text-[11px] text-slate-500 break-words leading-relaxed">当前来源：{{ splashSourceLabel }}</div>
       </div>
     </div>
 
-    <div v-if="loading" class="panel-empty">正在加载相册...</div>
-    <div v-else-if="flatAlbums.length === 0" class="panel-empty">暂无相册</div>
+    <!-- 相册列表 -->
+    <div v-if="loading" class="panel-empty">正在加载相册数据...</div>
+    <div v-else-if="flatAlbums.length === 0" class="panel-empty">暂无相册，请先创建</div>
 
     <div v-else class="space-y-2.5">
-      <div v-for="album in flatAlbums" :key="album.id" class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 p-3.5">
-        <div class="flex items-center gap-3 min-w-0">
-          <img :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.png` : '/icon.svg'))" class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+      <div
+        v-for="album in flatAlbums"
+        :key="album.id"
+        class="panel-card flex flex-col md:flex-row md:items-center md:justify-between gap-3 hover:border-slate-300 transition-colors"
+      >
+        <div class="flex items-center gap-3.5 min-w-0">
+          <img
+            :src="album.pwa_icon_url || (album.cover_photo_id ? `/api/photos/file/${album.cover_photo_id}` : (album.slug ? `/api/private-albums/${album.slug}/icon.png` : '/icon.svg'))"
+            class="w-12 h-12 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0"
+          />
           <div class="min-w-0">
-            <div class="font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
+            <div class="font-bold text-slate-900 text-sm flex items-center gap-2 flex-wrap">
               <span>{{ album.name }}</span>
-              <span v-if="album.name === '公开相册'" class="tag-blue">系统锁定</span>
-              <span v-if="album.name === '未分类'" class="tag-amber">默认相册</span>
+              <span v-if="album.name === '公开相册'" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">系统公开</span>
+              <span v-if="album.name === '未分类'" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-100">默认</span>
             </div>
-            <div class="text-sm text-slate-500 mt-1">{{ album.visibility === 'public' ? '公开相册' : '私密相册' }}</div>
-            <div v-if="album.slug" class="text-xs text-slate-500 mt-1 break-all">{{ origin }}/{{ album.slug }}</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">图标优先级：自定义图标 > 相册封面 > 文字图标</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">当前来源：{{ album.pwa_icon_url ? '自定义图标' : (album.cover_photo_id ? '相册封面' : '文字图标') }}</div>
+            <div class="text-xs text-slate-400 mt-1 flex items-center gap-2">
+              <span>{{ album.visibility === 'public' ? '公开' : '私密' }}</span>
+              <span v-if="album.slug" class="truncate text-slate-500 font-mono text-[11px]">/{{ album.slug }}</span>
+              <span v-if="album.pwa_icon_url" class="text-emerald-600 text-[10px]">● 已自定义图标</span>
+            </div>
           </div>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <el-button v-if="album.slug" @click="copyShareLink(album)">复制链接</el-button>
-          <el-button @click="editAlbum(album)" :disabled="album.name === '公开相册'">编辑</el-button>
-          <el-button type="danger" @click="removeAlbum(album)" :disabled="album.name === '公开相册' || album.name === '未分类'">删除</el-button>
+
+        <div class="flex flex-wrap gap-2 shrink-0">
+          <button v-if="album.slug" type="button" @click="copyShareLink(album)" class="action-ghost-btn !h-8 !px-3">复制链接</button>
+          <button type="button" @click="editAlbum(album)" :disabled="album.name === '公开相册'" class="action-ghost-btn !h-8 !px-3 disabled:opacity-40">编辑</button>
+          <button type="button" @click="removeAlbum(album)" :disabled="album.name === '公开相册' || album.name === '未分类'" class="action-ghost-btn action-ghost-btn-danger !h-8 !px-3 disabled:opacity-40">删除</button>
         </div>
       </div>
     </div>
@@ -135,11 +170,11 @@ const editingId = ref<number | null>(null)
 
 const flatten = (nodes: any[]): any[] => (nodes || []).flatMap((n) => [n, ...((n.children && Array.isArray(n.children)) ? flatten(n.children) : [])])
 const flatAlbums = computed(() => flatten(albums.value))
-const iconPreviewUrl = computed(() => pwaIconUrl.value || (slug.value ? `/api/private-albums/${slug.value}/icon.svg?v=${Date.now()}` : '/icon.svg'))
+const iconPreviewUrl = computed(() => pwaIconUrl.value || (slug.value ? `/api/private-albums/${slug.value}/icon.png?v=${Date.now()}` : '/icon.svg'))
 const splashPreviewUrl = computed(() => pwaSplashImageUrl.value || '')
 const iconSourceLabel = computed(() => pwaIconUrl.value ? '自定义图标' : (slug.value ? '系统生成图标' : '默认图标'))
 const splashPositionLabel = computed(() => pwaSplashPosition.value === 'top' ? '顶部偏上' : pwaSplashPosition.value === 'upper' ? '偏上' : pwaSplashPosition.value === 'lower' ? '偏下' : pwaSplashPosition.value === 'bottom' ? '底部偏下' : '居中')
-const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? `独立启动背景图（优先显示，位置：${splashPositionLabel.value}）` : '未设置，前台将回退到相册封面图')
+const splashSourceLabel = computed(() => pwaSplashImageUrl.value ? `独立启动背景图（位置: ${splashPositionLabel.value}）` : '未设置，前台回退至相册封面')
 const splashObjectPosition = computed(() => pwaSplashPosition.value === 'top' ? 'center 10%' : pwaSplashPosition.value === 'upper' ? 'center 30%' : pwaSplashPosition.value === 'lower' ? 'center 70%' : pwaSplashPosition.value === 'bottom' ? 'center 90%' : 'center center')
 
 const blurActiveInput = async () => {
@@ -200,7 +235,7 @@ const resetForm = () => {
 }
 
 const saveAlbum = async () => {
-  if (!newName.value.trim()) return
+  if (!newName.value.trim()) return ElMessage.warning('请输入相册名称')
   try {
     if (editingId.value) await updateAlbum(editingId.value, newName.value, visibility.value, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined, pwaSplashImageUrl.value || undefined, pwaSplashPosition.value)
     else await createAlbum(newName.value, visibility.value, undefined, slug.value || undefined, accessPassword.value || undefined, pwaIconUrl.value || undefined, pwaSplashImageUrl.value || undefined, pwaSplashPosition.value)
@@ -252,13 +287,3 @@ onMounted(async () => {
   setTimeout(() => { blurActiveInput() }, 250)
 })
 </script>
-
-<style scoped>
-.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
-.panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
-.tag-blue { @apply text-[10px] px-2 py-1 rounded-full bg-blue-100 text-blue-600; }
-.tag-amber { @apply text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-600; }
-
-.upload-like-btn{height:36px;padding:0 14px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:none;}
-.upload-like-btn.secondary{color:#475569;}
-</style>

@@ -1,188 +1,208 @@
 <template>
-  <div ref="pageRef" class="space-y-4 rounded-[28px] bg-white/88 backdrop-blur-md border border-slate-200/80 shadow-sm p-4">
+  <div ref="pageRef" class="space-y-4 font-sans">
     <el-alert v-if="message" :title="message" :type="messageType" show-icon :closable="false" />
 
-    <div class="panel-card bg-white/98 space-y-2.5 border-blue-100/80 !p-4">
-      <div class="grid grid-cols-2 gap-2 items-center">
-        <el-select v-model="uploadAlbumId" placeholder="选择目标相册" size="small" class="w-full">
-          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
-        </el-select>
-        <el-input v-model="uploadRemark" placeholder="备注" size="small" />
-      </div>
-      <el-upload drag multiple :http-request="handleUpload" :show-file-list="false" class="w-full">
-        <div class="px-3 py-1.5 text-center text-slate-700 text-xs">点击或拖拽上传</div>
-      </el-upload>
-      <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-1.5">
-        <div v-for="item in uploadQueue" :key="item.id" class="rounded-[14px] border border-slate-200 bg-slate-50 p-2">
-          <img :src="item.url" class="w-full h-16 object-cover rounded-xl" />
-          <el-progress :percentage="item.progress" :stroke-width="5" :show-text="false" class="mt-2" />
-        </div>
-      </div>
-    </div>
-
-    <div v-if="selectedIds.length" class="sticky bottom-3 z-20 panel-card bg-white/98 border-blue-200 shadow-[0_10px_24px_rgba(37,99,235,0.10)] space-y-3">
-      <div class="flex items-center justify-between gap-2 text-sm">
-        <div class="font-medium text-slate-700">已选择 {{ selectedIds.length }} 张图片</div>
-        <button type="button" @click="clearSelection" class="rounded-[14px] bg-white border border-slate-200 text-slate-600 px-3 h-9 text-xs">取消选择</button>
-      </div>
-
-      <button type="button" @click="bulkMovePickerOpen = !bulkMovePickerOpen" class="w-full h-9 rounded-[14px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
-        <span>{{ bulkSelectedMoveAlbumName || '选择要移动到的相册' }}</span>
-        <span class="text-slate-400">⌄</span>
-      </button>
-
-      <div v-if="bulkMovePickerOpen" class="rounded-[14px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden ">
-        <button
-          v-for="album in albums"
-          :key="album.id"
-          type="button"
-          @click="selectBulkMoveAlbum(album)"
-          class="w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-        >
-          {{ album.name }}
-        </button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <button type="button" @click="confirmBulkMove" class="rounded-[14px] bg-blue-50 border border-blue-200 text-blue-700 px-4 h-9 text-xs">确认批量移动</button>
-        <button type="button" @click="toRecycleSelected" class="rounded-[14px] bg-rose-50 border border-rose-200 text-rose-600 px-4 h-9 text-xs">批量删除</button>
-      </div>
-    </div>
-
-    <div class="panel-card bg-white/98 space-y-3 border-slate-200 !p-4">
-      <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2">
-        <div class="grid grid-cols-4 gap-2 items-center photos-toolbar-grid">
-          <button type="button" @click="changePageSize(10)" class="rounded-[14px] border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 10 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">10 / 页</button>
-          <button type="button" @click="changePageSize(20)" class="rounded-[14px] border h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center" :class="pageSize === 20 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 bg-white text-slate-600'">20 / 页</button>
-          <input v-model="pageJump" inputmode="numeric" placeholder="页码" class="w-full h-9 rounded-[14px] border border-slate-200 px-3 text-xs text-center bg-white" />
-          <button type="button" @click="jumpToPage" class="rounded-[14px] border border-slate-200 bg-white text-slate-600 h-9 text-xs w-full whitespace-nowrap text-center flex items-center justify-center">跳转</button>
-        </div>
-      </div>
-      <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 space-y-2">
-        <div class="grid grid-cols-2 gap-2 items-center">
-          <el-select v-model="currentAlbumId" placeholder="相册" class="w-full" size="small" clearable @change="page = 1; search()">
+    <!-- 上传卡片 -->
+    <div class="panel-card space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">快速上传</div>
+        <div class="flex items-center gap-2">
+          <el-select v-model="uploadAlbumId" placeholder="目标相册" size="small" class="!w-32">
             <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
           </el-select>
-          <el-select v-model="tag" placeholder="标签" filterable class="w-full" size="small">
-            <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
-          </el-select>
-        </div>
-        <el-input v-model="keyword" placeholder="文件名 / 备注" class="w-full" size="small" />
-        <div class="grid grid-cols-2 gap-2 items-center">
-          <button type="button" @click="page = 1; search()" class="action-ghost-btn">搜索</button>
-          <button type="button" @click="recheckBroken" class="action-ghost-btn action-ghost-btn-danger">检测失效</button>
+          <el-input v-model="uploadRemark" placeholder="备注（可选）" size="small" class="!w-36" />
         </div>
       </div>
-      <div class="flex items-center justify-between text-sm text-slate-500 gap-3 px-1">
-        <div>当前页 {{ photos.length }} 张 / 共 {{ totalPhotos }} 张</div>
-        <div>第 {{ page }} / {{ totalPages }} 页</div>
-      </div>
-    </div>
 
-    <div v-if="photos.length === 0" class="panel-empty">暂无图片</div>
-
-    <div v-else class="space-y-5">
-      <div class="panel-card bg-white/98 border-slate-200 !p-4">
-        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">上一页</button>
-          <div class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">下一页</button>
+      <el-upload
+        drag
+        multiple
+        :http-request="handleUpload"
+        :show-file-list="false"
+        class="w-full !rounded-2xl"
+      >
+        <div class="py-2 text-center text-slate-600 text-xs flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span>点击或将图片拖拽至此上传</span>
         </div>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
-        <article
-          v-for="item in photos"
-          :key="item.id"
-          class="panel-card bg-white/96 cursor-pointer photo-card relative transition-all duration-200"
-          :class="selectedIds.includes(item.id) ? 'ring-2 ring-blue-300 border-blue-400 shadow-[0_8px_20px_rgba(37,99,235,0.12)]' : (latestUploadedPhotoId === item.id ? 'ring-2 ring-emerald-300 border-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.12)]' : '')"
-          @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
-        >
-          <div class="relative">
-            <template v-if="item.is_broken">
-              <div class="w-full aspect-[4/5] rounded-xl border border-dashed border-rose-200 bg-rose-50/50 flex flex-col items-center justify-center text-center px-4">
-                <div class="text-2xl mb-2">⚠️</div>
-                <div class="text-xs font-medium text-rose-600">图片文件已失效</div>
-                <div class="text-[11px] text-rose-400 mt-1 line-clamp-2">{{ item.broken_reason || "Telegram 文件不可用" }}</div>
-              </div>
-            </template>
-            <img v-else :src="item.previewUrl" class="w-full aspect-[4/5] object-cover rounded-xl" />
+      </el-upload>
 
-            <div v-if="selectedIds.includes(item.id)" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center shadow-sm">{{ selectedIds.indexOf(item.id) + 1 }}</div>
-
-            <div
-              v-if="!selectionMode && activeCardId === item.id"
-              class="absolute inset-0 rounded-xl bg-black/18 flex items-center justify-center"
-              @click.stop
-            >
-              <div class="grid grid-cols-2 gap-2 w-[124px]">
-                <button type="button" @click.stop="openDetail(item.id)" class="action-mini-btn">详情</button>
-                <button type="button" @click.stop="openMoveDialog(item.id)" class="action-mini-btn text-blue-700">移动</button>
-                <button type="button" @click.stop="deletePhoto(item.id)" class="action-mini-btn text-rose-600">删除</button>
-                <button type="button" @click.stop="copyDirectLink(item)" class="action-mini-btn text-emerald-700">直链</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-2 min-h-[40px] flex flex-col justify-end gap-1.5">
-            <div class="flex items-center justify-between gap-2">
-              <div v-if="item.album_name" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">相册:{{ item.album_name }}</div>
-              <button type="button" @click.stop="toggleSelect(item.id)" class="w-5 h-5 rounded-full border text-[10px] flex items-center justify-center transition-all" :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (selectionMode ? 'bg-white border-blue-200 text-blue-400' : 'bg-white border-slate-300 text-slate-400')">{{ selectedIds.includes(item.id) ? '✓' : '' }}</button>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div class="panel-card bg-white/98 border-slate-200 !p-4">
-        <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-2 grid grid-cols-3 gap-2 items-center">
-          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">上一页</button>
-          <div class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs text-slate-500 flex items-center justify-center">第 {{ page }} / {{ totalPages }} 页</div>
-          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="rounded-[14px] border border-slate-200 bg-white h-9 text-xs disabled:opacity-40 flex items-center justify-center">下一页</button>
+      <!-- 上传队列预览 -->
+      <div v-if="uploadQueue.length" class="grid grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+        <div v-for="item in uploadQueue" :key="item.id" class="rounded-xl border border-slate-200 bg-slate-50 p-1.5 shadow-2xs">
+          <img :src="item.url" class="w-full h-14 object-cover rounded-lg" />
+          <el-progress :percentage="item.progress" :stroke-width="3" :show-text="false" class="mt-1.5" />
         </div>
       </div>
     </div>
 
-    <Teleport to="body">
-      <div v-if="moveDialogVisible" class="fixed inset-0 z-[10020] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
-        <div class="w-[340px] max-w-[92vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">移动图片</div>
-            <button type="button" class="w-8 h-9 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="closeMoveDialog">×</button>
+    <!-- 检索与筛选栏 -->
+    <div class="panel-card space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <el-select v-model="currentAlbumId" placeholder="所有相册" size="small" clearable @change="page = 1; search()">
+          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+        </el-select>
+        <el-select v-model="tag" placeholder="所有标签" filterable size="small" clearable @change="page = 1; search()">
+          <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
+        </el-select>
+        <el-input v-model="keyword" placeholder="搜索文件名 / 备注" size="small" clearable @keyup.enter="page = 1; search()" />
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+        <div class="flex items-center gap-2 text-slate-500">
+          <span>共 <strong class="text-slate-800">{{ totalPhotos }}</strong> 张</span>
+          <span>·</span>
+          <span>第 {{ page }} / {{ totalPages }} 页</span>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button type="button" @click="page = 1; search()" class="action-ghost-btn !h-8 !px-3">搜索</button>
+          <button type="button" @click="recheckBroken" class="action-ghost-btn action-ghost-btn-danger !h-8 !px-3">检测失效</button>
+          <button type="button" @click="changePage(page - 1)" :disabled="page <= 1" class="action-ghost-btn !h-8 !px-2.5 disabled:opacity-30">‹</button>
+          <button type="button" @click="changePage(page + 1)" :disabled="page >= totalPages" class="action-ghost-btn !h-8 !px-2.5 disabled:opacity-30">›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 批量操作浮动条 -->
+    <div
+      v-if="selectedIds.length"
+      class="sticky bottom-4 z-30 panel-card !bg-white/95 backdrop-blur-xl border-blue-200 shadow-[0_8px_30px_rgba(37,99,235,0.15)] space-y-2.5"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <div class="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span>已选择 <strong>{{ selectedIds.length }}</strong> 项</span>
+        </div>
+        <button type="button" @click="clearSelection" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">取消选择</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2">
+        <el-select v-model="bulkMoveToAlbumId" placeholder="选择目标相册" size="small" class="w-full">
+          <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+        </el-select>
+        <button type="button" @click="confirmBulkMove" class="action-ghost-btn !h-8 !bg-blue-50 !border-blue-200 !text-blue-700 font-medium">确认移动</button>
+        <button type="button" @click="toRecycleSelected" class="action-ghost-btn action-ghost-btn-danger !h-8 font-medium">批量删除</button>
+      </div>
+    </div>
+
+    <!-- 图片展示区 -->
+    <div v-if="photos.length === 0" class="panel-empty">
+      <div class="text-3xl mb-2">📷</div>
+      <div>暂无图片数据</div>
+    </div>
+
+    <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-3.5 items-start">
+      <article
+        v-for="item in photos"
+        :key="item.id"
+        class="group relative rounded-2xl overflow-hidden border border-slate-200/80 bg-white shadow-2xs hover:shadow-md transition-all duration-200 cursor-pointer photo-card"
+        :class="[
+          selectedIds.includes(item.id) ? 'ring-2 ring-blue-500 border-blue-500 shadow-md' : '',
+          latestUploadedPhotoId === item.id ? 'ring-2 ring-emerald-500 border-emerald-500' : ''
+        ]"
+        @click.stop="selectionMode ? toggleSelect(item.id) : toggleCardActions(item.id)"
+      >
+        <!-- 图片主体 -->
+        <div class="relative aspect-[4/5] bg-slate-100 overflow-hidden">
+          <template v-if="item.is_broken">
+            <div class="w-full h-full border border-dashed border-rose-200 bg-rose-50/60 flex flex-col items-center justify-center text-center p-3">
+              <div class="text-2xl mb-1">⚠️</div>
+              <div class="text-xs font-semibold text-rose-600">文件已失效</div>
+              <div class="text-[10px] text-rose-400 mt-1 line-clamp-2">{{ item.broken_reason || 'Telegram 404' }}</div>
+            </div>
+          </template>
+          <img
+            v-else
+            :src="item.previewUrl"
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            loading="lazy"
+          />
+
+          <!-- 选中计数角标 -->
+          <div
+            v-if="selectedIds.includes(item.id)"
+            class="absolute top-2 left-2 w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shadow-sm"
+          >
+            {{ selectedIds.indexOf(item.id) + 1 }}
           </div>
 
-          <button type="button" @click="movePickerOpen = !movePickerOpen" class="w-full h-9 rounded-[14px] border border-slate-300 bg-white px-4 text-left text-xs text-slate-500 flex items-center justify-between">
-            <span>{{ selectedMoveAlbumName || '选择目标相册' }}</span>
-            <span class="text-slate-400">⌄</span>
+          <!-- 浮动操作遮罩 -->
+          <div
+            v-if="!selectionMode && activeCardId === item.id"
+            class="photo-card-overlay"
+            @click.stop
+          >
+            <div class="grid grid-cols-2 gap-1.5 p-2">
+              <button type="button" @click.stop="openDetail(item.id)" class="action-mini-btn">详情</button>
+              <button type="button" @click.stop="openMoveDialog(item.id)" class="action-mini-btn !text-blue-700">移动</button>
+              <button type="button" @click.stop="deletePhoto(item.id)" class="action-mini-btn !text-rose-600">删除</button>
+              <button type="button" @click.stop="copyDirectLink(item)" class="action-mini-btn !text-emerald-700">直链</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部相册标签与选择框 -->
+        <div class="p-2.5 flex items-center justify-between gap-1.5 border-t border-slate-100 bg-white">
+          <span
+            v-if="item.album_name"
+            class="text-[11px] font-medium text-slate-500 truncate"
+            :title="item.album_name"
+          >
+            {{ item.album_name }}
+          </span>
+          <span v-else class="text-[11px] text-slate-300">未分类</span>
+
+          <button
+            type="button"
+            @click.stop="toggleSelect(item.id)"
+            class="w-5 h-5 rounded-full border text-[10px] font-bold flex items-center justify-center transition-all shrink-0"
+            :class="selectedIds.includes(item.id) ? 'bg-blue-600 border-blue-600 text-white shadow-xs' : 'bg-white border-slate-300 text-slate-400 hover:border-blue-400'"
+          >
+            {{ selectedIds.includes(item.id) ? '✓' : '' }}
           </button>
+        </div>
+      </article>
+    </div>
 
-          <div v-if="movePickerOpen" class="mt-3 rounded-[14px] border border-slate-200 bg-white max-h-56 overflow-y-auto overflow-x-hidden ">
-            <button
-              v-for="album in albums"
-              :key="album.id"
-              type="button"
-              @click="selectMoveAlbum(album)"
-              class="w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-            >
-              {{ album.name }}
-            </button>
+    <!-- 模态框: 移动照片 -->
+    <Teleport to="body">
+      <div v-if="moveDialogVisible" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="w-full max-w-xs rounded-3xl bg-white shadow-2xl border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="text-base font-bold text-slate-900">移动照片</div>
+            <button type="button" class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 text-sm flex items-center justify-center hover:bg-slate-200" @click="closeMoveDialog">✕</button>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">选择目标相册</label>
+            <el-select v-model="moveToAlbumId" placeholder="选择相册" class="w-full">
+              <el-option v-for="album in albums" :key="album.id" :label="album.name" :value="album.id" />
+            </el-select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2">
             <el-button @click="closeMoveDialog">取消</el-button>
-            <el-button type="primary" @click="confirmMove" :loading="moving">确定</el-button>
+            <el-button type="primary" @click="confirmMove" :loading="moving">确认移动</el-button>
           </div>
         </div>
       </div>
     </Teleport>
 
+    <!-- 模态框: 确认删除 -->
     <Teleport to="body">
-      <div v-if="deleteDialogVisible" class="fixed inset-0 z-[10030] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
-        <div class="w-[320px] max-w-[88vw] rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">确认删除</div>
-            <button type="button" class="w-8 h-9 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="deleteDialogVisible = false">×</button>
+      <div v-if="deleteDialogVisible" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="w-full max-w-xs rounded-3xl bg-white shadow-2xl border border-slate-200 p-5 space-y-3.5 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+            🗑
           </div>
-          <div class="text-slate-600">确定删除这张图片？</div>
-          <div class="grid grid-cols-2 gap-2 mt-4">
+          <div>
+            <div class="text-base font-bold text-slate-900">移至回收站</div>
+            <div class="text-xs text-slate-500 mt-1">确定要将此照片移入回收站吗？之后可以随时还原。</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-2">
             <el-button @click="deleteDialogVisible = false">取消</el-button>
             <el-button type="danger" @click="confirmDelete" :loading="deleting">删除</el-button>
           </div>
@@ -190,17 +210,36 @@
       </div>
     </Teleport>
 
+    <!-- 模态框: 照片详情与 EXIF -->
     <Teleport to="body">
-      <div v-if="detailVisible && detail" class="fixed inset-0 z-[10040] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4">
-        <div class="w-[360px] max-w-[92vw] max-h-[82vh] overflow-auto rounded-[24px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] border border-slate-200/80 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-[18px] font-semibold text-slate-900 tracking-tight">图片详情</div>
-            <button type="button" class="w-8 h-9 rounded-full bg-slate-100 text-slate-400 text-xl leading-none flex items-center justify-center" @click="detailVisible = false">×</button>
+      <div v-if="detailVisible && detail" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="w-full max-w-sm max-h-[85vh] overflow-y-auto rounded-3xl bg-white shadow-2xl border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="text-base font-bold text-slate-900">照片详情</div>
+            <button type="button" class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 text-sm flex items-center justify-center hover:bg-slate-200" @click="detailVisible = false">✕</button>
           </div>
-          <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-3xl border border-slate-200" />
-          <div class="grid grid-cols-1 gap-3 mt-4">
-            <div class="panel-mini"><div class="label">文件名</div><div class="value break-all">{{ detail.original_filename }}</div></div>
-            <div class="panel-mini"><div class="label">分辨率</div><div class="value">{{ detail.width }} x {{ detail.height }}</div></div>
+
+          <img :src="`/api/photos/file/${detail.id}`" class="w-full rounded-2xl border border-slate-100 shadow-sm max-h-60 object-contain bg-slate-50" />
+
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400 font-medium uppercase">文件名</div>
+              <div class="text-slate-800 font-medium break-all mt-0.5">{{ detail.original_filename }}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="text-[10px] text-slate-400 font-medium uppercase">分辨率</div>
+                <div class="text-slate-800 font-medium mt-0.5">{{ detail.width }} × {{ detail.height }}</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="text-[10px] text-slate-400 font-medium uppercase">所属相册</div>
+                <div class="text-slate-800 font-medium mt-0.5 truncate">{{ detail.album_name || '未分类' }}</div>
+              </div>
+            </div>
+            <div v-if="detail.camera_model" class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400 font-medium uppercase">拍摄设备</div>
+              <div class="text-slate-800 font-medium mt-0.5">{{ detail.camera_make }} {{ detail.camera_model }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -220,7 +259,6 @@ const photos = ref<any[]>([])
 const totalPhotos = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
-const pageJump = ref('')
 const tags = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 const selectionMode = ref(false)
@@ -235,8 +273,6 @@ const detail = ref<any>(null)
 const moveDialogVisible = ref(false)
 const moveToAlbumId = ref<number | undefined>()
 const bulkMoveToAlbumId = ref<number | undefined>()
-const bulkMovePickerOpen = ref(false)
-const movePickerOpen = ref(false)
 const deleteDialogVisible = ref(false)
 const moving = ref(false)
 const deleting = ref(false)
@@ -247,10 +283,7 @@ const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
 const latestUploadedPhotoId = ref<number | null>(null)
 
-const selectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === moveToAlbumId.value)?.name || '')
-const bulkSelectedMoveAlbumName = computed(() => albums.value.find((a: any) => a.id === bulkMoveToAlbumId.value)?.name || '')
 const totalPages = computed(() => Math.max(1, Math.ceil(totalPhotos.value / pageSize.value)))
-const brokenCount = computed(() => photos.value.filter((p:any) => !!p.is_broken).length)
 
 const closeActionPanel = () => {
   activeCardId.value = null
@@ -260,7 +293,7 @@ const toggleSelect = (id: number) => {
   selectedIds.value = selectedIds.value.includes(id) ? selectedIds.value.filter(i => i !== id) : [...selectedIds.value, id]
 }
 
-const clearSelection = () => { selectedIds.value = []; bulkMovePickerOpen.value = false; selectionMode.value = false }
+const clearSelection = () => { selectedIds.value = []; selectionMode.value = false }
 
 const toggleCardActions = (id: number) => {
   activeCardId.value = activeCardId.value === id ? null : id
@@ -301,18 +334,6 @@ const changePage = async (next: number) => {
   await search()
 }
 
-const changePageSize = async (size: number) => {
-  pageSize.value = size
-  page.value = 1
-  await search()
-}
-
-const jumpToPage = async () => {
-  const n = Number(pageJump.value)
-  if (!Number.isFinite(n)) return
-  await changePage(n)
-}
-
 const recheckBroken = async () => {
   try {
     const ids = photos.value.filter((p:any) => p.is_broken).map((p:any) => p.id)
@@ -325,7 +346,6 @@ const recheckBroken = async () => {
     messageType.value = 'error'
   }
 }
-
 
 const sanitizeFilename = (name?: string) => {
   const raw = (name || 'image.jpg').split('/').pop() || 'image.jpg'
@@ -364,7 +384,7 @@ const handleUpload = async (options: any) => {
     latestUploadedPhotoId.value = data?.id || null
     await search()
     setTimeout(() => { latestUploadedPhotoId.value = null }, 6000)
-    ElMessage.success('上传成功，已跳到最新图片')
+    ElMessage.success('上传成功')
   } catch (e: any) {
     message.value = e?.response?.data?.error || e?.message || '上传失败'
     messageType.value = 'error'
@@ -381,24 +401,12 @@ const openDetail = async (id: number) => {
 const openMoveDialog = (id: number) => {
   activeMoveId.value = id
   moveToAlbumId.value = undefined
-  movePickerOpen.value = false
   moveDialogVisible.value = true
   closeActionPanel()
 }
 
 const closeMoveDialog = () => {
   moveDialogVisible.value = false
-  movePickerOpen.value = false
-}
-
-const selectMoveAlbum = (album: any) => {
-  moveToAlbumId.value = album.id
-  movePickerOpen.value = false
-}
-
-const selectBulkMoveAlbum = (album: any) => {
-  bulkMoveToAlbumId.value = album.id
-  bulkMovePickerOpen.value = false
 }
 
 const confirmMove = async () => {
@@ -435,7 +443,7 @@ const toRecycleSelected = async () => {
     await batchDelete(selectedIds.value)
     clearSelection()
     await search()
-    ElMessage.success('已批量放入回收站')
+    ElMessage.success('已移入回收站')
   } finally {
     deleting.value = false
   }
@@ -472,28 +480,3 @@ onBeforeUnmount(() => {
   window.removeEventListener('click', handleWindowClick)
 })
 </script>
-
-<style scoped>
-.panel-card { @apply rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm; }
-.panel-empty { @apply rounded-[24px] border border-slate-200 bg-white p-10 text-center text-slate-400 shadow-sm; }
-.panel-mini { @apply rounded-[14px] bg-slate-50 p-4; }
-.label { @apply text-xs text-slate-500 mb-1; }
-.value { @apply text-sm text-slate-800; }
-.action-mini-btn {
-  height: 36px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  font-size: 12px;
-  font-weight: 400;
-  color: #475569;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-.photos-toolbar-grid > *{min-width:0;}
-.photos-toolbar-grid button,.photos-toolbar-grid input{box-sizing:border-box;}
-
-.action-ghost-btn{width:100%;height:36px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:400;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:none;}
-.action-ghost-btn-danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48;}
-</style>

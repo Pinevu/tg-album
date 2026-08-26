@@ -1,11 +1,11 @@
 export const APP_VERSION = "1.3.43" as const
 export const APP_NAME = "tg-album-admin" as const
-export const GIT_COMMIT = "708edd025fca11f322048d9f83abf71e9da4fa88" as const
-export const GIT_COMMIT_SHORT = "708edd0" as const
+export const GIT_COMMIT = "21aec6fd351bcfdf09f50343e061f7446cc9e240" as const
+export const GIT_COMMIT_SHORT = "21aec6f" as const
 export const GIT_BRANCH = "main" as const
-export const GIT_MESSAGE = "feat: add unified app version metadata endpoint" as const
-export const GIT_COMMIT_TIME = "2026-04-08T17:36:02+08:00" as const
-export const BUILD_TIME = "2026-04-08T11:32:57.554Z" as const
+export const GIT_MESSAGE = "fix: show splash after data loads, not before, and on password auth" as const
+export const GIT_COMMIT_TIME = "2026-07-18T20:31:04+08:00" as const
+export const BUILD_TIME = "2026-08-26T19:39:05.960199+00:00" as const
 export const CF_PAGES = "" as const
 export const CF_PAGES_URL = "" as const
 
